@@ -30,7 +30,7 @@
 ' This script requires access to variables declared and maintained by the
 ' following scripts:
 ' - lights         : For configuration (repaint) variables (whether head fog
-                     lights or other optional light sources are available).
+'                    lights or other optional light sources are available).
 ' - ai_pre_cockpit : Target AI state of engine and transmission, as well state
 '                    of passenger window adjustment by driver, for
 '                    synchronization / timing purposes.
