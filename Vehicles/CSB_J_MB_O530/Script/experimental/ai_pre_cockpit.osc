@@ -809,12 +809,6 @@
 
 '   // ----- Passenger window usage by driver (see ai_pre_cockpit_passenger_windows macro) -----
 
-'   // Establish passenger window locking preference / strategy:
-'   // - Most likely: Lock passenger windows when env deemed either "cold" (or worse), or "hot" (or worse).
-'   // - Less likely: Lock passenger windows unconditionally, unless in use by driver; i.e., if the driver
-'   //   deems that one or several particular windows be opened, then these (and only these) windows will
-'   //   be exempt from locking.
-'   // - Least likely: Never lock passenger windows.
 	10000 random (M.V.NrSpecRandom) 0.7 <
 	{if}
 		2
@@ -827,10 +821,8 @@
 		{endif}
 	{endif}
 	(S.L.ai_pre_cockpit_passenger_window_usage_scope)
-'   // Establish passenger window usage preferences; most likely (and most windows opened) when env "ideal" or "warm",
-'   // and "day" and "dry".
+
 	0 s1 s2 s3 s4
-'	// 0~2 windows
 	10000 random (M.V.NrSpecRandom) 0.2 < s0
 	{if}
 		0.2 (S.L.r10) 0.6 (S.L.r11) 0.1 (S.L.r12) 0.2 (S.L.r13)
@@ -840,7 +832,6 @@
 	l2 (S.L.ai_pre_cockpit_opening_passenger_window_1_r_when_env_chilly_dry_daytime)
 	l3 (S.L.ai_pre_cockpit_opening_passenger_window_2_l_when_env_chilly_dry_daytime)
 	l4 (S.L.ai_pre_cockpit_opening_passenger_window_2_r_when_env_chilly_dry_daytime)
-'	// 0~4 windows
 	10000 random (M.V.NrSpecRandom) 0.2 < l0 || s0
 	{if}
 		l1 l2 || l3 || l4 ||
@@ -856,7 +847,6 @@
 	l2 (S.L.ai_pre_cockpit_opening_passenger_window_1_r_when_env_ideal_dry_nighttime)
 	l3 (S.L.ai_pre_cockpit_opening_passenger_window_2_l_when_env_ideal_dry_nighttime)
 	l4 (S.L.ai_pre_cockpit_opening_passenger_window_2_r_when_env_ideal_dry_nighttime)
-'	// 0~4 windows
 	10000 random (M.V.NrSpecRandom) 0.5 < l0 || s0
 	{if}
 		l1 l2 || l3 || l4 ||
@@ -871,19 +861,16 @@
 	l2 (S.L.ai_pre_cockpit_opening_passenger_window_1_r_when_env_ideal_dry_daytime)
 	l3 (S.L.ai_pre_cockpit_opening_passenger_window_2_l_when_env_ideal_dry_daytime)
 	l4 (S.L.ai_pre_cockpit_opening_passenger_window_2_r_when_env_ideal_dry_daytime)
-'	// 0 or all 4 windows
 	10000 random (M.V.NrSpecRandom) 0.5 < l0 || s0 s1
 		(S.L.ai_pre_cockpit_opening_passenger_window_1_l_when_env_warm_dry_nighttime)
 		(S.L.ai_pre_cockpit_opening_passenger_window_1_r_when_env_warm_dry_nighttime)
 		(S.L.ai_pre_cockpit_opening_passenger_window_2_l_when_env_warm_dry_nighttime)
 		(S.L.ai_pre_cockpit_opening_passenger_window_2_r_when_env_warm_dry_nighttime)
-'	// 0 or all 4 windows
 	10000 random (M.V.NrSpecRandom) 0.75 < l0 || s0
 		(S.L.ai_pre_cockpit_opening_passenger_window_1_l_when_env_warm_dry_daytime)
 		(S.L.ai_pre_cockpit_opening_passenger_window_1_r_when_env_warm_dry_daytime)
 		(S.L.ai_pre_cockpit_opening_passenger_window_2_l_when_env_warm_dry_daytime)
 		(S.L.ai_pre_cockpit_opening_passenger_window_2_r_when_env_warm_dry_daytime)
-'	// 0 or all 4 windows
 	10000 random (M.V.NrSpecRandom) 0.1 < l0 && l1 && s0
 		(S.L.ai_pre_cockpit_opening_passenger_window_1_l_when_env_hot_dry_nighttime)
 		(S.L.ai_pre_cockpit_opening_passenger_window_1_r_when_env_hot_dry_nighttime)
@@ -958,10 +945,6 @@
 {end}
 
 {macro:ai_pre_cockpit_profile_init_choose_initial_passenger_windows}
-'	// Choose a window for opening.
-'   // r10: Front vs rear; rear more likely under poor weather, since it tends to get warmer there.
-'   // r11: Left vs right; left more likely under poor weather, since it produces less of an air rush, potentially,
-'   //      when driver's window also open.
 	10000 random (M.V.NrSpecRandom) (L.L.r10) <
 	{if}
 		10000 random (M.V.NrSpecRandom) (L.L.r11) <
@@ -978,11 +961,7 @@
 			1 s4
 		{endif}
 	{endif}
-'   // Choose a second window for opening, based on the initial one.
-'   // r12: Probability of opening a second window at all.
-'   // r13: Directly vs diagonally opposite window selection; under poor weather, tend to favor the window directly
-'   //      opposite to the one already selected (e.g. front-left <-> front-right), as draft unwelcoming; otherwise
-'   //      favor window diagonally opposite to the first one (e.g. front-left <-> rear-right).
+
 	10000 random (M.V.NrSpecRandom) (L.L.r12) <
 	{if}
 		10000 random (M.V.NrSpecRandom) (L.L.r13) <
@@ -1005,9 +984,6 @@
 {end}
 
 {macro:ai_pre_cockpit_profile_init_choose_subsequent_passenger_windows}
-'	// Choose 0-4 windows for opening, in addition to any already selected.
-'   // r10: Directly vs diagonally opposite window selection.
-'   // r11: Probability of opening a window if its "complement" (depending on r10) has _not_ (yet) been selected.
 	10000 random (M.V.NrSpecRandom) (L.L.r10) <
 	{if}
 		10000 random (M.V.NrSpecRandom) (L.L.r11) < l4 || s1
@@ -7009,6 +6985,39 @@
 {macro:ai_pre_cockpit_passenger_windows}
 '	// ----- Passenger windows (driver) adjustment scheduling -----
 
+'	// Passenger windows are adjusted by the driver upon arrival at prolonged/2 (engine-off) stops, once any other
+'	// pending cockpit adjustments have taken place.
+'	// Preference-wise:
+'	// - Windows are only opened when the environment is deemed "dry"; otherwise they are closed.
+'	// - Under conditions perceived as "chilly" and "daytime", 0~2 windows are opened.
+'	// - Under conditions perceived as "ideal", 0~4 windows are opened.
+'	// - Under "warm" conditions, 0 or all 4 windows are opened.
+'	// - Under hot conditions, windows are generally shut. Some drivers may exceptionally retain all of them open,
+'	//   however.
+'	// - Under any other case windows remain shut.
+'	// - The same windows chosen to be opened under lower temperature ranges, or more, are (retained) opened under
+'	//   higher temperature ranges, as long as conditions remain "dry", except, potentially, when transitioning from
+'	//   "warm" to "hot" (where windows are likely closed).
+'	// - Drivers will typically choose a window in the rear first (it tends to get warmer in the rear due to the
+'	//   engine). For choosing the second window there are currently two implemented "strategies": Either the window
+'	//   directly opposing the first, or the one diagonally opposing it gets selected. The same logic is applied for
+'	//   picking the remaining two windows.
+'	// - Drivers will lock windows under certain conditions. The average driver will however only do so under the
+'	//   extreme ends of the temperature spectrum. Nevertheless some drivers will always lock windows when not in use,
+'	//   while others never lock them.
+'	// - Preferences are static.
+'	// Adjustment-wise:
+'	// - It should appear _as if_ the driver walked over to each window and adjusted it. Of course the actual AI driver
+'	//   figure can't be animated. First the driver cubicle door will be dragged open. Then at 5~15 second intervals
+'	//   one or more windows will be adjusted. Lastly the driver door will be dragged closed again. This whole
+'	//   adjustment cycle takes roughly a minute or two to complete, depending on the number of windows pending
+'	//   adjustment. From the point in time the driver door gets opened, until the instant it gets closed again, any
+'	//   other pending adjustments (e.g., opening a door to allow passenger boarding) are postponed / rescheduled
+'	//   the driver cannot be both "outside" and "inside" their cubicle at the same time, after all.
+'	// - As usual with long-running adjustments, passenger windows will "automagically" (instantly) get adjusted
+'	//   whenever AI vehicles exit hibernation and their adjustment tolerance has elapsed, as well as at the time of
+'	//   their initial spawning, to give the casual observer the impression that "they adjusted in the meantime".
+
 	(L.L.ai_pre_cockpit_initialized) 5 < (L.L.ai_pre_cockpit_env_perception_changed) ||
 	{if}
 		0 s0 s1 s2 s3
@@ -7094,6 +7103,7 @@
 	(L.L.ai_pre_cockpit_initialized) 5 < (L.L.ai_pre_cockpit_initial_spawn_as_ai_vehicle) 1 = &&
 		(L.L.ai_pre_cockpit_stop_phase) 4 = (L.L.ai_pre_cockpit_env_perception_changed) && ||
 	{if}
+'		// Initialization (initial spawn) or post-hibernation: Instant adjustment
 		(L.L.cp_cti_has_openable_passenger_windows)
 		{if}
 			l0 (S.L.cp_passenger_window_1_l) ! l4 && (S.L.cp_passenger_window_1_l_locked)
@@ -7106,6 +7116,8 @@
 	{else}
 		(L.L.cp_cti_has_openable_passenger_windows)
 		{if}
+'			// Non-initialization / non-post-hibernation: Delayed / detailed / realistic adjustment
+
 			(L.L.ai_pre_cockpit_stop_brake_sw_timer) -1 = (L.L.ai_pre_cockpit_door_lock_sw_timer) -1 = &&
 				(L.L.ai_pre_cockpit_door_01_sw_timer) -1 = && (L.L.ai_pre_cockpit_door_23_sw_timer) -1 = &&
 				(L.L.ai_pre_cockpit_driver_window_sw_timer) -1 = && (L.L.cp_dummy_sw08) ! &&
