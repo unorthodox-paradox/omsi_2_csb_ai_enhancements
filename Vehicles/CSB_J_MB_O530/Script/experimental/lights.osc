@@ -1,0 +1,2132 @@
+'==============================================================================
+'
+' Lighting subsystem for CSB vehicles
+'
+'==============================================================================
+'
+' Compatibility
+' -------------
+'
+' OMSI version                                    : 2.2.032 ~ 2.3.004
+' Supported CSB modules                           : MB O530 - 1.30
+' Supported CSB vehicles                          : CVAG 72
+' CSB AI enhancements version                     : 1.5.1
+'
+'==============================================================================
+'
+' Overview
+' --------
+'
+' This script controls light circuit state, light source state and energy
+' consumption per source, AI traffic signaling by user-controlled vehicles,
+' and the state of vehicle-/model.cfg-specific illumination effects.
+'
+'==============================================================================
+'
+' Dependencies
+' ------------
+'
+' This script requires access to variables declared and maintained by the
+' following scripts:
+' - cockpit : State of dashboard light switches, cockpit door control lights.*
+' - elec    : Electrics state, battery load, aggregate energy consumption.*
+' - door    : Door opening status.
+' - bremse  : Stop brake engagement status.
+' - engine  : Engine rotation frequency.
+'
+' *foreign variable(s) written to by this script
+'
+' The following scripts depend on the state or functionality of this script:
+' - cockpit:
+'   - Headlight circuit and bulb state, for determining whether triggering the
+'     indicator lever shall be interpreted as permanent or temporary
+'     ("flashing") high beam activation.
+'   - Indicator on/off timing initiation callback upon triggering of the
+'     regular and hazard indicator lever/switch.
+'   - Door post-closure timing, for dashboard control lights.
+' - VDV:
+'   - Light circuit and bulb state for rendering warnings for battery energy
+'     consumption, when electrics and engine off exterior light source
+'     malfunctions.
+'   - Door post-closure timing, for rendering its door status icons.
+'
+'==============================================================================
+'
+' Known contributors
+' ------------------
+'
+' - Marcel Kuhnt, Rüdiger Hülsmann, et al. (2009 ~ 2014):
+'   Original script for MAN SD20x and NL/NG2x2 adaptation.
+' - alTerr, wizard (2012 ~ 2014), Morphi (2012 ~ 2018), et al.:
+'   MB O530 (G) and MB O520 adaptation.
+' - Unorthodox Paradox (2018 ~ 2019):
+'   CSB adaptation.
+'
+'==============================================================================
+'==============================================================================
+
+
+'------------------------------------------------------------------------------
+' Initialization entry point.
+'
+' This macro is executed once at initial vehicle spawn time, as well as upon
+' each subsequent reload of a saved situation "containing" the vehicle.
+'
+' Note that this does not account for light source lifetime / "health", and AI
+' preference set initialization, both of which are deferred to the first few
+' "normal" frames / script executions (see corresponding macro documentation
+' for why that is).
+'------------------------------------------------------------------------------
+{macro:lights_init}
+    (M.L.lights_ai_init)
+    -1 (S.L.Spot_Select)
+    0 (S.L.lights_pseudo_lichthupe)
+    -1 (S.L.lights_pseudo_lichthupe_timer)
+{end}
+
+'------------------------------------------------------------------------------
+' Main execution unit / entry point.
+'
+' This macro runs once per frame. Portions of it, however, particularly testing
+' aspects of the AI lighting script, may be executed multiple times within the
+' same frame.
+'------------------------------------------------------------------------------
+{macro:lights_frame}
+    (L.L.lights_initialized) !
+    {if}
+        1 (S.L.lights_initialized)
+    {else}
+        (L.L.lights_initialized) 1 =
+        {if}
+'           // Deferred initialization of light source "health": It is only at this point that we can discern between user-
+'           // and AI-controlled vehicles (the latter have "infinite" wearlifespan).
+            (M.L.lights_repair)
+            2 (S.L.lights_initialized)
+        {endif}
+    {endif}
+
+'   // Delegation of AI lighting-related decision making to lights_ai.osc.
+    (M.L.lights_ai_frame)
+
+'   // Note: Delegation order from this point onwards is significant.
+
+'   // Actualization of bidirectional user <-> AI traffic / passenger predefined OMSI variables, when the vehicle is
+'   // user-controlled.
+    (M.L.lights_user_traffic_signaling)
+
+'   // Retrieval and, in some edge cases, update of cockpit script state.
+    (M.L.lights_cockpit_translation)
+
+'   // Mapping from cockpit state to light circuit state, given engine and electrics state.
+    (M.L.lights_circuit_state)
+
+'   // Deriving the state of individual light sources from light circuit state and light source "health".
+    (M.L.lights_source_state)
+
+'   // Notifying the electrics script about power consumption / demand by lights.
+    (M.L.lights_energy_consumption)
+
+'   // Mapping from light source state to model.cfg-specific illumination effects.
+    (M.L.lights_model_illumination_effects)
+{end}
+
+'------------------------------------------------------------------------------
+' This macro keeps the lighting-related predefined bidirectional
+' user <-> AI traffic / passenger OMSI variables up to date. It only runs when
+' the vehicle is user-controlled.
+'------------------------------------------------------------------------------
+{macro:lights_user_traffic_signaling}
+
+'   // XXX: This macro depends on _previous_ frame side effects, including portions of the last cockpit script
+'   //      execution. It would be much more readable and maintainable if refactored to reside at the very bottom of
+'   //      the lights_frame macro. However due to past sins of lights-cockpit interdependencies, this is easier said
+'   //      than done...
+
+    (L.L.AI) !
+    {if}
+'       // User -> AI indicator usage signaling
+
+'       // Condition:
+'       // - An indicator at the vehicle's head _or_ side must be functional.
+'       // - At least one tail indicator must be functional.
+'       // - Indicators must be active at the circuit level. They need not necessarily be flashing at any given instant
+'       //   for the AI to acknowledge them (that's what the "conceptual" variables are all about).
+'       // - All of the above must naturally apply to the corresponding side of the vehicle.
+
+        (L.L.lights_blinker_l_conceptual)
+        {if}
+            (L.L.lights_blinker_h_l_bulb_lifetime) 0 > (L.L.lights_blinker_s_l_1_bulb_lifetime) 0 > || (C.L.articulated_variant) (L.L.lights_blinker_s_l_2_bulb_lifetime) 0 > && ||
+                (L.L.lights_blinker_t_l_t_bulb_lifetime) 0 > (L.L.lights_blinker_t_l_m_bulb_lifetime) 0 > || &&
+        {else}
+            0
+        {endif}
+        (S.L.AI_Blinker_L)
+
+        (L.L.lights_blinker_r_conceptual)
+        {if}
+            (L.L.lights_blinker_h_r_bulb_lifetime) 0 > (L.L.lights_blinker_s_r_1_bulb_lifetime) 0 > || (C.L.articulated_variant) (L.L.lights_blinker_s_r_2_bulb_lifetime) 0 > && ||
+                (L.L.lights_blinker_t_r_t_bulb_lifetime) 0 > (L.L.lights_blinker_t_r_m_bulb_lifetime) 0 > || &&
+        {else}
+            0
+        {endif}
+        (S.L.AI_Blinker_R)
+
+'       // User -> AI exterior light usage signaling
+
+'       // This section also addresses an OMSI bug, where manually flashing the high beam whilst headlights are on is
+'       // not actually perceived by the AI as flashing / priority-indicating. Technically, the bug manifests when
+'       // AI_Light transitions from 1 to 2; when its initial value is lower ("auto-flashing") the problem does not
+'       // occur.
+
+'       // High beam usage signaling condition: Either of the two high beam bulbs must be active.
+        (L.L.lights_fern_l_bulb) (L.L.lights_fern_r_bulb) ||
+        {if}
+'           // AI high beam flashing bug workaround - phase 1: Acknowledge the fact that the high beam was manually
+'           // activated.
+'           // Note: lights_pseudo_lichthupe was previously set by cockpit script upon the lever's triggering.
+            (L.L.lights_pseudo_lichthupe)
+            {if}
+                2 (S.L.lights_pseudo_lichthupe_timer)
+            {endif}
+            2
+        {else}
+            (L.L.lights_abbl_l_bulb) (L.L.lights_nebelschw_l_bulb) || (L.L.lights_abbl_r_bulb) || (L.L.lights_nebelschw_r_bulb) ||
+            {if}
+'               // Headlight usage signaling condition: At least one of the 2 headlight or 2 head fog light bulbs must
+'               // be active (the SDK does not natively acknowledge fog lights).
+
+                (L.L.lights_pseudo_lichthupe_timer) -1 = !
+                {if}
+'                   // AI high beam flashing workaround - phase 2: If previous state was "manual high beam on", then
+'                   // briefly pretend only standstill lights were active. If the user repeats the same process (high
+'                   // beam manually on and off again) once more before our timer expires, the game gets effectively
+'                   // "tricked" into believing the signaling is legitimate, thereby circumventing the need of
+'                   // temporarily deactivating headlights, as would otherwise have been the case.
+                    (L.L.lights_pseudo_lichthupe_timer)
+                    {if}
+                        (L.L.lights_pseudo_lichthupe_timer) (L.S.timegap) - 0 max (S.L.lights_pseudo_lichthupe_timer)
+                    {endif}
+
+                    (L.L.lights_pseudo_lichthupe_timer) !
+                    {if}
+'                       // High-beam-off-since-timer expired; acting normally (signaling headlight usage).
+                        -1 (S.L.lights_pseudo_lichthupe_timer)
+                        1
+                    {else}
+'                       // High-beam-off-since-timer still running; pretending only standstill lights are active, to
+'                       // convince OMSI to acknowledge the fact we're flashing (if repeated at least 2x by user).
+                        0.5
+                    {endif}
+                {else}
+'                   // High beam has been deactivated for longer than the timed transitional period; acting normally
+'                   // (signaling headlight usage).
+                    1
+                {endif}
+            {else}
+                -1 (S.L.lights_pseudo_lichthupe_timer)
+
+                (L.L.lights_stand)
+                {if}
+'                   // Standstill light usage signaling condition:
+'                   // - At least one of the 2+2 standstill or head marker light bulbs must be active; and
+'                   // - one or more of the first 4 side marker light bulbs _on both_ sides must be active; and
+'                   // - one or more of a) the 5th side marker, or b) tail marker, or c) tail fog light(s), or d) tail
+'                   //   license plate light bulbs must be active.
+                    (L.L.lights_stand_l_bulb) (L.L.lights_stand_r_bulb) || (L.L.lights_position_h_l_bulb) || (L.L.lights_position_h_r_bulb) || s0
+                    (L.L.lights_position_s_l_1_bulb) (L.L.lights_position_s_l_2_bulb) || (L.L.lights_position_s_l_3_bulb) || (L.L.lights_position_s_l_4_bulb) || s1
+                    (L.L.lights_position_s_r_1_bulb) (L.L.lights_position_s_r_2_bulb) || (L.L.lights_position_s_r_3_bulb) || (L.L.lights_position_s_r_4_bulb) || s2
+                    (L.L.lights_position_s_l_5_bulb) (L.L.lights_position_s_r_5_bulb) || (L.L.lights_position_t_l_t_bulb) || (L.L.lights_position_t_r_t_bulb) ||
+                        (L.L.lights_position_t_l_m_bulb) || (L.L.lights_position_t_r_m_bulb) || (L.L.lights_position_t_l_b_bulb) || (L.L.lights_position_t_r_b_bulb) ||
+                        (L.L.lights_kennz_hinten_l_bulb) || (L.L.lights_kennz_hinten_r_bulb) || (L.L.lights_nebelschluss_l_bulb) || (L.L.lights_nebelschluss_r_bulb) || s3
+                    l0 l1 && l2 && l3 &&
+                    {if}
+                        0.5
+                    {else}
+'                       // No exterior lights signaled as active to AI.
+                        0
+                    {endif}
+                {else}
+'                   // No exterior lights signaled as active to AI.
+                    0
+                {endif}
+            {endif}
+        {endif}
+        (S.L.AI_Light)
+
+'       // User -> AI interior light usage signaling
+
+'       // Condition: Any of the 6 passenger compartment tubes being active shall suffice.
+        (L.L.lights_int_any_emitter) (S.L.AI_Interiorlight)
+
+    {endif}
+
+    0 (S.L.lights_pseudo_lichthupe)
+{end}
+
+'------------------------------------------------------------------------------
+' This macro complements some of the cockpit script's logic pertaining to
+' activation and deactivation conditions of certain lighting functions. It also
+' "callbacks" to update some cockpit script state on its own.
+'------------------------------------------------------------------------------
+{macro:lights_cockpit_translation}
+
+'   // "School driver" mode hazard indicator function
+
+    (L.L.lights_schulfahrschaltung) !
+    {if}
+        (L.L.cp_schulfahrschalter_sw) (L.L.lights_schulfahrschaltung_triggered) ! && (L.L.lights_sw_blinker) 1 = ! &&
+        {if}
+            1 (S.L.lights_schulfahrschaltung)
+            0 (S.L.lights_blinker_running)
+            (M.L.lights_calc_geberfaktor)
+            (M.L.lights_startblinkgeber)
+        {else}
+            (L.L.cp_schulfahrschalter_sw) !
+            {if}
+                0 (S.L.lights_schulfahrschaltung_triggered)
+            {endif}
+        {endif}
+    {else}
+        (L.L.cp_schulfahrschalter_sw) (L.L.lights_schulfahrschaltung_triggered) && (L.L.lights_sw_blinker) 1 = ||
+        {if}
+            0 (S.L.lights_schulfahrschaltung)
+        {else}
+            (L.L.cp_schulfahrschalter_sw) !
+            {if}
+                1 (S.L.lights_schulfahrschaltung_triggered)
+            {endif}
+        {endif}
+    {endif}
+
+'   // Auto indicator lever resetting
+'   // XXX: Refactor anything switch/lever-related, such as most of the following, back into the cockpit script.
+'   //      Currently both scripts mess with each others' variables, which significantly hurts readability and
+'   //      modularity alike.
+
+    (L.L.Axle_Steering_0_L) (C.L.lights_blinkautom_minLenk) > (L.L.lights_sw_blinker) 2 = &&
+    {if}
+        1 (S.L.lights_blinkautom_r_armed)
+    {else}
+        (L.L.lights_blinkautom_r_armed)
+        {if}
+            0 (S.L.lights_blinkautom_r_armed)
+            (L.L.AI) 10000 random 10000 / (L.L.ai_pre_cockpit_indicator_pc_factor_low) 2 / >= (L.L.AI_Blinker_R) ! ||
+                (L.L.AI_Blinker_L) (L.L.AI_Blinker_R) 2 * + 3 = || && (L.L.AI) ! ||
+            {if}
+                (L.L.AI)
+                {if}
+                    -1 (S.L.ai_pre_cockpit_indicator_sw_timer)
+                    10000 random 10000 / (L.L.ai_pre_cockpit_indicator_pc_factor_low) 2 / >= (L.L.AI_Blinker_R) ! ||
+                        (L.L.AI_Blinker_L) (L.L.AI_Blinker_R) 2 * + 3 = ||
+                    {if}
+                        -3
+                    {else}
+                        0
+                    {endif}
+                    (S.L.ai_pre_cockpit_indicator_sw_target)
+                    (L.L.ai_pre_cockpit_indicator_sw_target_context) 2 >=
+                    {if}
+                        0 (S.L.ai_pre_cockpit_indicator_sw_target_context)
+                    {endif}
+                {endif}
+                0 (S.L.lights_sw_blinker) (S.L.lights_blinkgeber)
+            {endif}
+        {endif}
+    {endif}
+
+    (L.L.Axle_Steering_0_L) /-/ (C.L.lights_blinkautom_minLenk) > (L.L.lights_sw_blinker) 1 = &&
+    {if}
+        1 (S.L.lights_blinkautom_l_armed)
+    {else}
+        (L.L.lights_blinkautom_l_armed)
+        {if}
+            0 (S.L.lights_blinkautom_l_armed)
+            (L.L.AI) 10000 random 10000 / (L.L.ai_pre_cockpit_indicator_pc_factor_low) 2 / >= (L.L.AI_Blinker_L) ! ||
+                (L.L.AI_Blinker_L) (L.L.AI_Blinker_R) 2 * + 3 = || && (L.L.AI) ! ||
+            {if}
+                (L.L.AI)
+                {if}
+                    -1 (S.L.ai_pre_cockpit_indicator_sw_timer)
+                    10000 random 10000 / (L.L.ai_pre_cockpit_indicator_pc_factor_low) 2 / >=  (L.L.AI_Blinker_L) ! ||
+                        (L.L.AI_Blinker_L) (L.L.AI_Blinker_R) 2 * + 3 = ||
+                    {if}
+                        -2
+                    {else}
+                        0
+                    {endif}
+                    (S.L.ai_pre_cockpit_indicator_sw_target)
+                    (L.L.ai_pre_cockpit_indicator_sw_target_context) 2 >=
+                    {if}
+                        0 (S.L.ai_pre_cockpit_indicator_sw_target_context)
+                    {endif}
+                {endif}
+                0 (S.L.lights_sw_blinker) (S.L.lights_blinkgeber)
+            {endif}
+        {endif}
+    {endif}
+{end}
+
+'------------------------------------------------------------------------------
+' This macro maintains the state of the light circuit.
+'
+' Specifically it applies voltage to each grouping of sources (e.g. headlights,
+' position), based on cockpit (light controlling switches / levers), main
+' electrics circuit (voltage, battery load, main circuit activation) and engine
+' state (RPM).
+'------------------------------------------------------------------------------
+{macro:lights_circuit_state}
+    (M.L.lights_calc_geberfaktor)
+    (M.L.lights_runblinkgeber)
+
+    (L.L.elec_busbar_avail)
+    {if}
+
+'       // elec_battery_load is directly queried for two reasons: Firstly to simulate automatic "throttling" of certain
+'       // power-hungry functions when the battery levels approach critical. Secondly in order to simulate behavior
+'       // under actual battery depletion -- no lights being operable any longer -- which unfortunately isn't otherwise
+'       // possible, due to elec_busbar_avail staying non-zero even when elec_battery_load has gone down to, in fact,
+'       // zero.
+'       // XXX: Is my understanding / expectation fundamentally flawed? Or has the original lights + elec combo been
+'       //      incomplete in that regard?
+
+'       // Similarly, engine_revs_since_start is used alongside engine_n to ensure, to a certain extent, that the
+'       // engine has reached a steady operational state, as a precondition of outputting voltage to secondary,
+'       // non-critical, yet power-hungry functions such as the main passenger lights.
+
+'       // ----- Exterior light groupings -----
+
+        (L.L.elec_busbar_avail) s0 (C.L.elec_busbar_minV) s1 >
+        {if}
+            l0 sqr
+        {else}
+            0
+        {endif}
+        s0
+        (L.L.elec_busbar_main) s2 l1 >
+        {if}
+            l2 sqr
+        {else}
+            0
+        {endif}
+        s1
+        (L.L.engine_revs_since_start) (L.L.engine_n) 400 > * s2
+        (L.L.elec_battery_load) s3
+
+'       // Indicator
+'       // Note: The "conceptual" variables are used for user -> AI signaling (otherwise AI traffic's perception of
+'       //       user's indicating would alternate between "indicating" and "not-indicating" every other second.
+
+'       // Left
+        (L.L.lights_sw_blinker) 1 = (L.L.lights_sw_warnblinker) (L.L.lights_schulfahrschaltung) || s4 ||
+        {if}
+            l4
+            {if}
+                l0
+            {else}
+                l1 (L.L.cp_key_rot) 0.4 >= (L.L.lights_cti_indicating_left_or_right_requires_full_elec) ! || *
+            {endif}
+            l2 (C.L.lights_blinker_engine_revs_since_start_min) > l3 (C.L.lights_blinker_elec_battery_load_min) > || *
+                d (C.L.lights_blinker_elec_busbar_avail_V_min) > *
+        {else}
+            0
+        {endif}
+        (S.L.lights_blinker_l_conceptual) (L.L.lights_blinkgeber) && (S.L.lights_blinker_l)
+
+'       // Right
+        (L.L.lights_sw_blinker) 2 = l4 ||
+        {if}
+            l4
+            {if}
+                l0
+            {else}
+                l1 (L.L.cp_key_rot) 0.4 >= (L.L.lights_cti_indicating_left_or_right_requires_full_elec) ! || *
+            {endif}
+            l2 (C.L.lights_blinker_engine_revs_since_start_min) > l3 (C.L.lights_blinker_elec_battery_load_min) > || *
+                d (C.L.lights_blinker_elec_busbar_avail_V_min) > *
+        {else}
+            0
+        {endif}
+        (S.L.lights_blinker_r_conceptual) (L.L.lights_blinkgeber) && (S.L.lights_blinker_r)
+
+'       // Standstill (standstill + marker + rear license plate)
+        (L.L.cp_light_sw) s4
+        {if}
+            l0 l2 (C.L.lights_stand_engine_revs_since_start_min) > l3 (C.L.lights_stand_elec_battery_load_min) > || *
+                d (C.L.lights_stand_elec_busbar_avail_V_min) > *
+        {else}
+            0
+        {endif}
+        (S.L.lights_stand)
+
+'       // Headlights
+        l4 2 =
+        {if}
+            l1 (L.L.cp_key_rot) 0.4 >= l3 (C.L.lights_abbl_elec_battery_load_min) > &&
+                l2 (C.L.lights_abbl_engine_revs_since_start_min) > || *
+                d (C.L.lights_abbl_elec_busbar_main_V_min) > *
+        {else}
+            0
+        {endif}
+        (S.L.lights_abbl)
+
+'       // High beam
+        (L.L.lights_sw_fern) s5
+        {if}
+            l5 1 =
+            {if}
+                l1 (L.L.cp_key_rot) 0.4 >= l3 (C.L.lights_fern_elec_battery_load_min) > &&
+                    l2 (C.L.lights_fern_engine_revs_since_start_min) > || *
+                    (L.L.lights_abbl) 0 > *
+            {else}
+                l0 l2 (C.L.lights_fern_engine_revs_since_start_min) > l3 (C.L.lights_fern_elec_battery_load_min) > || *
+            {endif}
+            d (C.L.lights_fern_elec_busbar_avail_V_min) > *
+        {else}
+            0
+        {endif}
+        (S.L.lights_fern)
+
+'       // Head fog lights (where available)
+        l4 (L.L.cp_fog_light_sw) s5 && (L.L.lights_cti_has_head_fog_lights) &&
+        {if}
+            l5 1 =
+            {if}
+                (L.L.cp_key_rot) 0.4 >= l3 (C.L.lights_nebelschw_elec_battery_load_min) > &&
+                    l2 (C.L.lights_nebelschw_engine_revs_since_start_min) > ||
+            {else}
+                l2 (C.L.lights_nebelschw_engine_revs_since_start_min) > l3 (C.L.lights_nebelschw_elec_battery_load_min) > ||
+            {endif}
+            l1 * d (C.L.lights_nebelschw_elec_busbar_main_V_min) > *
+        {else}
+            0
+        {endif}
+        (S.L.lights_nebelschw)
+
+'       // DRL (where available)
+        l4 0 =
+        {if}
+            l1 l2 l3 (C.L.lights_drl_elec_battery_load_min) > && l2 (C.L.lights_drl_engine_revs_since_start_min) > || *
+                d (C.L.lights_drl_elec_busbar_main_V_min) > *
+        {else}
+            0
+        {endif}
+        (S.L.lights_drl)
+
+'       // Brake
+        (L.L.cockpit_brake) 0.1 > (L.L.AI) (L.L.cockpit_brake) 0.01 > && || (L.L.bremse_halte) (C.L.lights_brems_haltestellenbremse) && ||
+        {if}
+            l0 l2 (C.L.lights_brems_engine_revs_since_start_min) > l3 (C.L.lights_brems_elec_battery_load_min) > || *
+                d (C.L.lights_brems_elec_busbar_avail_V_min) > *
+        {else}
+            0
+        {endif}
+        (S.L.lights_brems)
+
+'       // Reverse
+        (L.L.antrieb_getr_gangwahl) 0 =
+        {if}
+            l1 l2 l3 (C.L.lights_rueckfahr_elec_battery_load_min) > && l2 (C.L.lights_rueckfahr_engine_revs_since_start_min) > || *
+                d (C.L.lights_rueckfahr_elec_busbar_main_V_min) > *
+        {else}
+            0
+        {endif}
+        (S.L.lights_rueckfahr)
+
+'       // Tail fog light
+        l4 l5 2 = &&
+        {if}
+            l1 l2 (C.L.lights_nebelschluss_engine_revs_since_start_min) > l3 (C.L.lights_nebelschluss_elec_battery_load_min) > || *
+                d (C.L.lights_nebelschluss_elec_busbar_main_V_min) > *
+        {else}
+            0
+        {endif}
+        (S.L.lights_nebelschluss)
+
+'       // XXX: Lacking support for exterior destination display (matrix) tubes, or LCD backlight (where applicable).
+
+        (L.L.elec_busbar_main) (C.L.elec_busbar_minV) >
+        {if}
+
+'           // Cockpit door control lights and door spotlights
+'           // XXX: The opening status logic driving the control lights should be relocated to the cockpit or door
+'           //      script.
+
+            l1 l2 (C.L.lights_door_engine_revs_since_start_min) > l3 (C.L.lights_door_elec_battery_load_min) > || *
+                d (C.L.lights_door_elec_busbar_main_V_min) > * s4
+
+'           // Door 1 control light
+            (L.L.Door_Error_Count) (C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * > (L.L.bremse_p_tank04) 550000 < ||
+            {if}
+                (L.L.Tuerfehler_blinkgeber) (L.S.Timegap) + 1 min (S.L.Tuerfehler_blinkgeber) 0.5 <
+                    (S.L.cockpit_light_door_1)
+                (L.L.Tuerfehler_blinkgeber) 1 =
+                {if}
+                    0 (S.L.Tuerfehler_blinkgeber)
+                {endif}
+            {else}
+                (L.L.door_01_opening_status) (L.L.door_01_opening_status_post_close_timer) 1 < && (S.L.cockpit_light_door_1)
+            {endif}
+'           // Door 1 spots
+            (L.L.lights_stand)
+            {if}
+                (L.L.door_01_opening_status) 1 =
+                {if}
+                    l4 (S.L.lights_door_1)
+                {else}
+                    (L.L.door_01_opening_status) 0 = (L.L.door_01_opening_status_post_close_timer) 2 > ||
+                    {if}
+                        0 (S.L.lights_door_1)
+                    {endif}
+                {endif}
+            {else}
+                0 (S.L.lights_door_1)
+            {endif}
+
+'           // Door 2 control light
+            (L.L.Door2_Error_Count) (C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * > (L.L.bremse_p_tank04) 550000 < ||
+            {if}
+                (L.L.Tuerfehler_blinkgeber2) (L.S.Timegap) + 1 min (S.L.Tuerfehler_blinkgeber2) 0.5 <
+                    (S.L.cockpit_light_door_2)
+                (L.L.Tuerfehler_blinkgeber2) 1 =
+                {if}
+                    0 (S.L.Tuerfehler_blinkgeber2)
+                {endif}
+            {else}
+                (L.L.door_23_opening_status) (L.L.door_23_opening_status_post_close_timer) 1 < && (S.L.cockpit_light_door_2)
+            {endif}
+'           // Door 2 spots
+            (L.L.lights_stand)
+            {if}
+                (L.L.door_23_opening_status) 1 =
+                {if}
+                    l4 (S.L.lights_door_2)
+                {else}
+                    (L.L.door_23_opening_status) 0 = (L.L.door_23_opening_status_post_close_timer) 2 > ||
+                    {if}
+                        0 (S.L.lights_door_2)
+                    {endif}
+                {endif}
+            {else}
+                0 (S.L.lights_door_2)
+            {endif}
+
+            (C.L.number_of_doors) 2 >
+            {if}
+'               // Door 3 control light
+                (L.L.Door3_Error_Count) (C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * > (L.L.bremse_p_tank04) 550000 < ||
+                {if}
+                    (L.L.Tuerfehler_blinkgeber3) (L.S.Timegap) + 1 min (S.L.Tuerfehler_blinkgeber3) 0.5 <
+                        (S.L.cockpit_light_door_3)
+                    (L.L.Tuerfehler_blinkgeber3) 1 =
+                    {if}
+                        0 (S.L.Tuerfehler_blinkgeber3)
+                    {endif}
+                {else}
+                    (L.L.door_45_opening_status) (L.L.door_45_opening_status_post_close_timer) 1 < && (S.L.cockpit_light_door_3)
+                {endif}
+'               // Door 3 spots
+                (L.L.lights_stand)
+                {if}
+                    (L.L.door_45_opening_status) 1 =
+                    {if}
+                        l4 (S.L.lights_door_3)
+                    {else}
+                        (L.L.door_45_opening_status) 0 = (L.L.door_45_opening_status_post_close_timer) 2 > ||
+                        {if}
+                            0 (S.L.lights_door_3)
+                        {endif}
+                    {endif}
+                {else}
+                    0 (S.L.lights_door_3)
+                {endif}
+
+                (C.L.number_of_doors) 3 >
+                {if}
+'                   // Door 4 control light
+                    (L.L.Door4_Error_Count) (C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * > (L.L.bremse_p_tank04) 550000 < ||
+                    {if}
+                        (L.L.Tuerfehler_blinkgeber4) (L.S.Timegap) + 1 min (S.L.Tuerfehler_blinkgeber4) 0.5 <
+                            (S.L.cockpit_light_door_4)
+                        (L.L.Tuerfehler_blinkgeber4) 1 =
+                        {if}
+                            0 (S.L.Tuerfehler_blinkgeber4)
+                        {endif}
+                    {else}
+                        (L.L.door_67_opening_status) (L.L.door_67_opening_status_post_close_timer) 1 < && (S.L.cockpit_light_door_4)
+                    {endif}
+'                   // Door 4 spots
+                    (L.L.lights_stand)
+                    {if}
+                        (L.L.door_67_opening_status) 1 =
+                        {if}
+                            l4 (S.L.lights_door_4)
+                        {else}
+                            (L.L.door_67_opening_status) 0 = (L.L.door_67_opening_status_post_close_timer) 2 > ||
+                            {if}
+                                0 (S.L.lights_door_4)
+                            {endif}
+                        {endif}
+                    {else}
+                        0 (S.L.lights_door_4)
+                    {endif}
+                {endif}
+            {endif}
+
+        {else}
+            0 (S.L.cockpit_light_door_1) (S.L.lights_door_1) (S.L.cockpit_light_door_2) (S.L.lights_door_2) (S.L.cockpit_light_door_3)
+                (S.L.lights_door_3) (S.L.cockpit_light_door_4) (S.L.lights_door_4)
+        {endif}
+
+'       // ----- Interior light groupings -----
+
+'       // Driver light
+        (L.L.cp_fahrerlicht_sw) (L.L.lights_door_1) ||
+        {if}
+            l1 l2 (C.L.lights_fahrerlicht_engine_revs_since_start_min) > l3 (C.L.lights_fahrerlicht_elec_battery_load_min) > || *
+                d (C.L.lights_fahrerlicht_elec_busbar_main_V_min) > *
+        {else}
+            0
+        {endif}
+        (S.L.lights_fahrerlicht)
+
+'       // Passenger lights
+'       // Conditions:
+'       // - No passenger light gets activated unless the interior lighting switch is set to at least level "I".
+'       // - Tubes 2L + 3R always get power for (almost) as long as the battery can cope.
+'       // - Tube 1R additionally requires that the main electrics circuit be active and that
+'       //   - the interior lighting switch be set to "II", or that
+'       //   - the front door's spotlights (as in their circuit output, not the actual bulbs) be active.
+'       // - Tube 1L requires that that the main electrics circuit be active, as well as that
+'       //   - the interior lighting switch be set to "II" _and_ a) the engine be running, or b) the "master" dashboard
+'       //     key be set to "on" or "ignition" and battery have sufficient load; or that
+'       //   - the front door's spotlights be active.
+'       // - Tubes 2R + 3L require that 2L + 3R be active _and_ a) the engine be running, or b) the "master" dashboard
+'       //   key be set to "on" or "ignition" and battery have sufficient load.
+'       // XXX: Must also account for the quite different interior light arrangement of the articulated variant.
+        l0 (L.L.cp_key_rot) 0.4 >= (L.L.lights_cti_int_lights_level_2_requires_running_engine) ! && (L.L.engine_n) 20 < &&
+            l2 (C.L.lights_passenger_cabin_engine_revs_since_start_min) > || s2
+            l3 (C.L.lights_passenger_cabin_elec_battery_load_min) > || *
+            d (C.L.lights_passenger_cabin_elec_busbar_avail_V_min) > * s7
+        (L.L.cp_passenger_light_sw) 1 = (L.L.cp_passenger_light_sw) 2 = s1 || s0
+        l0 l7 * s4
+
+        (L.L.elec_busbar_main) (C.L.elec_busbar_minV) >
+        {if}
+            (L.L.lights_door_1) s3
+
+            l4 l2 * s5
+            l1 l0 l3 && || l7 * s6 s7 l2 ! l3 ! && &&
+            {if}
+                0 s6
+                l1 l7 * s7
+            {endif}
+        {else}
+            0 s5 s6 s7
+        {endif}
+
+        l4 (S.L.lights_int_2_l) (S.L.lights_int_3_r)
+        l5 (S.L.lights_int_2_r) (S.L.lights_int_3_l)
+        l6 (S.L.lights_int_1_l)
+        l7 (S.L.lights_int_1_r)
+    {else}
+'       // No power, no party.
+        0 (S.L.lights_blinker_l_conceptual) (S.L.lights_blinker_l) (S.L.lights_blinker_r_conceptual) (S.L.lights_blinker_r)
+            (S.L.lights_stand) (S.L.lights_abbl) (S.L.lights_fern) (S.L.lights_nebelschw) (S.L.lights_drl) (S.L.lights_brems)
+            (S.L.lights_rueckfahr) (S.L.lights_nebelschluss) (S.L.lights_fahrerlicht) (S.L.lights_int_1_l) (S.L.lights_int_1_r)
+            (S.L.lights_int_2_l) (S.L.lights_int_2_r) (S.L.lights_int_3_l) (S.L.lights_int_3_r) (S.L.cockpit_light_door_1)
+            (S.L.lights_door_1) (S.L.cockpit_light_door_2) (S.L.lights_door_2) (S.L.cockpit_light_door_3) (S.L.lights_door_3)
+            (S.L.cockpit_light_door_4) (S.L.lights_door_4)
+    {endif}
+{end}
+
+'------------------------------------------------------------------------------
+' Controls indicator alternation frequency, given the "health" state of the
+' light sources involved, applying a longer interval when all sources are
+' functional, and a shorter interval when at least one has become defunct.
+'------------------------------------------------------------------------------
+{macro:lights_calc_geberfaktor}
+    (L.L.lights_blinker_h_l_bulb_lifetime) 0 <=
+        (L.L.lights_blinker_s_l_1_bulb_lifetime) 0 <= ||
+        (L.L.lights_blinker_t_l_m_bulb_lifetime) 0 <= ||
+        (L.L.lights_blinker_t_l_t_bulb_lifetime) 0 <= ||
+        (C.L.articulated_variant) (L.L.lights_blinker_s_l_2_bulb_lifetime) 0 <= && ||
+        (L.L.lights_sw_blinker) 1 = (L.L.lights_sw_warnblinker) || &&
+
+        (L.L.lights_blinker_h_r_bulb_lifetime) 0 <=
+        (L.L.lights_blinker_s_r_1_bulb_lifetime) 0 <= ||
+        (L.L.lights_blinker_t_r_m_bulb_lifetime) 0 <= ||
+        (L.L.lights_blinker_t_r_t_bulb_lifetime) 0 <= ||
+        (C.L.articulated_variant) (L.L.lights_blinker_s_r_2_bulb_lifetime) 0 <= && ||
+        (L.L.lights_sw_blinker) 2 = (L.L.lights_sw_warnblinker) || && ||
+    {if}
+        0.5
+    {else}
+        1
+    {endif}
+    (S.L.lights_blinkgeber_faktor)
+{end}
+
+'------------------------------------------------------------------------------
+' Initializes the timing of the (standard or "school driver" mode) hazard
+' indicator function's alternations. Regular left/right indicating is handled by
+' the next macro, lights_runblinkgeber, directly, as that function's activation
+' condition additionally requires that the main electrics circuit be active.
+'------------------------------------------------------------------------------
+{macro:lights_startblinkgeber}
+'   // XXX: I fail to understand why there are two macros for essentially the
+'   //      same operation. Perhaps some old SD peculiarity. I should merge them.
+
+    (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > (L.L.elec_busbar_avail) (C.L.elec_busbar_minV) >
+        (L.L.lights_sw_warnblinker) (L.L.lights_schulfahrschaltung) || && || (L.L.lights_blinker_running) ! &&
+    {if}
+        (T.L.ev_lights_blinker_on)
+        (C.L.lights_blinkertime_firston) (L.L.lights_blinkgeber_faktor) * (S.L.lights_blinkgeber_timegap)
+        1 (S.L.lights_blinkgeber) (S.L.lights_blinker_running)
+        0 (S.L.lights_blinker_runtime)
+    {endif}
+{end}
+
+'------------------------------------------------------------------------------
+' Times the alternations of all indicator functions, and therefore when and
+' for how long voltage is applied to the corresponding indicator light sources.
+'------------------------------------------------------------------------------
+{macro:lights_runblinkgeber}
+    (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > (L.L.cp_key_rot) 0.4 >=
+        (L.L.lights_cti_indicating_left_or_right_requires_full_elec) ! || && (L.L.lights_sw_blinker) &&
+        (L.L.elec_busbar_avail) (C.L.elec_busbar_minV) > (L.L.lights_sw_warnblinker)
+        (L.L.lights_schulfahrschaltung) || && ||
+    {if}
+        (L.S.Timegap) (L.L.lights_blinker_runtime) + (S.L.lights_blinker_runtime)
+        (L.L.lights_blinker_runtime) (L.L.lights_blinkgeber_timegap) > (L.L.lights_sw_blinker)
+            (L.L.lights_sw_warnblinker) || (L.L.lights_schulfahrschaltung) || &&
+        {if}
+            (L.L.lights_blinkgeber) ! (S.L.lights_blinkgeber)
+            {if}
+                (T.L.ev_lights_blinker_on)
+                (C.L.lights_blinkertime_on)
+            {else}
+                (T.L.ev_lights_blinker_off)
+                (C.L.lights_blinkertime_off)
+            {endif}
+            (L.L.lights_blinkgeber_faktor) * (S.L.lights_blinkgeber_timegap)
+            0 (S.L.lights_blinker_runtime)
+        {endif}
+
+        (L.L.lights_sw_warnblinker) (L.L.lights_schulfahrschaltung) ||
+        {if}
+            (L.L.lights_blinkgeber) (S.L.lights_warnblinkgeber)
+        {else}
+            0 (S.L.lights_warnblinkgeber)
+        {endif}
+    {else}
+        0 (S.L.lights_blinkgeber) (S.L.lights_warnblinkgeber) (S.L.lights_blinker_runtime) (S.L.lights_blinker_running)
+            (S.L.lights_blinkgeber_timegap)
+    {endif}
+
+'   // XXX: Yet another bit that would normally reside in the cockpit script. Rationale: Due to the cockpit script
+'   //      being executed prior to the lights one, dashboard lights reflecting indicator activity (blinking) take +1
+'   //      frame to sync -- therefore we have no option but to update the relevant cockpit variables ourselves at this
+'   //      point (ideally though the cockpit script would offer some "post-frame-execution" callback for such
+'   //      purposes; a proper, generic solution that covers all such cases, however, is too expensive, in terms of
+'   //      required refactoring effort, to implement).
+'   // XXX: This temp-fix still doesn't account for changes in VDV state (which are likewise not evaluated until after
+'   //      this script's execution). When such changes occur, the visual effect will still be off by 1 frame.
+    (L.L.engine_timer_start) 3.3 < (L.L.lights_blinkgeber) || (L.L.vdv_on) && (S.L.indic_3)
+
+    (L.L.lights_schulfahrschaltung) (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > && (S.L.cockpit_light_schulfahrschaltung)
+
+    (L.L.vdv_lighting) 2 * s0
+    (L.L.cp_cti_has_blinking_hazard_indicator_switch)
+    {if}
+        l0 (L.L.lights_sw_warnblinker) (L.L.lights_warnblinkgeber) * + s0
+    {endif}
+    l0 (S.L.cp_taster_warnblinker_matl_mode)
+{end}
+
+'------------------------------------------------------------------------------
+' Given the light circuit output to each light source grouping, along with each
+' such grouping's member sources' "health" state, the following macro
+' establishes the state of each source.
+'------------------------------------------------------------------------------
+{macro:lights_source_state}
+'   // XXX: As we have constraints per light source circuit grouping, we could herein similarly implement constraints
+'   //      on a per-source basis, depending on the type of source. Thus, fluorescent light tubes could flicker / cycle
+'   //      increasingly depending on age, HID headlights could require a warm up period or feature built-in protection
+'   //      against fluctuating voltage, and so on and so forth.
+
+'   // ----- Exterior lights -----
+
+'   // Indicator
+    0 s0
+'   // Head
+    (L.L.lights_blinker_h_l_bulb_lifetime) 0 > {if} l0 1 + s0 (L.L.lights_blinker_l) {else} 0 {endif} (S.L.lights_blinker_h_l_bulb)
+    (L.L.lights_blinker_h_r_bulb_lifetime) 0 > {if} l0 1 + s0 (L.L.lights_blinker_r) {else} 0 {endif} (S.L.lights_blinker_h_r_bulb)
+'   // Side - front
+    (L.L.lights_blinker_s_l_1_bulb_lifetime) 0 > {if} l0 1 + s0 (L.L.lights_blinker_l) {else} 0 {endif} (S.L.lights_blinker_s_l_1_bulb)
+    (L.L.lights_blinker_s_r_1_bulb_lifetime) 0 > {if} l0 1 + s0 (L.L.lights_blinker_r) {else} 0 {endif} (S.L.lights_blinker_s_r_1_bulb)
+'   // Side - middle (articulated variants only)
+    (L.L.lights_blinker_s_l_2_bulb_lifetime) 0 > (C.L.articulated_variant) && {if} l0 1 + s0 (L.L.lights_blinker_l) {else} 0 {endif} (S.L.lights_blinker_s_l_2_bulb)
+    (L.L.lights_blinker_s_r_2_bulb_lifetime) 0 > (C.L.articulated_variant) && {if} l0 1 + s0 (L.L.lights_blinker_r) {else} 0 {endif} (S.L.lights_blinker_s_r_2_bulb)
+'   // Tail - top
+    (L.L.lights_blinker_t_l_t_bulb_lifetime) 0 > {if} l0 1 + s0 (L.L.lights_blinker_l) {else} 0 {endif} (S.L.lights_blinker_t_l_t_bulb)
+    (L.L.lights_blinker_t_r_t_bulb_lifetime) 0 > {if} l0 1 + s0 (L.L.lights_blinker_r) {else} 0 {endif} (S.L.lights_blinker_t_r_t_bulb)
+'   // Tail - middle
+    (L.L.lights_blinker_t_l_m_bulb_lifetime) 0 > {if} l0 1 + s0 (L.L.lights_blinker_l) {else} 0 {endif} (S.L.lights_blinker_t_l_m_bulb)
+    (L.L.lights_blinker_t_r_m_bulb_lifetime) 0 > {if} l0 1 + s0 (L.L.lights_blinker_r) {else} 0 {endif} (S.L.lights_blinker_t_r_m_bulb)
+
+'   // Note: lights_remaining_functional_indicators is recorded for the convenience of the VDV script, so that it needs
+'   //       not output a "power consumption warning" unless activated indicators are actually functional at the source
+'   //       level. Not sure whether that's realistic, but it does seem reasonable.
+    l0 (S.L.lights_remaining_functional_indicators)
+
+'   // Standstill
+    (L.L.lights_stand_l_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_stand_l_bulb)
+    (L.L.lights_stand_r_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_stand_r_bulb)
+
+'   // Headlights
+    (L.L.lights_abbl_l_bulb_lifetime) 0 > {if} (L.L.lights_abbl) {else} 0 {endif} (S.L.lights_abbl_l_bulb)
+    (L.L.lights_abbl_r_bulb_lifetime) 0 > {if} (L.L.lights_abbl) {else} 0 {endif} (S.L.lights_abbl_r_bulb)
+
+'   // High beam
+    (L.L.lights_fern_l_bulb_lifetime) 0 > {if} (L.L.lights_fern) {else} 0 {endif} (S.L.lights_fern_l_bulb)
+    (L.L.lights_fern_r_bulb_lifetime) 0 > {if} (L.L.lights_fern) {else} 0 {endif} (S.L.lights_fern_r_bulb)
+
+'   // Head fog lights
+    (L.L.lights_nebelschw_l_bulb_lifetime) 0 > {if} (L.L.lights_nebelschw) {else} 0 {endif} (S.L.lights_nebelschw_l_bulb)
+    (L.L.lights_nebelschw_r_bulb_lifetime) 0 > {if} (L.L.lights_nebelschw) {else} 0 {endif} (S.L.lights_nebelschw_r_bulb)
+
+'   // DRL
+'   // Note: DRL only "shine" (consume power) above a voltage threshold.
+    (L.L.lights_drl_l_unit_lifetime) 0 > {if} (L.L.lights_drl) d 0.8 > * {else} 0 {endif} (S.L.lights_drl_l_unit)
+    (L.L.lights_drl_r_unit_lifetime) 0 > {if} (L.L.lights_drl) d 0.8 > * {else} 0 {endif} (S.L.lights_drl_r_unit)
+
+'   // Brake
+    (L.L.lights_brems_l_t_bulb_lifetime) 0 > {if} (L.L.lights_brems) {else} 0 {endif} (S.L.lights_brems_l_t_bulb)
+    (L.L.lights_brems_r_t_bulb_lifetime) 0 > {if} (L.L.lights_brems) {else} 0 {endif} (S.L.lights_brems_r_t_bulb)
+    (L.L.lights_brems_l_m_bulb_lifetime) 0 > {if} (L.L.lights_brems) {else} 0 {endif} (S.L.lights_brems_l_m_bulb)
+    (L.L.lights_brems_r_m_bulb_lifetime) 0 > {if} (L.L.lights_brems) {else} 0 {endif} (S.L.lights_brems_r_m_bulb)
+
+'   // Reverse (left unit optional)
+    (L.L.lights_rueckfahr_l_bulb_lifetime) 0 > (L.L.lights_cti_has_second_reverse_and_tail_fog_light) && {if} (L.L.lights_rueckfahr) {else} 0 {endif} (S.L.lights_rueckfahr_l_bulb)
+    (L.L.lights_rueckfahr_r_bulb_lifetime) 0 > {if} (L.L.lights_rueckfahr) {else} 0 {endif} (S.L.lights_rueckfahr_r_bulb)
+
+'   // Tail fog lights (right unit optional)
+    (L.L.lights_nebelschluss_l_bulb_lifetime) 0 > {if} (L.L.lights_nebelschluss) {else} 0 {endif} (S.L.lights_nebelschluss_l_bulb)
+    (L.L.lights_nebelschluss_r_bulb_lifetime) 0 > (L.L.lights_cti_has_second_reverse_and_tail_fog_light) && {if} (L.L.lights_nebelschluss) {else} 0 {endif} (S.L.lights_nebelschluss_r_bulb)
+
+'   // Marker
+'   // Head
+    (L.L.lights_position_h_l_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_position_h_l_bulb)
+    (L.L.lights_position_h_r_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_position_h_r_bulb)
+'   // Side
+'   // XXX: Support further position lights for usage by articulated variants.
+    (L.L.lights_position_s_l_1_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_position_s_l_1_bulb)
+    (L.L.lights_position_s_r_1_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_position_s_r_1_bulb)
+    (L.L.lights_position_s_l_2_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_position_s_l_2_bulb)
+    (L.L.lights_position_s_r_2_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_position_s_r_2_bulb)
+    (L.L.lights_position_s_l_3_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_position_s_l_3_bulb)
+    (L.L.lights_position_s_r_3_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_position_s_r_3_bulb)
+    (L.L.lights_position_s_l_4_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_position_s_l_4_bulb)
+    (L.L.lights_position_s_r_4_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_position_s_r_4_bulb)
+    (L.L.lights_position_s_l_5_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_position_s_l_5_bulb)
+    (L.L.lights_position_s_r_5_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_position_s_r_5_bulb)
+'   // Tail - top
+    (L.L.lights_position_t_l_t_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_position_t_l_t_bulb)
+    (L.L.lights_position_t_r_t_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_position_t_r_t_bulb)
+'   // Tail - middle
+    (L.L.lights_position_t_l_m_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_position_t_l_m_bulb)
+    (L.L.lights_position_t_r_m_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_position_t_r_m_bulb)
+'   // Tail - bottom
+    (L.L.lights_position_t_l_b_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_position_t_l_b_bulb)
+    (L.L.lights_position_t_r_b_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_position_t_r_b_bulb)
+
+'   // Rear license plate
+    (L.L.lights_kennz_hinten_l_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_kennz_hinten_l_bulb)
+    (L.L.lights_kennz_hinten_r_bulb_lifetime) 0 > {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_kennz_hinten_r_bulb)
+
+'   // XXX: Lacking support for exterior destination display (matrix) tubes, or LCD backlight (where applicable).
+
+'   // ----- Interior lights -----
+
+'   // Driver light
+    (L.L.lights_fahrerlicht_bulb_lifetime) 0 > {if} (L.L.lights_fahrerlicht) {else} 0 {endif} (S.L.lights_fahrerlicht_bulb)
+
+'   // Passenger lights
+'   // Note: Tubes only emit light above a voltage threshold.
+'   // XXX: I'd also like to simulate how minimum voltage and resistance are affected by tube "health", but was unsure
+'   //      how to do so realistically.
+    (L.L.lights_int_1_l_tube_lifetime) 0 > {if} (L.L.lights_int_1_l) d 0.6 > * {else} 0 {endif} (S.L.lights_int_1_l_tube)
+    (L.L.lights_int_1_r_tube_lifetime) 0 > {if} (L.L.lights_int_1_r) d 0.6 > * {else} 0 {endif} (S.L.lights_int_1_r_tube)
+    (L.L.lights_int_2_l_tube_lifetime) 0 > {if} (L.L.lights_int_2_l) d 0.6 > * {else} 0 {endif} (S.L.lights_int_2_l_tube)
+    (L.L.lights_int_2_r_tube_lifetime) 0 > {if} (L.L.lights_int_2_r) d 0.6 > * {else} 0 {endif} (S.L.lights_int_2_r_tube)
+    (L.L.lights_int_3_l_tube_lifetime) 0 > {if} (L.L.lights_int_3_l) d 0.6 > * {else} 0 {endif} (S.L.lights_int_3_l_tube)
+    (L.L.lights_int_3_r_tube_lifetime) 0 > {if} (L.L.lights_int_3_r) d 0.6 > * {else} 0 {endif} (S.L.lights_int_3_r_tube)
+
+'   // Door spotlights
+    (L.L.lights_door_1_spotlight_1_bulb_lifetime) 0 > {if} (L.L.lights_door_1) {else} 0 {endif} (S.L.lights_door_1_spotlight_1_bulb)
+    (L.L.lights_door_1_spotlight_2_bulb_lifetime) 0 > {if} (L.L.lights_door_1) {else} 0 {endif} (S.L.lights_door_1_spotlight_2_bulb)
+    (L.L.lights_door_2_spotlight_1_bulb_lifetime) 0 > {if} (L.L.lights_door_2) {else} 0 {endif} (S.L.lights_door_2_spotlight_1_bulb)
+    (L.L.lights_door_2_spotlight_2_bulb_lifetime) 0 > {if} (L.L.lights_door_2) {else} 0 {endif} (S.L.lights_door_2_spotlight_2_bulb)
+    (L.L.lights_door_3_spotlight_1_bulb_lifetime) 0 > (C.L.number_of_doors) 2 > && {if} (L.L.lights_door_3) {else} 0 {endif} (S.L.lights_door_3_spotlight_1_bulb)
+    (L.L.lights_door_3_spotlight_2_bulb_lifetime) 0 > (C.L.number_of_doors) 2 > && {if} (L.L.lights_door_3) {else} 0 {endif} (S.L.lights_door_3_spotlight_2_bulb)
+    (L.L.lights_door_4_spotlight_1_bulb_lifetime) 0 > (C.L.number_of_doors) 3 > && {if} (L.L.lights_door_4) {else} 0 {endif} (S.L.lights_door_4_spotlight_1_bulb)
+    (L.L.lights_door_4_spotlight_2_bulb_lifetime) 0 > (C.L.number_of_doors) 3 > && {if} (L.L.lights_door_4) {else} 0 {endif} (S.L.lights_door_4_spotlight_2_bulb)
+{end}
+
+'------------------------------------------------------------------------------
+' Given currently active light sources, as established by lights_source_state,
+' this macro computes their combined conductance and "publishes" it to the
+' electrics subsystem, enabling it to in turn compute consequent voltage
+' decline.
+'------------------------------------------------------------------------------
+{macro:lights_energy_consumption}
+'   // ----- Exterior lights -----
+
+'   // Note: lights_Rinv_sum_ext_without_indicators subtotal captured for VDV script's convenience, combined with
+'   //       lights_remaining_functional_indicators.
+
+'   // Standstill
+    (L.L.lights_stand_l_bulb) 0 > (L.L.lights_stand_r_bulb) 0 > + (C.L.lights_stand_Rinv_bulb) *
+'       // Headlights
+        (L.L.lights_abbl_l_bulb) 0 > (L.L.lights_abbl_r_bulb) 0 > + (C.L.lights_abbl_Rinv_bulb) * +
+'       // High beam
+        (L.L.lights_fern_l_bulb) 0 > (L.L.lights_fern_r_bulb) 0 > + (C.L.lights_fern_Rinv_bulb) * +
+'       // DRL
+        (L.L.lights_drl_l_unit) 0 > (L.L.lights_drl_r_unit) 0 > + (C.L.lights_drl_Rinv_unit) * +
+'       // Head fog lights
+        (L.L.lights_nebelschw_l_bulb) 0 > (L.L.lights_nebelschw_r_bulb) 0 > + (C.L.lights_nebelschw_Rinv_bulb) * +
+'       // Brake lights
+        (L.L.lights_brems_l_t_bulb) 0 > (L.L.lights_brems_r_t_bulb) 0 > + (L.L.lights_brems_l_m_bulb) 0 > +
+        (L.L.lights_brems_r_m_bulb) 0 > + (C.L.lights_brems_Rinv_bulb) * +
+'       // Reverse
+        (L.L.lights_rueckfahr_l_bulb) 0 > (L.L.lights_rueckfahr_r_bulb) 0 > + (C.L.lights_rueckfahr_Rinv_bulb) * +
+'       // Tail fog lights
+        (L.L.lights_nebelschluss_l_bulb) 0 > (L.L.lights_nebelschluss_r_bulb) 0 > + (C.L.lights_nebelschluss_Rinv_bulb) * +
+        s0
+
+'   // Marker
+    (L.L.lights_position_h_l_bulb) 0 > (L.L.lights_position_h_r_bulb) 0 > + (L.L.lights_position_s_l_1_bulb) 0 > +
+        (L.L.lights_position_s_r_1_bulb) 0 > + (L.L.lights_position_s_l_2_bulb) 0 > + (L.L.lights_position_s_r_2_bulb) 0 > +
+        (L.L.lights_position_s_l_3_bulb) 0 > + (L.L.lights_position_s_r_3_bulb) 0 > + (L.L.lights_position_s_l_4_bulb) 0 > +
+        (L.L.lights_position_s_r_4_bulb) 0 > + (L.L.lights_position_s_l_5_bulb) 0 > + (L.L.lights_position_s_r_5_bulb) 0 > +
+        (L.L.lights_position_t_l_t_bulb) 0 > + (L.L.lights_position_t_r_t_bulb) 0 > + (L.L.lights_position_t_l_m_bulb) 0 > +
+        (L.L.lights_position_t_r_m_bulb) 0 > + (L.L.lights_position_t_l_b_bulb) 0 > + (L.L.lights_position_t_r_b_bulb) 0 > +
+'       // Rear license plate
+        (L.L.lights_kennz_hinten_l_bulb) 0 > + (L.L.lights_kennz_hinten_r_bulb) 0 > + (C.L.lights_position_Rinv_bulb) * l0 +
+        s0
+
+'   // ----- Interior lights -----
+
+'   // Driver light
+    (L.L.lights_fahrerlicht_bulb) 0 > (C.L.lights_fahrerlicht_Rinv_bulb) * l0 + s0
+
+'   // Passenger lights
+    (L.L.lights_int_1_l_tube) 0 > (L.L.lights_int_1_r_tube) 0 > + (L.L.lights_int_2_l_tube) 0 > + (L.L.lights_int_2_r_tube) 0 > +
+        (L.L.lights_int_3_l_tube) 0 > + (L.L.lights_int_3_r_tube) 0 > + (C.L.lights_passenger_cabin_Rinv_tube) * l0 + s0
+
+'   // Door spotlights
+    (L.L.lights_door_1_spotlight_1_bulb) 0 > (L.L.lights_door_1_spotlight_2_bulb) 0 > + (L.L.lights_door_2_spotlight_1_bulb) 0 > +
+        (L.L.lights_door_2_spotlight_2_bulb) 0 > + (L.L.lights_door_3_spotlight_1_bulb) 0 > + (L.L.lights_door_3_spotlight_2_bulb) 0 > +
+        (L.L.lights_door_4_spotlight_1_bulb) 0 > + (L.L.lights_door_4_spotlight_2_bulb) 0 > + (C.L.lights_door_spotlight_Rinv_bulb) *
+        l0 + (S.L.lights_Rinv_sum_ext_without_indicators) s0
+
+'   // Indicator
+    (L.L.lights_blinker_h_l_bulb) 0 > (L.L.lights_blinker_s_l_1_bulb) 0 > + (L.L.lights_blinker_t_l_m_bulb) 0 > +
+        (L.L.lights_blinker_t_l_t_bulb) 0 > + (L.L.lights_blinker_s_l_2_bulb) 0 > + (L.L.lights_blinker_h_r_bulb) 0 > +
+        (L.L.lights_blinker_s_r_1_bulb) 0 > + (L.L.lights_blinker_t_r_m_bulb) 0 > + (L.L.lights_blinker_t_r_t_bulb) 0 > +
+        (L.L.lights_blinker_s_r_2_bulb) 0 > + (C.L.lights_blinker_Rinv_bulb) *
+        l0 + (S.L.lights_Rinv_sum) (L.L.elec_busbar_Rinv_summe) + (S.L.elec_busbar_Rinv_summe)
+{end}
+
+'------------------------------------------------------------------------------
+' This macro serves as the adapter between light source state and
+' model.cfg-specific illumination effects. Generally speaking, such a
+' translation is warranted by the fact that model.cfg directives tend to expect
+' a single, typically boolean variable, whilst the script uses several per
+' source to express state (source (group) voltage, source age-induced strain,
+' etc.). Therefore additional "synthetic" variables are necessitated in order
+' to overcome this mismatch.
+'
+' Specific examples:
+' - Most lighting-related model.cfg directives ([interiorlight], [spotlight],
+'   [matl_nightmap]) expect a plain boolean (0 = no effect, 1 = effect), as
+'   opposed to lights_xxx_bulb being _continuous_, depending on voltage.
+'   Thus, a native "bulb" variable valued less than 0.5 would, rounded down,
+'   be interpreted potentially erroneously as "off" at the model.cfg level.
+' - Mapping between sources at the script / simulated circuit level, and [mesh]
+'   entries is not necessarily one-to-one. Therefore additional
+'   night-map-driving variables are sometimes needed to express the combined
+'   state of all sources represented by the same mesh. The same holds for mesh
+'   entries of light sources that require conditionally varying night-maps
+'   depending on the source's "health".
+' - Out-of-focus (AI-controlled) vehicles do not feature mesh illumination by
+'   the configured [interiorlight]s. To compensate, extra material properties
+'   and/or light-/night-maps are needed, which, again, need their own dedicated
+'   variables for expressing conditions of being applied.
+'
+' This macro is the script's least portable aspect.
+'------------------------------------------------------------------------------
+{macro:lights_model_illumination_effects}
+'   // ----- Exterior lights -----
+
+'   // Standstill + high beam (same object) night-maps
+    (L.L.lights_stand_l_bulb) 0 > (L.L.lights_fern_l_bulb) 0 > 2 * + 2 min (S.L.lights_standstill_light_l_matl_mode)
+    (L.L.lights_stand_r_bulb) 0 > (L.L.lights_fern_r_bulb) 0 > 2 * + 2 min (S.L.lights_standstill_light_r_matl_mode)
+
+'   // Headlight night-maps
+    (L.L.lights_abbl_l_bulb) 0 > (S.L.lights_headlight_l_matl_mode)
+    (L.L.lights_abbl_r_bulb) 0 > (S.L.lights_headlight_r_matl_mode)
+
+'   // DRL night-maps
+    (L.L.lights_drl_l_unit) 0 > (S.L.lights_drl_l_matl_mode)
+    (L.L.lights_drl_r_unit) 0 > (S.L.lights_drl_r_matl_mode)
+
+'   // Head fog light night-maps
+    (L.L.lights_nebelschw_l_bulb) 0 > (S.L.lights_head_fog_light_l_matl_mode)
+    (L.L.lights_nebelschw_r_bulb) 0 > (S.L.lights_head_fog_light_r_matl_mode)
+
+'   // Indicator night-maps
+    (L.L.lights_blinker_h_l_bulb) 0 > (S.L.lights_blinker_h_l_matl_mode)
+    (L.L.lights_blinker_h_r_bulb) 0 > (S.L.lights_blinker_h_r_matl_mode)
+    (L.L.lights_blinker_s_l_1_bulb) 0 > (S.L.lights_blinker_s_l_1_matl_mode)
+    (L.L.lights_blinker_s_r_1_bulb) 0 > (S.L.lights_blinker_s_r_1_matl_mode)
+    (L.L.lights_blinker_t_l_m_bulb) 0 > (S.L.lights_blinker_t_l_m_matl_mode)
+    (L.L.lights_blinker_t_r_m_bulb) 0 > (S.L.lights_blinker_t_r_m_matl_mode)
+    (L.L.lights_blinker_t_l_t_bulb) 0 > (S.L.lights_blinker_t_l_t_matl_mode)
+    (L.L.lights_blinker_t_r_t_bulb) 0 > (S.L.lights_blinker_t_r_t_matl_mode)
+    (L.L.lights_blinker_s_l_2_bulb) 0 > (S.L.lights_blinker_s_l_2_matl_mode)
+    (L.L.lights_blinker_s_r_2_bulb) 0 > (S.L.lights_blinker_s_r_2_matl_mode)
+
+'   // Marker night-maps
+    (L.L.lights_position_h_l_bulb) 0 > (S.L.lights_position_light_h_l_matl_mode)
+    (L.L.lights_position_h_r_bulb) 0 > (S.L.lights_position_light_h_r_matl_mode)
+    (L.L.lights_position_s_l_1_bulb) 0 > (S.L.lights_position_light_s_l_1_matl_mode)
+    (L.L.lights_position_s_r_1_bulb) 0 > (S.L.lights_position_light_s_r_1_matl_mode)
+    (L.L.lights_position_s_l_2_bulb) 0 > (S.L.lights_position_light_s_l_2_matl_mode)
+    (L.L.lights_position_s_r_2_bulb) 0 > (S.L.lights_position_light_s_r_2_matl_mode)
+    (L.L.lights_position_s_l_3_bulb) 0 > (S.L.lights_position_light_s_l_3_matl_mode)
+    (L.L.lights_position_s_r_3_bulb) 0 > (S.L.lights_position_light_s_r_3_matl_mode)
+    (L.L.lights_position_s_l_4_bulb) 0 > (S.L.lights_position_light_s_l_4_matl_mode)
+    (L.L.lights_position_s_r_4_bulb) 0 > (S.L.lights_position_light_s_r_4_matl_mode)
+    (L.L.lights_position_s_l_5_bulb) 0 > (S.L.lights_position_light_s_l_5_matl_mode)
+    (L.L.lights_position_s_r_5_bulb) 0 > (S.L.lights_position_light_s_r_5_matl_mode)
+'   // Note: shared object between position + brake
+    (L.L.lights_position_t_l_t_bulb) 0 > (L.L.lights_brems_l_t_bulb) 0 > 2 * + 2 min (S.L.lights_position_light_t_l_t_matl_mode)
+    (L.L.lights_position_t_r_t_bulb) 0 > (L.L.lights_brems_r_t_bulb) 0 > 2 * + 2 min (S.L.lights_position_light_t_r_t_matl_mode)
+    (L.L.lights_position_t_l_m_bulb) 0 > (L.L.lights_brems_l_m_bulb) 0 > 2 * + 2 min (S.L.lights_position_light_t_l_m_matl_mode)
+    (L.L.lights_position_t_r_m_bulb) 0 > (L.L.lights_brems_r_m_bulb) 0 > 2 * + 2 min (S.L.lights_position_light_t_r_m_matl_mode)
+    (L.L.lights_position_t_l_b_bulb) 0 > (S.L.lights_position_light_t_l_b_matl_mode)
+    (L.L.lights_position_t_r_b_bulb) 0 > (S.L.lights_position_light_t_r_b_matl_mode)
+    (L.L.lights_kennz_hinten_l_bulb) 0 > (L.L.lights_kennz_hinten_r_bulb) 0 > 2 * + (S.L.lights_kennz_hinten_matl_mode)
+
+'   // Reverse night-maps
+    (L.L.lights_rueckfahr_l_bulb) 0 > (S.L.lights_rueckfahr_l_matl_mode)
+    (L.L.lights_rueckfahr_r_bulb) 0 > (S.L.lights_rueckfahr_r_matl_mode)
+
+'   // Tail fog light night-maps
+    (L.L.lights_nebelschluss_l_bulb) 0 > (S.L.lights_nebelschluss_l_matl_mode)
+    (L.L.lights_nebelschluss_r_bulb) 0 > (S.L.lights_nebelschluss_r_matl_mode)
+
+'   // ----- Interior lights -----
+
+'   // Driver light night-map
+    (L.L.lights_fahrerlicht) 0 > 1 + (S.L.lights_fahrertuer_ai_matl_mode)
+
+'   // Passenger lights: interior-lights and interior-light-derived object visibility switching , night-maps, and
+'   // off-focus material brightening
+
+'   // The following variables drive the pseudo-tube [interiorlight]s activated when both opposing tubes
+'   // (e.g., 1L + 1R) are active.
+'   // Background: OMSI limits dynamic light sources per object to 4. Our workaround is to have OMSI render different
+'   // instances of certain problematically (in the sense that they require illumination by more than 4 dynamic lights)
+'   // large objects multiple times, depending on their targeted set of interior-lights. To further reduce the number
+'   // of applicable lights, when both opposing passenger tubes, e.g., 1L + 1R, are active, a "virtual" light at x = 0
+'   // is instead activated and applied to a corresponding object instance. The following variables are all involved,
+'   // directly or otherwise, in discerning which particular instance is to be rendered as [visible].
+
+'   // Determining interior-light state and visibility of the tube-fixture-containing decke_xxx objects
+'   // when vehicle in user's focus.
+
+'   // Tube 1L, decke_1_l_x
+    (L.L.lights_int_1_l_tube) 0 >
+    {if}
+        (L.L.lights_int_1_l_tube_lifetime) (L.L.lights_int_1_l_tube_degradation_threshold) >
+        {if}
+            1
+        {else}
+            2
+        {endif}
+    {else}
+        0
+    {endif}
+    (S.L.lights_decke_1_l_x_matl_mode) 1 = (S.L.lights_int_1_l_emitter) s0
+
+'   // Tube 1R, decke_1_r_x
+    (L.L.lights_int_1_r_tube) 0 >
+    {if}
+        (L.L.lights_int_1_r_tube_lifetime) (L.L.lights_int_1_r_tube_degradation_threshold) >
+        {if}
+            1
+        {else}
+            2
+        {endif}
+    {else}
+        0
+    {endif}
+    (S.L.lights_decke_1_r_x_matl_mode) 1 = (S.L.lights_int_1_r_emitter) s1
+
+'   // Pseudo-central-tube 1: 1L, 1R, or both
+    l0 l1 || (S.L.lights_int_1_either_emitter)
+
+'   // Tube 2L, decke_3_l
+    (L.L.lights_int_2_l_tube) 0 >
+    {if}
+        (L.L.lights_int_2_l_tube_lifetime) (L.L.lights_int_2_l_tube_degradation_threshold) >
+        {if}
+            1
+        {else}
+            2
+        {endif}
+    {else}
+        0
+    {endif}
+    (S.L.lights_decke_3_l_matl_mode) 1 = (S.L.lights_int_2_l_emitter) s2
+
+'   // Tube 2R, decke_3_r
+    (L.L.lights_int_2_r_tube) 0 >
+    {if}
+        (L.L.lights_int_2_r_tube_lifetime) (L.L.lights_int_2_r_tube_degradation_threshold) >
+        {if}
+            1
+        {else}
+            2
+        {endif}
+    {else}
+        0
+    {endif}
+    (S.L.lights_decke_3_r_matl_mode) 1 = (S.L.lights_int_2_r_emitter) s3
+
+'   // Pseudo-central-tube 2: 2L, 2R, or both
+    l2 l3 || (S.L.lights_int_2_either_emitter)
+
+'   // Tube 3L, decke_5_l
+    (L.L.lights_int_3_l_tube) 0 >
+    {if}
+        (L.L.lights_int_3_l_tube_lifetime) (L.L.lights_int_3_l_tube_degradation_threshold) >
+        {if}
+            1
+        {else}
+            2
+        {endif}
+    {else}
+        0
+    {endif}
+    (S.L.lights_decke_5_l_matl_mode) 1 = (S.L.lights_int_3_l_emitter) s4
+
+'   // Tube 3R, decke_5_r
+    (L.L.lights_int_3_r_tube) 0 >
+    {if}
+        (L.L.lights_int_3_r_tube_lifetime) (L.L.lights_int_3_r_tube_degradation_threshold) >
+        {if}
+            1
+        {else}
+            2
+        {endif}
+    {else}
+        0
+    {endif}
+    (S.L.lights_decke_5_r_matl_mode) 1 = (S.L.lights_int_3_r_emitter) s5
+
+'   // Pseudo-central-tube 3: 3L, 3R, or both
+    l4 l5 || (S.L.lights_int_3_either_emitter)
+
+'   // Any interior-light originating from a tube light source is active; this will be used in
+'   // lights_user_traffic_signaling at the beginning of the next frame to tell AI folks that
+'   // the vehicle is not scarily dark.
+    (L.L.lights_int_1_either_emitter) (L.L.lights_int_2_either_emitter) || (L.L.lights_int_3_either_emitter) ||
+        (S.L.lights_int_any_emitter) s6
+
+'   // Simple non-interior-light-based effects when vehicle is out of user focus.
+'   // Condition:
+'   // - When any tube is active, all "decke" objects (and any others relying on its respective variable) get
+'   //   illuminated.
+'   // - When the very tube attached to the "decke" object itself is active as well, then also apply the
+'   //   tube-specific night-map on top.
+    l6 !
+    {if}
+        (L.L.lights_decke_1_l_x_matl_mode) 2 = 4 * (S.L.lights_decke_1_l_x_ai_matl_mode)
+        (L.L.lights_decke_1_r_x_matl_mode) 2 = 4 * (S.L.lights_decke_1_r_x_ai_matl_mode)
+        (L.L.lights_decke_3_l_matl_mode) 2 = 4 * (S.L.lights_decke_3_l_ai_matl_mode)
+        (L.L.lights_decke_3_r_matl_mode) 2 = 4 * (S.L.lights_decke_3_r_ai_matl_mode)
+        (L.L.lights_decke_5_l_matl_mode) 2 = 4 * (S.L.lights_decke_5_l_ai_matl_mode)
+        (L.L.lights_decke_5_r_matl_mode) 2 = 4 * (S.L.lights_decke_5_r_ai_matl_mode)
+    {else}
+        (L.L.lights_decke_1_l_x_matl_mode) l6 + (S.L.lights_decke_1_l_x_ai_matl_mode)
+        (L.L.lights_decke_1_r_x_matl_mode) l6 + (S.L.lights_decke_1_r_x_ai_matl_mode)
+        (L.L.lights_decke_3_l_matl_mode) l6 + (S.L.lights_decke_3_l_ai_matl_mode)
+        (L.L.lights_decke_3_r_matl_mode) l6 + (S.L.lights_decke_3_r_ai_matl_mode)
+        (L.L.lights_decke_5_l_matl_mode) l6 + (S.L.lights_decke_5_l_ai_matl_mode)
+        (L.L.lights_decke_5_r_matl_mode) l6 + (S.L.lights_decke_5_r_ai_matl_mode)
+    {endif}
+
+'   // Determining interior1x visibility
+
+'   // Implementation criteria:
+'   // - As much consistency between the visual illumination of the front (interior1a) and rear (interior1b) as
+'   //   possible.
+'   // - As infrequent visibility changes as possible, out of performance concerns.
+'   // - Independence to driver light state (illumination effect would otherwise change for no apparent reason).
+
+'   // Note: Actual mappings between matl_mode variables and interior-lights are out of OMSI constraints hardcoded at
+'   //       the model.cfg level.
+
+'   // interior1a, based on 1L, 1R, 2L, 2R
+    l0 l1 && l2 && l3 && l0 ! l1 ! && l2 ! && l3 ! && ||
+    {if}
+'       // All of 1L+1R+2L+2R active, or none; use object illuminated by driver light and pseudo-tubes 1 and 2.
+        0
+    {else}
+        l0 l1 &&
+        {if}
+'           // 1L+1R active but some of the others not; use object illuminated by driver light, pseudo-tube 1, and
+'           // regular tubes 2L, 2R.
+            1
+        {else}
+            l2 l3 &&
+            {if}
+'               // 2L+2R active but some of the others not; use object illuminated by driver light, pseudo-tube 2, and
+'               // regular tubes 2L, 2R.
+                2
+            {else}
+                l0
+                {if}
+'                   // 1L active (thus 1R not active); use object illuminated by driver light, and regular tubes 1L,
+'                   // 2L, 2R.
+                    3
+                {else}
+'                   // 1L inactive; use object illuminated by driver light, and regular tubes 1R, 2L, 2R.
+                    4
+                {endif}
+            {endif}
+        {endif}
+    {endif}
+    (S.L.lights_interior_x_a_visibility_mode)
+
+'   // interior1b, based on 2L, 2R, 3L, 3R
+    l2 l3 && l4 && l5 && l2 ! l3 ! && l4 ! && l5 ! &&
+    {if}
+'       // All of 2L+2R+3L+3R active, or none; use object illuminated by pseudo-tubes 2, 3.
+        0
+    {else}
+        l2 l3 &&
+        {if}
+'           // 2L+2R active but some of the others not; use object illuminated by pseudo-tube 2, and regular tubes 3L,
+'           // 3R.
+            1
+        {else}
+            l4 l5 &&
+            {if}
+'               // 3L+3R active but some of the others not; use object illuminated by pseudo-tube 3, and regular
+'               // tubes 2L, 2R.
+                2
+            {else}
+'               // No logical tube pair active; use object illuminated by regular tubes 2L, 2R, 3L, 3R.
+                3
+            {endif}
+        {endif}
+    {endif}
+    (S.L.lights_interior_x_b_visibility_mode)
+
+'   // Exterior head-light-source-to-[spotlight] mappings
+
+    (L.L.lights_fern_l_bulb) 0 > (L.L.lights_fern_r_bulb) 0 > ||
+    {if}
+        0
+    {else}
+        (L.L.lights_nebelschw_l_bulb) 0 > (L.L.lights_nebelschw_r_bulb) 0 > ||
+        {if}
+            2
+        {else}
+            (L.L.lights_abbl_l_bulb) 0 > (L.L.lights_abbl_r_bulb) 0 > ||
+            {if}
+                1
+            {else}
+                (L.L.lights_drl_l_unit) 0 > (L.L.lights_drl_r_unit) 0 > ||
+                {if}
+                    3
+                {else}
+                    -1
+                {endif}
+            {endif}
+        {endif}
+    {endif}
+    (S.L.Spot_Select)
+{end}
+
+'------------------------------------------------------------------------------
+' Periodically called by collision script to decrement light sources' lifespan
+' under a finite maintenance setting.
+'------------------------------------------------------------------------------
+{macro:lights_malfunction_minute_trigger}
+'   // XXX: Shouldn't the light script handle this directly? What does the collision script indirection actually serve?
+'   //      Yet another refactoring candidate.
+
+    0.001666667 s0
+
+'   // ----- Exterior lights -----
+
+'   // Standstill
+    (L.L.lights_stand_l_bulb) 0 > {if} (L.L.lights_stand_l_bulb_lifetime) l0 - (S.L.lights_stand_l_bulb_lifetime) {endif}
+    (L.L.lights_stand_r_bulb) 0 > {if} (L.L.lights_stand_r_bulb_lifetime) l0 - (S.L.lights_stand_r_bulb_lifetime) {endif}
+
+'   // Headlights
+    (L.L.lights_abbl_l_bulb) 0 > {if} (L.L.lights_abbl_l_bulb_lifetime) l0 - (S.L.lights_abbl_l_bulb_lifetime) {endif}
+    (L.L.lights_abbl_r_bulb) 0 > {if} (L.L.lights_abbl_r_bulb_lifetime) l0 - (S.L.lights_abbl_r_bulb_lifetime) {endif}
+
+'   // High beam
+    (L.L.lights_fern_l_bulb) 0 > {if} (L.L.lights_fern_l_bulb_lifetime) l0 - (S.L.lights_fern_l_bulb_lifetime) {endif}
+    (L.L.lights_fern_r_bulb) 0 > {if} (L.L.lights_fern_r_bulb_lifetime) l0 - (S.L.lights_fern_r_bulb_lifetime) {endif}
+
+'   // DRL
+    (L.L.lights_drl_l_unit) 0 > {if} (L.L.lights_drl_l_unit_lifetime) l0 - (S.L.lights_drl_l_unit_lifetime) {endif}
+    (L.L.lights_drl_r_unit) 0 > {if} (L.L.lights_drl_r_unit_lifetime) l0 - (S.L.lights_drl_r_unit_lifetime) {endif}
+
+'   // Head fog lights
+    (L.L.lights_nebelschw_l_bulb) 0 > {if} (L.L.lights_nebelschw_l_bulb_lifetime) l0 - (S.L.lights_nebelschw_l_bulb_lifetime) {endif}
+    (L.L.lights_nebelschw_r_bulb) 0 > {if} (L.L.lights_nebelschw_r_bulb_lifetime) l0 - (S.L.lights_nebelschw_r_bulb_lifetime) {endif}
+
+'   // Brake
+    (L.L.lights_brems_l_t_bulb) 0 > {if} (L.L.lights_brems_l_t_bulb_lifetime) l0 - (S.L.lights_brems_l_t_bulb_lifetime) {endif}
+    (L.L.lights_brems_r_t_bulb) 0 > {if} (L.L.lights_brems_r_t_bulb_lifetime) l0 - (S.L.lights_brems_r_t_bulb_lifetime) {endif}
+    (L.L.lights_brems_l_m_bulb) 0 > {if} (L.L.lights_brems_l_m_bulb_lifetime) l0 - (S.L.lights_brems_l_m_bulb_lifetime) {endif}
+    (L.L.lights_brems_r_m_bulb) 0 > {if} (L.L.lights_brems_r_m_bulb_lifetime) l0 - (S.L.lights_brems_r_m_bulb_lifetime) {endif}
+
+'   // Reverse
+    (L.L.lights_rueckfahr_l_bulb) 0 > {if} (L.L.lights_rueckfahr_l_bulb_lifetime) l0 - (S.L.lights_rueckfahr_l_bulb_lifetime) {endif}
+    (L.L.lights_rueckfahr_r_bulb) 0 > {if} (L.L.lights_rueckfahr_r_bulb_lifetime) l0 - (S.L.lights_rueckfahr_r_bulb_lifetime) {endif}
+
+'   // Tail fog lights
+    (L.L.lights_nebelschluss_l_bulb) 0 > {if} (L.L.lights_nebelschluss_l_bulb_lifetime) l0 - (S.L.lights_nebelschluss_l_bulb_lifetime) {endif}
+    (L.L.lights_nebelschluss_r_bulb) 0 > {if} (L.L.lights_nebelschluss_r_bulb_lifetime) l0 - (S.L.lights_nebelschluss_r_bulb_lifetime) {endif}
+
+'   // Indicator
+    (L.L.lights_blinker_h_l_bulb) 0 > {if} (L.L.lights_blinker_h_l_bulb_lifetime) l0 - (S.L.lights_blinker_h_l_bulb_lifetime) {endif}
+    (L.L.lights_blinker_h_r_bulb) 0 > {if} (L.L.lights_blinker_h_r_bulb_lifetime) l0 - (S.L.lights_blinker_h_r_bulb_lifetime) {endif}
+    (L.L.lights_blinker_s_l_1_bulb) 0 > {if} (L.L.lights_blinker_s_l_1_bulb_lifetime) l0 - (S.L.lights_blinker_s_l_1_bulb_lifetime) {endif}
+    (L.L.lights_blinker_s_r_1_bulb) 0 > {if} (L.L.lights_blinker_s_r_1_bulb_lifetime) l0 - (S.L.lights_blinker_s_r_1_bulb_lifetime) {endif}
+    (L.L.lights_blinker_s_l_2_bulb) 0 > {if} (L.L.lights_blinker_s_l_2_bulb_lifetime) l0 - (S.L.lights_blinker_s_l_2_bulb_lifetime) {endif}
+    (L.L.lights_blinker_s_r_2_bulb) 0 > {if} (L.L.lights_blinker_s_r_2_bulb_lifetime) l0 - (S.L.lights_blinker_s_r_2_bulb_lifetime) {endif}
+    (L.L.lights_blinker_t_l_m_bulb) 0 > {if} (L.L.lights_blinker_t_l_m_bulb_lifetime) l0 - (S.L.lights_blinker_t_l_m_bulb_lifetime) {endif}
+    (L.L.lights_blinker_t_r_m_bulb) 0 > {if} (L.L.lights_blinker_t_r_m_bulb_lifetime) l0 - (S.L.lights_blinker_t_r_m_bulb_lifetime) {endif}
+    (L.L.lights_blinker_t_l_t_bulb) 0 > {if} (L.L.lights_blinker_t_l_t_bulb_lifetime) l0 - (S.L.lights_blinker_t_l_t_bulb_lifetime) {endif}
+    (L.L.lights_blinker_t_r_t_bulb) 0 > {if} (L.L.lights_blinker_t_r_t_bulb_lifetime) l0 - (S.L.lights_blinker_t_r_t_bulb_lifetime) {endif}
+
+'   // Marker
+    (L.L.lights_position_h_l_bulb) 0 > {if} (L.L.lights_position_h_l_bulb_lifetime) l0 - (S.L.lights_position_h_l_bulb_lifetime) {endif}
+    (L.L.lights_position_h_r_bulb) 0 > {if} (L.L.lights_position_h_r_bulb_lifetime) l0 - (S.L.lights_position_h_r_bulb_lifetime) {endif}
+    (L.L.lights_position_s_l_1_bulb) 0 > {if} (L.L.lights_position_s_l_1_bulb_lifetime) l0 - (S.L.lights_position_s_l_1_bulb_lifetime) {endif}
+    (L.L.lights_position_s_r_1_bulb) 0 > {if} (L.L.lights_position_s_r_1_bulb_lifetime) l0 - (S.L.lights_position_s_r_1_bulb_lifetime) {endif}
+    (L.L.lights_position_s_l_2_bulb) 0 > {if} (L.L.lights_position_s_l_2_bulb_lifetime) l0 - (S.L.lights_position_s_l_2_bulb_lifetime) {endif}
+    (L.L.lights_position_s_r_2_bulb) 0 > {if} (L.L.lights_position_s_r_2_bulb_lifetime) l0 - (S.L.lights_position_s_r_2_bulb_lifetime) {endif}
+    (L.L.lights_position_s_l_3_bulb) 0 > {if} (L.L.lights_position_s_l_3_bulb_lifetime) l0 - (S.L.lights_position_s_l_3_bulb_lifetime) {endif}
+    (L.L.lights_position_s_r_3_bulb) 0 > {if} (L.L.lights_position_s_r_3_bulb_lifetime) l0 - (S.L.lights_position_s_r_3_bulb_lifetime) {endif}
+    (L.L.lights_position_s_l_4_bulb) 0 > {if} (L.L.lights_position_s_l_4_bulb_lifetime) l0 - (S.L.lights_position_s_l_4_bulb_lifetime) {endif}
+    (L.L.lights_position_s_r_4_bulb) 0 > {if} (L.L.lights_position_s_r_4_bulb_lifetime) l0 - (S.L.lights_position_s_r_4_bulb_lifetime) {endif}
+    (L.L.lights_position_s_l_5_bulb) 0 > {if} (L.L.lights_position_s_l_5_bulb_lifetime) l0 - (S.L.lights_position_s_l_5_bulb_lifetime) {endif}
+    (L.L.lights_position_s_r_5_bulb) 0 > {if} (L.L.lights_position_s_r_5_bulb_lifetime) l0 - (S.L.lights_position_s_r_5_bulb_lifetime) {endif}
+    (L.L.lights_position_t_l_t_bulb) 0 > {if} (L.L.lights_position_t_l_t_bulb_lifetime) l0 - (S.L.lights_position_t_l_t_bulb_lifetime) {endif}
+    (L.L.lights_position_t_r_t_bulb) 0 > {if} (L.L.lights_position_t_r_t_bulb_lifetime) l0 - (S.L.lights_position_t_r_t_bulb_lifetime) {endif}
+    (L.L.lights_position_t_l_m_bulb) 0 > {if} (L.L.lights_position_t_l_m_bulb_lifetime) l0 - (S.L.lights_position_t_l_m_bulb_lifetime) {endif}
+    (L.L.lights_position_t_r_m_bulb) 0 > {if} (L.L.lights_position_t_r_m_bulb_lifetime) l0 - (S.L.lights_position_t_r_m_bulb_lifetime) {endif}
+    (L.L.lights_position_t_l_b_bulb) 0 > {if} (L.L.lights_position_t_l_b_bulb_lifetime) l0 - (S.L.lights_position_t_l_b_bulb_lifetime) {endif}
+    (L.L.lights_position_t_r_b_bulb) 0 > {if} (L.L.lights_position_t_r_b_bulb_lifetime) l0 - (S.L.lights_position_t_r_b_bulb_lifetime) {endif}
+
+'   // Rear license plate
+    (L.L.lights_kennz_hinten_l_bulb) 0 > {if} (L.L.lights_kennz_hinten_l_bulb_lifetime) l0 - (S.L.lights_kennz_hinten_l_bulb_lifetime) {endif}
+    (L.L.lights_kennz_hinten_r_bulb) 0 > {if} (L.L.lights_kennz_hinten_r_bulb_lifetime) l0 - (S.L.lights_kennz_hinten_r_bulb_lifetime) {endif}
+
+'   // ----- Interior lights -----
+
+'   // Driver
+    (L.L.lights_fahrerlicht_bulb) 0 > {if} (L.L.lights_fahrerlicht_bulb_lifetime) l0 - (S.L.lights_fahrerlicht_bulb_lifetime) {endif}
+
+'   // Passenger
+    (L.L.lights_int_1_l_tube) 0 > {if} (L.L.lights_int_1_l_tube_lifetime) l0 - (S.L.lights_int_1_l_tube_lifetime) {endif}
+    (L.L.lights_int_1_r_tube) 0 > {if} (L.L.lights_int_1_r_tube_lifetime) l0 - (S.L.lights_int_1_r_tube_lifetime) {endif}
+    (L.L.lights_int_2_l_tube) 0 > {if} (L.L.lights_int_2_l_tube_lifetime) l0 - (S.L.lights_int_2_l_tube_lifetime) {endif}
+    (L.L.lights_int_2_r_tube) 0 > {if} (L.L.lights_int_2_r_tube_lifetime) l0 - (S.L.lights_int_2_r_tube_lifetime) {endif}
+    (L.L.lights_int_3_l_tube) 0 > {if} (L.L.lights_int_3_l_tube_lifetime) l0 - (S.L.lights_int_3_l_tube_lifetime) {endif}
+    (L.L.lights_int_3_r_tube) 0 > {if} (L.L.lights_int_3_r_tube_lifetime) l0 - (S.L.lights_int_3_r_tube_lifetime) {endif}
+
+'   // Door spotlights
+    (L.L.lights_door_1_spotlight_1_bulb) 0 > {if} (L.L.lights_door_1_spotlight_1_bulb_lifetime) l0 - (S.L.lights_door_1_spotlight_1_bulb_lifetime) {endif}
+    (L.L.lights_door_1_spotlight_2_bulb) 0 > {if} (L.L.lights_door_1_spotlight_2_bulb_lifetime) l0 - (S.L.lights_door_1_spotlight_2_bulb_lifetime) {endif}
+    (L.L.lights_door_2_spotlight_1_bulb) 0 > {if} (L.L.lights_door_2_spotlight_1_bulb_lifetime) l0 - (S.L.lights_door_2_spotlight_1_bulb_lifetime) {endif}
+    (L.L.lights_door_2_spotlight_2_bulb) 0 > {if} (L.L.lights_door_2_spotlight_2_bulb_lifetime) l0 - (S.L.lights_door_2_spotlight_2_bulb_lifetime) {endif}
+    (L.L.lights_door_3_spotlight_1_bulb) 0 > {if} (L.L.lights_door_3_spotlight_1_bulb_lifetime) l0 - (S.L.lights_door_3_spotlight_1_bulb_lifetime) {endif}
+    (L.L.lights_door_3_spotlight_2_bulb) 0 > {if} (L.L.lights_door_3_spotlight_2_bulb_lifetime) l0 - (S.L.lights_door_3_spotlight_2_bulb_lifetime) {endif}
+    (L.L.lights_door_4_spotlight_1_bulb) 0 > {if} (L.L.lights_door_4_spotlight_1_bulb_lifetime) l0 - (S.L.lights_door_4_spotlight_1_bulb_lifetime) {endif}
+    (L.L.lights_door_4_spotlight_2_bulb) 0 > {if} (L.L.lights_door_4_spotlight_2_bulb_lifetime) l0 - (S.L.lights_door_4_spotlight_2_bulb_lifetime) {endif}
+{end}
+
+'------------------------------------------------------------------------------
+' Initializes, and resets, whenever the game's native repair function gets
+' triggered by the user, the lifetime of each light source.
+'
+' The following factors affect the lifetime of each source:
+' - The average lifetime given by the manufacturer, depending primarily on the
+'   type of light source.
+' - The user's maintenance (wearlifespan) setting. When the vehicle is spawned
+'   in AI mode, due to OMSI assigning "infinite" maintenance to such vehicles,
+'   a random level is instead chosen, with "infinite", "very good", and "good"
+'   values being more likely than "normal" and "bad", and "very bad" never
+'   being assigned.
+' - The vehicle's age.
+' - A per-source factor expressing the malfunction likelihood in terms of how
+'   frequently sources are used, their significance, how likely damage due to
+'   environmental factors is to arise, etc..
+' - Random chance.
+'------------------------------------------------------------------------------
+{macro:lights_repair}
+    (L.L.lights_initialized) 1 = s0
+    {if}
+'       // maintenance factor
+        (L.L.AI)
+        {if}
+            10000 random (M.V.NrSpecRandom) 0.5 <
+            {if}
+                100
+            {else}
+                10000 random (M.V.NrSpecRandom) 0.8 <
+                {if}
+                    10
+                {else}
+                    1
+                {endif}
+            {endif}
+        {else}
+            (L.L.wearlifespan) 100 min
+        {endif}
+        s1 0.1 <
+        {if}
+'           // ...normalized (0 = best, 1 = worst)
+            1
+        {else}
+            l1 1 <
+            {if}
+                0.5
+            {else}
+                l1 10 <
+                {if}
+                    0.25
+                {else}
+                    l1 100 <
+                    {if}
+                        0.1
+                    {else}
+                        0
+                    {endif}
+                {endif}
+            {endif}
+        {endif}
+        (C.L.lights_malfunction_wearlifespan_weight) * s1
+
+'       // age factor
+        (L.S.year) (C.L.year_of_manufacture) - 0 max s2 2 <
+        {if}
+            0
+        {else}
+            l2 5 <
+            {if}
+                0.1
+            {else}
+                l2 10 <
+                {if}
+                    0.25
+                {else}
+                    l2 20 <
+                    {if}
+                        0.5
+                    {else}
+                        1
+                    {endif}
+                {endif}
+            {endif}
+        {endif}
+        (C.L.lights_malfunction_age_weight) * s2
+
+        l1 l2 + (C.L.lights_malfunction_wearlifespan_age_combined_weight) *
+            (S.L.lights_wearlifespan_factor)
+    {else}
+        (L.L.lights_wearlifespan_factor)
+    {endif}
+    s1
+
+'   // ----- Exterior lights -----
+
+'   // Standstill
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_stand_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_stand_l_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_stand_bulb_lifetime_h) 1 l1 - * * (S.L.lights_stand_l_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_stand_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_stand_r_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_stand_bulb_lifetime_h) 1 l1 - * * (S.L.lights_stand_r_bulb_lifetime)
+    {endif}
+
+'   // Headlights
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_abbl_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_abbl_l_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_abbl_bulb_lifetime_h) 1 l1 - * * (S.L.lights_abbl_l_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_abbl_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_abbl_r_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_abbl_bulb_lifetime_h) 1 l1 - * * (S.L.lights_abbl_r_bulb_lifetime)
+    {endif}
+
+'   // High beam
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_fern_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_fern_l_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_fern_bulb_lifetime_h) 1 l1 - * * (S.L.lights_fern_l_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_fern_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_fern_r_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_fern_bulb_lifetime_h) 1 l1 - * * (S.L.lights_fern_r_bulb_lifetime)
+    {endif}
+
+'   // DRL
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_drl_unit_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_drl_l_unit_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_drl_unit_lifetime_h) 1 l1 - * * (S.L.lights_drl_l_unit_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_drl_unit_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_drl_r_unit_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_drl_unit_lifetime_h) 1 l1 - * * (S.L.lights_drl_r_unit_lifetime)
+    {endif}
+
+'   // Head fog lights
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_nebelschw_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_nebelschw_l_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_nebelschw_bulb_lifetime_h) 1 l1 - * * (S.L.lights_nebelschw_l_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_nebelschw_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_nebelschw_r_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_nebelschw_bulb_lifetime_h) 1 l1 - * * (S.L.lights_nebelschw_r_bulb_lifetime)
+    {endif}
+
+'   // Brake
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_brems_t_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_brems_l_t_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_brems_bulb_lifetime_h) 1 l1 - * * (S.L.lights_brems_l_t_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_brems_t_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_brems_r_t_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_brems_bulb_lifetime_h) 1 l1 - * * (S.L.lights_brems_r_t_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_brems_m_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_brems_l_m_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_brems_bulb_lifetime_h) 1 l1 - * * (S.L.lights_brems_l_m_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_brems_m_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_brems_r_m_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_brems_bulb_lifetime_h) 1 l1 - * * (S.L.lights_brems_r_m_bulb_lifetime)
+    {endif}
+
+'   // Reverse
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_rueckfahr_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_rueckfahr_l_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_rueckfahr_bulb_lifetime_h) 1 l1 - * * (S.L.lights_rueckfahr_l_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_rueckfahr_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_rueckfahr_r_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_rueckfahr_bulb_lifetime_h) 1 l1 - * * (S.L.lights_rueckfahr_r_bulb_lifetime)
+    {endif}
+
+'   // Tail fog lights
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_nebelschluss_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_nebelschluss_l_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_nebelschluss_bulb_lifetime_h) 1 l1 - * * (S.L.lights_nebelschluss_l_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_nebelschluss_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_nebelschluss_r_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_nebelschluss_bulb_lifetime_h) 1 l1 - * * (S.L.lights_nebelschluss_r_bulb_lifetime)
+    {endif}
+
+'   // Indicator
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_blinker_h_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_blinker_h_l_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_blinker_bulb_lifetime_h) 1 l1 - * * (S.L.lights_blinker_h_l_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_blinker_s_1_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_blinker_s_l_1_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_blinker_bulb_lifetime_h) 1 l1 - * * (S.L.lights_blinker_s_l_1_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_blinker_s_2_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_blinker_s_l_2_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_blinker_bulb_lifetime_h) 1 l1 - * * (S.L.lights_blinker_s_l_2_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_blinker_t_t_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_blinker_t_l_t_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_blinker_bulb_lifetime_h) 1 l1 - * * (S.L.lights_blinker_t_l_t_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_blinker_t_m_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_blinker_t_l_m_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_blinker_bulb_lifetime_h) 1 l1 - * * (S.L.lights_blinker_t_l_m_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_blinker_h_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_blinker_h_r_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_blinker_bulb_lifetime_h) 1 l1 - * * (S.L.lights_blinker_h_r_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_blinker_s_1_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_blinker_s_r_1_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_blinker_bulb_lifetime_h) 1 l1 - * * (S.L.lights_blinker_s_r_1_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_blinker_s_2_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_blinker_s_r_2_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_blinker_bulb_lifetime_h) 1 l1 - * * (S.L.lights_blinker_s_r_2_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_blinker_t_t_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_blinker_t_r_t_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_blinker_bulb_lifetime_h) 1 l1 - * * (S.L.lights_blinker_t_r_t_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_blinker_t_m_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_blinker_t_r_m_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_blinker_bulb_lifetime_h) 1 l1 - * * (S.L.lights_blinker_t_r_m_bulb_lifetime)
+    {endif}
+
+'   // Marker
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_position_h_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_position_h_l_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_position_h_l_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_position_h_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_position_h_r_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_position_h_r_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_position_s_1_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_position_s_l_1_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_position_s_l_1_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_position_s_1_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_position_s_r_1_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_position_s_r_1_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_position_s_2_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_position_s_l_2_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_position_s_l_2_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_position_s_2_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_position_s_r_2_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_position_s_r_2_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_position_s_3_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_position_s_l_3_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_position_s_l_3_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_position_s_3_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_position_s_r_3_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_position_s_r_3_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_position_s_4_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_position_s_l_4_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_position_s_l_4_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_position_s_4_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_position_s_r_4_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_position_s_r_4_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_position_s_5_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_position_s_l_5_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_position_s_l_5_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_position_s_5_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_position_s_r_5_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_position_s_r_5_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_position_t_t_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_position_t_l_t_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_position_t_l_t_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_position_t_t_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_position_t_r_t_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_position_t_r_t_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_position_t_m_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_position_t_l_m_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_position_t_l_m_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_position_t_m_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_position_t_r_m_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_position_t_r_m_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_position_t_b_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_position_t_l_b_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_position_t_l_b_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_position_t_b_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_position_t_r_b_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_position_t_r_b_bulb_lifetime)
+    {endif}
+
+'   // Rear license plate
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_kennz_hinten_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_kennz_hinten_l_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_kennz_hinten_l_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_kennz_hinten_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_kennz_hinten_r_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_position_bulb_lifetime_h) 1 l1 - * * (S.L.lights_kennz_hinten_r_bulb_lifetime)
+    {endif}
+
+'   // ----- Interior lights -----
+
+'   // Driver
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_fahrerlicht_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_fahrerlicht_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_fahrerlicht_bulb_lifetime_h) 1 l1 - * * (S.L.lights_fahrerlicht_bulb_lifetime)
+    {endif}
+
+'   // Passenger (also accounting for degradation)
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_int_1_l_tube_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_int_1_l_tube_lifetime) (L.L.lights_int_1_l_tube_degradation_threshold) <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_int_tube_lifetime_h) 1 l1 - * * (S.L.lights_int_1_l_tube_lifetime) s2
+        10000 random (M.V.NrSpecRandom) (C.L.lights_int_tube_degradation_lifetime_h)
+            l1 (C.L.lights_int_tube_degradation_lifetime_wearlifespan_age_combined_contribution_min) max * * s3
+        l0 !
+        {if}
+            l2 0.1 - 0 max l3 min s3
+        {endif}
+        l3 (S.L.lights_int_1_l_tube_degradation_threshold)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_int_1_r_tube_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_int_1_r_tube_lifetime) (L.L.lights_int_1_r_tube_degradation_threshold) <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_int_tube_lifetime_h) 1 l1 - * * (S.L.lights_int_1_r_tube_lifetime) s2
+        10000 random (M.V.NrSpecRandom) (C.L.lights_int_tube_degradation_lifetime_h)
+            l1 (C.L.lights_int_tube_degradation_lifetime_wearlifespan_age_combined_contribution_min) max * * s3
+        l0 !
+        {if}
+            l2 0.1 - 0 max l3 min s3
+        {endif}
+        l3 (S.L.lights_int_1_r_tube_degradation_threshold)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_int_2_l_tube_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_int_2_l_tube_lifetime) (L.L.lights_int_2_l_tube_degradation_threshold) <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_int_tube_lifetime_h) 1 l1 - * * (S.L.lights_int_2_l_tube_lifetime) s2
+        10000 random (M.V.NrSpecRandom) (C.L.lights_int_tube_degradation_lifetime_h)
+            l1 (C.L.lights_int_tube_degradation_lifetime_wearlifespan_age_combined_contribution_min) max * * s3
+        l0 !
+        {if}
+            l2 0.1 - 0 max l3 min s3
+        {endif}
+        l3 (S.L.lights_int_2_l_tube_degradation_threshold)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_int_2_r_tube_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_int_2_r_tube_lifetime) (L.L.lights_int_2_r_tube_degradation_threshold) <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_int_tube_lifetime_h) 1 l1 - * * (S.L.lights_int_2_r_tube_lifetime) s2
+        10000 random (M.V.NrSpecRandom) (C.L.lights_int_tube_degradation_lifetime_h)
+            l1 (C.L.lights_int_tube_degradation_lifetime_wearlifespan_age_combined_contribution_min) max * * s3
+        l0 !
+        {if}
+            l2 0.1 - 0 max l3 min s3
+        {endif}
+        l3 (S.L.lights_int_2_r_tube_degradation_threshold)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_int_3_l_tube_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_int_3_l_tube_lifetime) (L.L.lights_int_3_l_tube_degradation_threshold) <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_int_tube_lifetime_h) 1 l1 - * * (S.L.lights_int_3_l_tube_lifetime) s2
+        10000 random (M.V.NrSpecRandom) (C.L.lights_int_tube_degradation_lifetime_h)
+            l1 (C.L.lights_int_tube_degradation_lifetime_wearlifespan_age_combined_contribution_min) max * * s3
+        l0 !
+        {if}
+            l2 0.1 - 0 max l3 min s3
+        {endif}
+        l3 (S.L.lights_int_3_l_tube_degradation_threshold)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_int_3_r_tube_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_int_3_r_tube_lifetime) (L.L.lights_int_3_r_tube_degradation_threshold) <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_int_tube_lifetime_h) 1 l1 - * * (S.L.lights_int_3_r_tube_lifetime) s2
+        10000 random (M.V.NrSpecRandom) (C.L.lights_int_tube_degradation_lifetime_h)
+            l1 (C.L.lights_int_tube_degradation_lifetime_wearlifespan_age_combined_contribution_min) max * * s3
+        l0 !
+        {if}
+            l2 0.1 - 0 max l3 min s3
+        {endif}
+        l3 (S.L.lights_int_3_r_tube_degradation_threshold)
+    {endif}
+
+'   // Door spotlights
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_door_1_spotlight_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_door_1_spotlight_1_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_door_spotlight_bulb_lifetime_h) 1 l1 - * * (S.L.lights_door_1_spotlight_1_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_door_1_spotlight_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_door_1_spotlight_2_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_door_spotlight_bulb_lifetime_h) 1 l1 - * * (S.L.lights_door_1_spotlight_2_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_door_2_spotlight_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_door_2_spotlight_1_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_door_spotlight_bulb_lifetime_h) 1 l1 - * * (S.L.lights_door_2_spotlight_1_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_door_2_spotlight_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_door_2_spotlight_2_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_door_spotlight_bulb_lifetime_h) 1 l1 - * * (S.L.lights_door_2_spotlight_2_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_door_3_spotlight_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_door_3_spotlight_1_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_door_spotlight_bulb_lifetime_h) 1 l1 - * * (S.L.lights_door_3_spotlight_1_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_door_3_spotlight_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_door_3_spotlight_2_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_door_spotlight_bulb_lifetime_h) 1 l1 - * * (S.L.lights_door_3_spotlight_2_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_door_4_spotlight_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_door_4_spotlight_1_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_door_spotlight_bulb_lifetime_h) 1 l1 - * * (S.L.lights_door_4_spotlight_1_bulb_lifetime)
+    {endif}
+
+    l0 10000 random (M.V.NrSpecRandom) l1 (C.L.lights_door_4_spotlight_bulb_defunct_at_spawn_likelihood) * < && !
+        (L.L.lights_door_4_spotlight_2_bulb_lifetime) 0 <= &&
+    {if}
+        10000 random (M.V.NrSpecRandom) (C.L.lights_door_spotlight_bulb_lifetime_h) 1 l1 - * * (S.L.lights_door_4_spotlight_2_bulb_lifetime)
+    {endif}
+{end}
+
+'------------------------------------------------------------------------------
+' Called by main script to compute light source repair times.
+'------------------------------------------------------------------------------
+{macro:lights_repair_timecalc}
+'   // XXX: When sum exceeds ~200 min, OMSI throws the dreaded "Zugriffsverletzung".
+
+'   // XXX: Future work:
+'   //      - Make repair times variable, depending on day of week and time of day, etc..
+'   //      - Certain light sources share a single fixture, in which case there should be a "temporal discount" when
+'   //        multiple occupants are to be repaired.
+'   //      - Allow user some extra freedom on what / in what order gets repaired. For instance, pending repairs could
+'   //        be grouped and queued by significance (e.g., headlights and brake lights first, indicators next, ...),
+'   //        with only one item of the queue being dealt with each time the user triggers the repair function.
+
+'   // Pull and temp-save previous repair macro's subtotal
+    s0
+
+'   // ----- Exterior lights -----
+
+'   // Standstill
+    (L.L.lights_stand_l_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_stand_r_bulb_lifetime) 0 <= 3 * l0 + s0
+
+'   // Headlights
+    (L.L.lights_abbl_l_bulb_lifetime) 0 <= 5 * l0 + s0
+    (L.L.lights_abbl_r_bulb_lifetime) 0 <= 5 * l0 + s0
+
+'   // High beam
+    (L.L.lights_fern_l_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_fern_r_bulb_lifetime) 0 <= 3 * l0 + s0
+
+'   // DRL
+    (L.L.lights_drl_l_unit_lifetime) 0 <= (L.L.lights_cti_has_drl) && 10 * l0 + s0
+    (L.L.lights_drl_r_unit_lifetime) 0 <= (L.L.lights_cti_has_drl) && 10 * l0 + s0
+
+'   // Head fog lights
+    (L.L.lights_nebelschw_l_bulb_lifetime) 0 <= (L.L.lights_cti_has_head_fog_lights) && 3 * l0 + s0
+    (L.L.lights_nebelschw_r_bulb_lifetime) 0 <= (L.L.lights_cti_has_head_fog_lights) && 3 * l0 + s0
+
+'   // Brake
+    (L.L.lights_brems_l_t_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_brems_r_t_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_brems_l_m_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_brems_r_m_bulb_lifetime) 0 <= 3 * l0 + s0
+
+'   // Reverse
+    (L.L.lights_rueckfahr_l_bulb_lifetime) 0 <= (L.L.lights_cti_has_second_reverse_and_tail_fog_light) && 1 * l0 + s0
+    (L.L.lights_rueckfahr_r_bulb_lifetime) 0 <= 1 * l0 + s0
+
+'   // Tail fog lights
+    (L.L.lights_nebelschluss_l_bulb_lifetime) 0 <= 1 * l0 + s0
+    (L.L.lights_nebelschluss_r_bulb_lifetime) 0 <= (L.L.lights_cti_has_second_reverse_and_tail_fog_light) && 1 * l0 + s0
+
+'   // Indicator
+    (L.L.lights_blinker_h_l_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_blinker_s_l_1_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_blinker_t_l_m_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_blinker_t_l_t_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_blinker_s_l_2_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_blinker_h_r_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_blinker_s_r_1_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_blinker_t_r_m_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_blinker_t_r_t_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_blinker_s_r_2_bulb_lifetime) 0 <= 3 * l0 + s0
+
+'   // Marker
+    (L.L.lights_position_h_l_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_position_h_r_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_position_s_l_1_bulb_lifetime) 0 <= 1 * l0 + s0
+    (L.L.lights_position_s_r_1_bulb_lifetime) 0 <= 1 * l0 + s0
+    (L.L.lights_position_s_l_2_bulb_lifetime) 0 <= 1 * l0 + s0
+    (L.L.lights_position_s_r_2_bulb_lifetime) 0 <= 1 * l0 + s0
+    (L.L.lights_position_s_l_3_bulb_lifetime) 0 <= 1 * l0 + s0
+    (L.L.lights_position_s_r_3_bulb_lifetime) 0 <= 1 * l0 + s0
+    (L.L.lights_position_s_l_4_bulb_lifetime) 0 <= 1 * l0 + s0
+    (L.L.lights_position_s_r_4_bulb_lifetime) 0 <= 1 * l0 + s0
+    (L.L.lights_position_s_l_5_bulb_lifetime) 0 <= 1 * l0 + s0
+    (L.L.lights_position_s_r_5_bulb_lifetime) 0 <= 1 * l0 + s0
+    (L.L.lights_position_t_l_t_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_position_t_r_t_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_position_t_l_m_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_position_t_r_m_bulb_lifetime) 0 <= 3 * l0 + s0
+    (L.L.lights_position_t_l_b_bulb_lifetime) 0 <= 1 * l0 + s0
+    (L.L.lights_position_t_r_b_bulb_lifetime) 0 <= 1 * l0 + s0
+
+'   // Rear license plate
+    (L.L.lights_kennz_hinten_l_bulb_lifetime) 0 <= 1 * l0 + s0
+    (L.L.lights_kennz_hinten_r_bulb_lifetime) 0 <= 1 * l0 + s0
+
+'   // ----- Interior lights -----
+
+'   // Driver
+    (L.L.lights_fahrerlicht_bulb_lifetime) 0 <= 5 * l0 + s0
+
+'   // Passenger
+    (L.L.lights_int_1_l_tube_lifetime) (L.L.lights_int_1_l_tube_degradation_threshold) <= 7 * l0 + s0
+    (L.L.lights_int_1_r_tube_lifetime) (L.L.lights_int_1_r_tube_degradation_threshold) <= 7 * l0 + s0
+    (L.L.lights_int_2_l_tube_lifetime) (L.L.lights_int_2_l_tube_degradation_threshold) <= 7 * l0 + s0
+    (L.L.lights_int_2_r_tube_lifetime) (L.L.lights_int_2_r_tube_degradation_threshold) <= 7 * l0 + s0
+    (L.L.lights_int_3_l_tube_lifetime) (L.L.lights_int_3_l_tube_degradation_threshold) <= 7 * l0 + s0
+    (L.L.lights_int_3_r_tube_lifetime) (L.L.lights_int_3_r_tube_degradation_threshold) <= 7 * l0 + s0
+
+'   // Door spotlights
+    (L.L.lights_door_1_spotlight_1_bulb_lifetime) 0 <= 2 * l0 + s0
+    (L.L.lights_door_1_spotlight_2_bulb_lifetime) 0 <= 2 * l0 + s0
+    (L.L.lights_door_2_spotlight_1_bulb_lifetime) 0 <= 2 * l0 + s0
+    (L.L.lights_door_2_spotlight_2_bulb_lifetime) 0 <= 2 * l0 + s0
+    (L.L.lights_door_3_spotlight_1_bulb_lifetime) 0 <= 2 * l0 + s0
+    (L.L.lights_door_3_spotlight_2_bulb_lifetime) 0 <= 2 * l0 + s0
+    (L.L.lights_door_4_spotlight_1_bulb_lifetime) 0 <= 2 * l0 + s0
+    (L.L.lights_door_4_spotlight_2_bulb_lifetime) 0 <= 2 * l0 + s0
+
+'   // Push updated subtotal for next repair macro
+    l0
+{end}

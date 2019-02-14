@@ -1,0 +1,11 @@
+[const]
+number_of_doors
+2
+
+[const]
+articulated_variant
+0
+
+[const]
+year_of_manufacture
+2005

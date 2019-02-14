@@ -1,0 +1,120 @@
+{macro:uchill_integration__init}
+{end}
+
+{macro:uchill_integration__acquire_static_vehicle_attributes}
+' retrieve number of door wings (always static because passenger cabin configs are static)
+    (C.L.uchill_integration_impl__num_inward_swinging_door_wings) (S.L.uchill_integration__number_of_inward_swinging_door_wings)
+        (C.L.uchill_integration_impl__num_outward_swinging_door_wings) (S.L.uchill_integration__number_of_outward_swinging_door_wings) +
+        (C.L.uchill_integration_impl__num_outward_sliding_door_wings) (S.L.uchill_integration__number_of_outward_sliding_door_wings) +
+        (S.L.uchill_integration_impl__number_of_door_wings)
+
+' retrieve cabin volume
+    (C.L.uchill_integration_impl__length_class) s0 (F.L.uchill_integration_impl__length_class_m_cabinair_V) (S.L.uchill_integration__cabinair_V)
+
+' retrieve number of folding windows, hatches, cabin heaters and A/C units, based on vehicle length class
+    (C.L.uchill_integration_impl__num_passenger_windows) (S.L.uchill_integration__number_of_folding_passenger_windows)
+    l0 (F.L.uchill_integration_impl__length_class_m_num_hatches) (S.L.uchill_integration__number_of_hatches)
+    l0 (F.L.uchill_integration_impl__length_class_m_num_cabin_heaters) (S.L.uchill_integration__number_of_cabin_heaters)
+    (C.L.uchill_integration_impl__pass_ac_installed) (S.L.uchill_integration__passenger_ac_installed) l0 (F.L.uchill_integration_impl__length_class_num_pass_ac_units) *
+         (S.L.uchill_integration__number_of_passenger_ac_units)
+{end}
+
+{macro:uchill_integration__acquire_dynamic_vehicle_attributes}
+{end}
+
+{macro:uchill_integration__acquire_vehicle_state}
+' query electrics
+    (L.L.elec_busbar_main) (C.L.elec_busbar_minV) >
+    {if}
+        (L.L.cp_key_rot) 0.4 >=
+        {if}
+            2
+        {else}
+            1
+        {endif}
+    {else}
+        0
+    {endif}
+    (S.L.uchill_integration__electrics_on)
+
+' query engine
+    (L.L.engine_n) (C.L.uchill_integration_impl__engine_n_min) >
+        (L.L.engine_revs_since_start) (C.L.uchill_integration_impl__engine_revs_since_start_min) > &&
+        (S.L.uchill_integration__engine_running)
+    (L.L.engine_temperature) (S.L.uchill_integration__engine_t)
+    (L.L.engine_temperature_envir) (S.L.uchill_integration__engine_t_env)
+
+' query doors
+    (L.L.uchill_integration_impl__number_of_door_wings) s0
+    (L.L.door_0) (L.L.door_2) + (L.L.door_3) + s1
+' provision for potential ue-version
+    l0 2 % ! s2
+    {if}
+        l1 (L.L.door_1) + s1
+    {endif}
+    l0 4 l2 - >
+    {if}
+        l1 (L.L.door_4) + (L.L.door_5) + s1
+        l0 6 l2 - >
+        {if}
+            l1 (L.L.door_6) + (L.L.door_7) + s1
+        {endif}
+    {endif}
+    l1 (S.L.uchill_integration__door_wing_state_sum)
+
+' query windows
+    (L.L.cp_fahrerfenster_pos) (S.L.uchill_integration__driver_window_state)
+
+    (L.L.cp_passenger_window_2_l) (L.L.cp_passenger_window_2_r) + s0
+    (L.L.uchill_integration__number_of_folding_passenger_windows) s1 2 >
+    {if}
+        (L.L.cp_passenger_window_1_l) (L.L.cp_passenger_window_1_r) + l0 + s0
+        l1 4 >
+        {if}
+' xxx: reworked CSB cockpit script does not support (articulated) variants having more than 4 windows yet
+        {endif}
+    {endif}
+    l0 (S.L.uchill_integration__passenger_window_state_sum)
+
+' ...and hatches
+    (L.L.cp_hatch_mode) (L.L.uchill_integration__number_of_hatches) * (S.L.uchill_integration__hatch_backward_state_sum)
+
+' ...and heating / cooling cockpit panel buttons
+    (L.L.cockpit_heizregler_fussraum) (S.L.uchill_integration__cp_driver_ac_air_dispensation)
+    (L.L.cockpit_heizregler_temp) (S.L.uchill_integration__cp_driver_ac_t)
+    (L.L.cp_klimator_sw) (S.L.uchill_integration__cp_driver_ac_fan)
+    (L.L.cp_dummy_sw01_target) (S.L.uchill_integration__cp_driver_ac)
+    (L.L.cp_taster_internal_air_target) (S.L.uchill_integration__cp_air_circulation)
+    (L.L.cp_taster_klima) (S.L.uchill_integration__cp_passenger_ac)
+    (L.L.cp_taster_standheizung_target) (S.L.uchill_integration__cp_auxheat)
+    (L.L.cp_taster_heat_or_frost_target) (S.L.uchill_integration__cp_humidity_management)
+    (L.L.cp_heizluefter_sw) (S.L.uchill_integration__cp_cabin_heaters)
+{end}
+
+{macro:uchill_integration__actualize_vehicle_state}
+' controller LEDs update
+    (L.L.uchill_integration__cp_driver_ac_indicator) (S.L.cp_dummy_sw01_led)
+    (L.L.uchill_integration__cp_air_circulation_indicator) (S.L.cp_taster_internal_air_led)
+    (L.L.uchill_integration__cp_auxheat_indicator) (S.L.cp_taster_standheizung_led)
+    (L.L.uchill_integration__cp_humidity_management_indicator) (S.L.cp_taster_heat_or_frost_led)
+
+' engine temp update due to auxheat
+    (L.L.engine_temperature) (L.L.engine_Qrate_auxheat) (C.L.engine_cvm_engine) / (L.S.Timegap) * +
+        (S.L.engine_temperature)
+
+' sound translation
+    (L.L.driver_ac_fan_sound_vol) 100 * (S.L.cp_klimator_RPM)
+    (L.L.passenger_ac_int_sound_vol) 100 * (S.L.cp_klima_RPM)
+    (L.L.cabin_heaters_sound_vol) 100 * (S.L.cp_cabinheater_RPM)
+    (L.L.auxheat_sound_vol) (S.L.standheizung_volume_stufe2)
+    (L.L.auxheat_start_stop_timer) s0 ! (L.L.auxheat_active) s1 ! && ! l0 (C.L.auxheat_start_delay_min) <= l1 ! && ||
+    {if}
+        0
+    {else}
+        1
+    {endif}
+    s2
+    (C.L.uchill_integration_impl__auxheat_start_stop_sound_update_rate) s3
+    (L.L.standheizung_volume_stufe1) s0 l2 s1 l3 s2
+        (M.L.utils_gradual_constant_update) l0 (S.L.standheizung_volume_stufe1)
+{end}

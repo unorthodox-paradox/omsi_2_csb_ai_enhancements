@@ -1,0 +1,453 @@
+﻿
+[friendlyname]
+CSB - Chemnitzer Verkehrs-AG
+(Experimental) CVAG 72
+
+[description]
+Mercedes-Benz Citaro
+Baujahr: 2005
+Abgasnorm: Euro 3
+Motor: OM906hLa
+Leistung: 279 PS
+Getriebe: ZF Ecomat
+[end]
+
+	[registration_free]
+
+[registration_automatic]
+CVAG
+
+[kmcounter_init]
+2005
+60000
+
+[sound]
+sound-citaro\sound_om906hla_E3_ZF_x.cfg
+
+[sound_ai]
+sound-citaro\sound_om906hla_E3_ZF_x_unfocused.cfg
+
+[model]
+model\model_CSB_CVAG_72_x.cfg
+
+[paths]
+model\paths.cfg
+
+[passengercabin]
+model\passengercabin_O530_x.cfg
+
+	////////////////////////////////////////////////////////
+		Scripts
+	////////////////////////////////////////////////////////
+
+[varnamelist]
+29
+script\experimental\O530_main_varlist.txt
+script\experimental\Collision_varlist.txt
+script\experimental\ai_pre_cockpit_varlist.txt
+script\experimental\cockpit_varlist.txt
+script\experimental\elec_varlist.txt
+script\experimental\bremse_varlist.txt
+script\experimental\engine_varlist.txt
+script\experimental\antrieb_varlist_zf.txt
+script\experimental\door_varlist_voith-zf.txt
+script\experimental\lights_varlist.txt
+script\experimental\lights_ai_varlist.txt
+script\experimental\wiper_varlist.txt
+script\experimental\uchill_vars.txt
+script\experimental\uchill_integration_vars.txt
+script\experimental\IBIS\IBIS_varlist.txt
+script\churaKrueger\Vmatrix_varlist.txt
+script\rollband_varlist.txt
+script\experimental\IBIS\ticketprinter_varlist.txt
+script\experimental\cashdesk_varlist.txt
+script\experimental\vdv_varlist.txt
+script\experimental\rain_varlist.txt
+script\experimental\dirt_varlist.txt
+script\experimental\auspuff_varlist.txt
+script\experimental\spray_varlist.txt
+script\experimental\klappern_varlist.txt
+script\experimental\wimpel_varlist.txt
+script\experimental\visual_varlist.txt
+script\experimental\daueranimation_varlist.txt
+script\experimental\utils_vars.txt
+
+[stringvarnamelist]
+7
+script\experimental\ai_pre_cockpit_stringvarlist.txt
+script\experimental\cockpit_stringvarlist.txt
+script\experimental\IBIS\IBIS_stringvarlist.txt
+script\churaKrueger\Vmatrix_stringvarlist.txt
+script\experimental\IBIS\ticketprinter_stringvarlist.txt
+script\experimental\vdv_stringvarlist.txt
+script\experimental\utils_stringvars.txt
+
+[script]
+29
+script\experimental\O530_main.osc
+script\experimental\collision.osc
+script\experimental\ai_pre_cockpit.osc
+script\experimental\cockpit.osc
+script\experimental\elec.osc
+script\experimental\bremse.osc
+script\experimental\zf-eco.osc
+script\experimental\engine.osc
+script\experimental\door_manual_GS.osc
+script\experimental\lights.osc
+script\experimental\lights_ai.osc
+script\experimental\wiper.osc
+script\experimental\uchill.osc
+script\experimental\uchill_integration.osc
+script\experimental\IBIS\IBIS-2.osc
+script\churaKrueger\Vmatrix.osc
+script\experimental\IBIS\ticketprinter.osc
+script\experimental\cashdesk.osc
+script\experimental\vdv_old.osc
+script\experimental\rain.osc
+script\experimental\dirt.osc
+script\experimental\auspuff.osc
+script\experimental\spray.osc
+script\experimental\sound_volume.osc
+script\experimental\klappern.osc
+script\experimental\forcefeedback.osc
+script\experimental\wimpel.osc
+script\experimental\daueranimation.osc
+script\experimental\utils.osc
+
+[constfile]
+22
+script\experimental\global_consts_cvag72.txt
+script\experimental\collision_constfile.txt
+script\experimental\ai_pre_cockpit_consts.txt
+script\experimental\cockpit_constfile_D92.txt
+script\experimental\elec_constfile.txt
+script\experimental\bremse_constfile_D92.txt
+script\experimental\engine_constfile_om906hla.txt
+script\experimental\ZF-5HP.txt
+script\experimental\door_constfile_euro3.txt
+script\experimental\lights_constfile.txt
+script\experimental\lights_ai_constfile.txt
+script\experimental\wiper_constfile.txt
+script\experimental\uchill_consts.txt
+script\experimental\IBIS\IBIS_constfile.txt
+script\churaKrueger\Vmatrix_constfile_K++.txt
+script\rollband_constfile.txt
+script\experimental\vdv_constfile.txt
+script\experimental\dirt_constfile.txt
+script\experimental\auspuff_constfile.txt
+script\experimental\klappern_constfile.txt
+script\experimental\forcefeedback_constfile.txt
+script\experimental\utils_consts.txt
+
+	////////////////////////////////////////////////////////
+		Kameras *NEU01*
+	////////////////////////////////////////////////////////
+
+	0: Blick nach ganz links
+[add_camera_driver]
+-0.9
+4.9
+1.84
+-0.06
+55
+-135
+-5
+	1: Blick nach schrдg links
+[add_camera_driver]
+-0.713
+4.68
+1.84
+-0.06
+55
+-90
+-5
+	2: Blick in den linken Spiegel
+[add_camera_driver]
+-0.713
+4.68
+1.75
+-0.06
+45
+-30
+10
+
+	3: Blick nach vorne (std)
+[add_camera_driver]
+-0.713
+4.61
+1.8
+-0.06
+45
+0
+-10
+
+	4: Blick in den rechten Spiegel
+[add_camera_driver]
+-0.713
+4.68
+1.75
+-0.06
+55
+40
+-5
+
+	5: Blick zur Tьr
+[add_camera_driver]
+-0.713
+4.9
+1.84
+-0.06
+55
+90
+-10
+
+	5b: Blick in den Rückspiegel
+[add_camera_driver]
+-0.713
+4.68
+1.84
+-0.06
+55
+45
+25
+
+	6: Blick nach ganz rechts
+[add_camera_driver]
+0
+4.68
+1.78
+-0.06
+55
+160
+-10
+
+	7: Fahrscheinverkauf-Sicht
+[add_camera_driver]
+-0.713
+4.78
+1.84
+-0.06
+50
+60
+-35
+
+[view_ticketselling]
+
+	8: Fahrplan-Sicht
+[add_camera_driver]
+-0.713
+4.68
+1.84
+-0.06
+55
+-15
+45
+[view_schedule]
+
+################
+Passagiersichten
+################
+
+	0: Hinten links sitzend
+[add_camera_pax]
+-0.945
+-2.185
+2
+-0.06
+45
+25
+0
+
+	1: Stehplatz an der Hintertuer
+[add_camera_pax]
+0
+-0.6
+2.05
+-0.06
+45
+90
+0
+	2: vorne rechts sitzend
+[add_camera_pax]
+0.94
+1.67
+1.6
+-0.06
+45
+-20
+0
+
+	3: vorne auf dem "Beifahrersitz"
+[add_camera_pax]
+0.6
+3.6
+2.0
+-0.06
+45
+-20
+0
+
+	4: Hinten rechts sitzend
+[add_camera_pax]
+0.4
+-5.5
+2.2
+-0.06
+45
+0
+0
+
+	5: Hinten links sitzend
+[add_camera_pax]
+-1.0
+-5.5
+2.2
+-0.06
+45
+0
+0
+
+	6: Hinten mittig sitzend
+[add_camera_pax]
+0.0
+-5.5
+2.2
+-0.06
+45
+0
+0
+
+	Folgender Befehl setzt die Standardfahrerkamera:
+
+[set_camera_std]
+3
+
+	Folgender Befehl setzt den Zentrierpunkt der AuЯenkamera:
+
+[set_camera_outside_center]
+0
+0
+1.2
+
+	////////////////////////////////////////////////////////
+		Reflexionskameras *NEU01*
+	////////////////////////////////////////////////////////
+
+Linker Außenspiegel
+
+[add_camera_reflexion]
+-1.348
+5.56
+2.2
+0
+52
+165
+-10
+0.15
+
+Rechter Außenspiegel
+
+[add_camera_reflexion]
+1.4
+6.12
+2.2
+0
+52
+201
+-10
+0.15
+
+Innenraumrückspiegel
+
+[add_camera_reflexion]
+0.266
+4.92
+2.508
+0
+52
+210
+-30
+0.15
+
+Mitteltürspiegel
+
+	////////////////////////////////////////////////////////
+		Physikalische und geometrische Grunddaten
+	////////////////////////////////////////////////////////
+
+[mass]
+12
+
+[momentofintertia]
+300
+80
+300
+
+[boundingbox]
+2.52
+12
+2.5
+0
+0.04
+1.7
+
+[cog]
+0
+0
+0.8
+
+[schwerpunkt]
+1.2
+
+[rollwiderstand]
+1000
+
+[rot_pnt_long]
+-2.615
+
+[inv_min_turnradius]
+0.16
+
+[ai_deltaheight]
+-0.10
+
+	Vorderachse:
+
+
+[newachse]
+achse_long
+3.275
+achse_maxwidth
+2.4
+achse_minwidth
+1.83
+achse_raddurchmesser
+0.94
+achse_feder
+240
+achse_maxforce
+90
+achse_daempfer
+20
+achse_antrieb
+0
+
+	Hinterachse:
+
+[newachse]
+achse_long
+-2.615
+achse_maxwidth
+2.4
+achse_minwidth
+1.17
+achse_raddurchmesser
+0.94
+achse_feder
+280
+achse_maxforce
+116
+achse_daempfer
+20
+achse_antrieb
+1

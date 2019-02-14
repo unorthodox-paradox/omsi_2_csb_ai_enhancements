@@ -1,0 +1,23 @@
+'#####################
+'Outside Volume Script
+'#####################
+
+'Controls outside sound volume (when doors are open, you can hear outside sounds louder).
+
+'(c) 10.11.2008 Marcel Kuhnt
+
+'Script Version: 1.0
+'Omsi release: 1.0
+
+'Needs:
+'- door.osc
+
+
+'Revision History:
+'- Marcel Kuhnt		10.08.2009	Added Revision History
+
+'------------------------------------------------------------------------------------------
+
+{macro:sound_volume_frame}
+	(L.L.cabinair_A_open_surfaces) 0.1 / 0.65 min 0.15 max (S.L.Snd_OutsideVol)
+{end}

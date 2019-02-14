@@ -1,0 +1,2715 @@
+'### VDV Driver's Information Display ###
+
+' (C) 2015 Morphi
+
+' Version 2.0
+
+{trigger:comp_button_down}
+	(L.L.AI) !
+	{if}
+		(L.L.vdv_display_changeover_clamped)
+		{if}
+			0 (S.L.vdv_display_changeover_clamped) (S.L.vdv_display_changeover)
+			7 (S.L.vdv_display_mode)
+		{endif}
+
+		1 (S.L.comp_button_down_mode)
+		(T.L.ev_VDV_toggle_on)
+	{endif}
+{end}
+
+{trigger:comp_button_down_off}
+	(L.L.AI) !
+	{if}
+		(L.L.vdv_display_mode) 6 =
+		(L.L.vdv_display_masterwarn) ! &&
+		{if}
+			0 (S.L.vdv_display_changeover)
+			(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
+		{endif}
+
+		(L.L.vdv_display_mode) 6 =
+		(L.L.vdv_display_masterwarn) &&
+		(L.L.vdv_display_error_multiple) &&
+		{if}
+			0 (S.L.vdv_display_changeover)
+			(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
+		{endif}
+
+		(L.L.vdv_display_mode) 6 <
+		(L.L.vdv_display_mode) 1 > &&
+		(L.L.vdv_display_changeover_clamped) ! &&
+		{if}
+			0 (S.L.vdv_display_changeover)
+			(L.L.vdv_display_mode) 1 + (S.L.vdv_display_mode)
+			(L.L.vdv_display_mode) 5 =
+			{if}
+				6 (S.L.vdv_display_mode)
+			{endif}
+		{endif}
+
+		(L.L.vdv_display_mode) 7 =
+		{if}
+			0 (S.L.vdv_display_changeover)
+			1 (S.L.vdv_display_mode)
+		{endif}
+
+		0 (S.L.comp_button_down_mode)
+		(T.L.ev_VDV_toggle_off)
+	{endif}
+{end}
+
+{trigger:comp_button_system}
+	(L.L.AI) !
+	{if}
+		1 (S.L.comp_button_system_mode)
+		(T.L.ev_VDV_toggle_on)
+	{endif}
+{end}
+
+{trigger:comp_button_system_off}
+	(L.L.AI) !
+	{if}
+		(L.L.obd_system_mode) 1 + (S.L.obd_system_mode)
+
+		(L.L.obd_system_mode) 16 >
+		{if}
+			1 (S.L.obd_system_mode)
+		{endif}
+		0 (S.L.comp_button_system_mode) (S.L.obd_info_mode)
+		(T.L.ev_VDV_toggle_off)
+	{endif}
+{end}
+
+{trigger:comp_button_info}
+	(L.L.AI) !
+	{if}
+		1 (S.L.comp_button_info_mode)
+		(T.L.ev_VDV_toggle_on)
+	{endif}
+{end}
+
+{trigger:comp_button_info_off}
+	(L.L.AI) !
+	{if}
+		(L.L.obd_info_mode) 1 + (S.L.obd_info_mode)
+
+		0 (S.L.comp_button_info_mode)
+		(T.L.ev_VDV_toggle_off)
+	{endif}
+{end}
+
+{trigger:comp_button_qiut}
+	(L.L.AI) !
+	{if}
+		1 (S.L.comp_button_qiut_mode)
+		(T.L.ev_VDV_toggle_on)
+	{endif}
+{end}
+
+{trigger:comp_button_qiut_off}
+	(L.L.AI) !
+	{if}
+		0 (S.L.obd_info_mode) (S.L.obd_system_mode)
+
+		0 (S.L.comp_button_qiut_mode)
+		(T.L.ev_VDV_toggle_off)
+	{endif}
+{end}
+
+{trigger:cp_display_dim}
+	(L.L.AI) !
+	{if}
+		(L.L.vdv_dim_mode) 1 + (S.L.vdv_dim_mode)
+
+		(L.L.vdv_dim_mode) 4 >
+		{if}
+			1 (S.L.vdv_dim_mode)
+		{endif}
+
+		1 (S.L.display_dim_sw) s1
+		1 =
+		{if}
+			(T.L.ev_VDV_toggle_on)
+		{else}
+			(T.L.ev_VDV_toggle_off)
+		{endif}
+	{endif}
+{end}
+
+{trigger:cp_display_dim_off}
+	(L.L.AI) !
+	{if}
+		0 (S.L.display_dim_sw) s1
+		1 =
+		{if}
+			(T.L.ev_VDV_toggle_on)
+		{else}
+			(T.L.ev_VDV_toggle_off)
+		{endif}
+	{endif}
+{end}
+
+{macro:VDV_init}
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.EBS_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.Retarder_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.Gear_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.ECAS_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.EDC_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.Battery_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.Brakedisc_Error_dist)
+	(C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * random (S.L.Door_Error_Count)
+	(C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * random (S.L.Door2_Error_Count)
+	(C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * random (S.L.Door3_Error_Count)
+	1 (S.L.vdv_dim_mode)
+	1 (S.L.Fehleranzahl) (S.L.display_option)
+	0 (S.L.light_error_timer) (S.L.vdv_display_changeover_clamped) (S.L.button_up_clamp_timer) (S.L.obd_info_mode) (S.L.obd_system_mode)
+{end}
+
+{macro:VDV_frame}
+'	###Debug###
+
+'	###Debug End###
+
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > (S.L.vdv_sufficient_power_supply)
+	(L.L.elec_busbar_avail) 0 > (L.L.cp_light_sw) && (S.L.vdv_lighting)
+
+'	Texture Inverting
+	(L.L.vdv_lighting)
+	{if}
+		"display_Bus_n.png" (S.$.vdv_buspiktogramm)
+		"display_kneel_n.png" (S.$.vdv_kneel)
+		"display_kneel2_n.png" (S.$.vdv_kneel2)
+		"display_feststell_n.png" (S.$.vdv_feststellbremse)
+		"display_hsb_n.png" (S.$.vdv_hsb)
+		"display_gangN_n.png" (S.$.vdv_neutral)
+		"display_p_n.png" (S.$.vdv_p)
+		"display_scroll_n.png" (S.$.vdv_scroll)
+		"display_kinder_n.png" (S.$.vdv_kinderwagen)
+		"display_hst_n.png" (S.$.vdv_haltewunsch)
+		"display_klima_n.png" (S.$.vdv_klima)
+		"display_autokneel_n.png" (S.$.vdv_autokneel)
+		"display_mirror_n.png" (S.$.vdv_mirror)
+		"display_asr_n.png" (S.$.vdv_asr)
+		"display_heater_n.png" (S.$.vdv_heater)
+		"display_door0_n.png" (S.$.vdv_door0)
+		"display_door1_n.png" (S.$.vdv_door1)
+		"display_door23_n.png" (S.$.vdv_door23)
+		"display_rampe_n.png" (S.$.vdv_ramp)
+		"display_aussentemp_n.png" (S.$.vdv_outtemp)
+		"display_dachluke_e2_n.png" (S.$.vdv_roof)
+		"display_verbrauch_n.png" (S.$.vdv_consum)
+		"display_menu_press_n.png" (S.$.vdv_menu_press)
+		"display_menu_temp_n.png" (S.$.vdv_menu_temp)
+		"display_menu_tank_noad_n.png" (S.$.vdv_menu_fuel)
+
+		(L.L.cockpit_retarderhebel) 0 >
+		(L.L.antrieb_retarder_sw_direkt) ||
+		(L.L.antrieb_retarder) ! &&
+		{if}
+			"display_retarder_idle_n.png" (S.$.vdv_retarder)
+		{else}
+			"display_retarder_n.png" (S.$.vdv_retarder)
+		{endif}
+
+		(L.L.doorlock_mode) abs s0 2 =
+		{if}
+			"display_lock0_n.png" (S.$.vdv_doorlock)
+		{else}
+            l0 1 =
+            {if}
+                "display_lock1_n.png" (S.$.vdv_doorlock)
+            {endif}
+        {endif}
+	{else}
+		"display_Bus.png" (S.$.vdv_buspiktogramm)
+		"display_kneel.png" (S.$.vdv_kneel)
+		"display_kneel2.png" (S.$.vdv_kneel2)
+		"display_feststell.png" (S.$.vdv_feststellbremse)
+		"display_hsb.png" (S.$.vdv_hsb)
+		"display_gangN.png" (S.$.vdv_neutral)
+		"display_p.png" (S.$.vdv_p)
+		"display_scroll.png" (S.$.vdv_scroll)
+		"display_kinder.png" (S.$.vdv_kinderwagen)
+		"display_hst.png" (S.$.vdv_haltewunsch)
+		"display_klima.png" (S.$.vdv_klima)
+		"display_autokneel.png" (S.$.vdv_autokneel)
+		"display_mirror.png" (S.$.vdv_mirror)
+		"display_asr.png" (S.$.vdv_asr)
+		"display_heater.png" (S.$.vdv_heater)
+		"display_door0.png" (S.$.vdv_door0)
+		"display_door1.png" (S.$.vdv_door1)
+		"display_door23.png" (S.$.vdv_door23)
+		"display_rampe.png" (S.$.vdv_ramp)
+		"display_aussentemp.png" (S.$.vdv_outtemp)
+		"display_dachluke_e2.png" (S.$.vdv_roof)
+		"display_verbrauch.png" (S.$.vdv_consum)
+		"display_menu_press.png" (S.$.vdv_menu_press)
+		"display_menu_temp.png" (S.$.vdv_menu_temp)
+		"display_menu_tank_noad.png" (S.$.vdv_menu_fuel)
+
+		(L.L.cockpit_retarderhebel) 0 >
+		(L.L.antrieb_retarder_sw_direkt) ||
+		(L.L.antrieb_retarder) ! &&
+		{if}
+			"display_retarder_idle.png" (S.$.vdv_retarder)
+		{else}
+			"display_retarder.png" (S.$.vdv_retarder)
+		{endif}
+
+		(L.L.doorlock_mode) abs s0 2 =
+		{if}
+			"display_lock0.png" (S.$.vdv_doorlock)
+		{else}
+            l0 1 =
+            {if}
+                "display_lock1.png" (S.$.vdv_doorlock)
+            {endif}
+        {endif}
+	{endif}
+
+' 	VDV Display Modes:
+
+'	1 Drive Mode
+'	2 Bus Stop Mode (Main)
+'	3 Status Mode
+'	4 "
+'	5 "
+'	6 Diagnostic Mode
+
+'	Without Ignition, nothing works
+
+	(L.L.elec_failure_general)
+	{if}
+		0 (S.L.vdv_on)
+	{endif}
+
+	(L.L.vdv_on)
+	{if}
+'	Initialize
+		1 (S.L.vdv_light)
+		(L.L.vdv_display_startuptime) (L.S.Timegap) + 20 min (S.L.vdv_display_startuptime)
+
+		(L.L.vdv_display_startuptime) 1 <
+		(L.L.vdv_display_startuptime) 4 >
+		(L.L.vdv_display_startuptime) 5 < && ||
+		{if}
+			(L.L.vdv_lighting)
+			{if}
+				"display_Background_n.png" (S.$.vdv_background)
+			{else}
+				"display_Background.png" (S.$.vdv_background)
+			{endif}
+		{endif}
+
+		(L.L.vdv_display_startuptime) 1 >
+		(L.L.vdv_display_startuptime) 4 < &&
+		{if}
+			(L.L.vdv_lighting)
+			{if}
+				"vdv_display_init_n.png" (S.$.vdv_background)
+			{else}
+				(L.L.vdv_display_startuptime) 1 >
+				(L.L.vdv_display_startuptime) 1.1 < &&
+				{if}
+					"vdv_display_init.png" (S.$.vdv_background)
+				{endif}
+				(L.L.vdv_display_startuptime) 1.1 >
+				(L.L.vdv_display_startuptime) 1.3 < &&
+				{if}
+					"display_Background.png" (S.$.vdv_background)
+				{endif}
+				(L.L.vdv_display_startuptime) 1.3 >
+				(L.L.vdv_display_startuptime) 1.4 < &&
+				{if}
+					"vdv_display_init2.png" (S.$.vdv_background)
+				{endif}
+				(L.L.vdv_display_startuptime) 1.4 >
+				(L.L.vdv_display_startuptime) 3 < &&
+				{if}
+					"display_Background.png" (S.$.vdv_background)
+				{endif}
+				(L.L.vdv_display_startuptime) 3 >
+				(L.L.vdv_display_startuptime) 3.1 < &&
+				{if}
+					"vdv_display_init_n.png" (S.$.vdv_background)
+				{endif}
+				(L.L.vdv_display_startuptime) 3.1 >
+				(L.L.vdv_display_startuptime) 3.9 < &&
+				{if}
+					"display_Background.png" (S.$.vdv_background)
+				{endif}
+				(L.L.vdv_display_startuptime) 3.9 >
+				(L.L.vdv_display_startuptime) 4 < &&
+				{if}
+					"vdv_display_init3.png" (S.$.vdv_background)
+				{endif}
+			{endif}
+		{endif}
+
+		(L.L.vdv_display_startuptime) 5 >
+		(L.L.vdv_display_startuptime) 8 < &&
+		{if}
+			(L.L.vdv_display_startuptime) 5.1 <
+			{if}
+				0 (S.L.vdv_display_changeover)
+			{endif}
+			3 (S.L.vdv_display_mode)
+		{endif}
+		(L.L.vdv_display_startuptime) 8 >
+		(L.L.vdv_display_startuptime) 11 < &&
+		{if}
+			(L.L.vdv_display_startuptime) 8.1 <
+			{if}
+				0 (S.L.vdv_display_changeover)
+			{endif}
+			4 (S.L.vdv_display_mode)
+		{endif}
+		(L.L.vdv_display_startuptime) 11 >
+		(L.L.vdv_display_startuptime) 13 < &&
+		{if}
+			(L.L.vdv_display_startuptime) 14.1 <
+			{if}
+				0 (S.L.vdv_display_changeover)
+			{endif}
+			2 (S.L.vdv_display_mode)
+		{endif}
+
+		(L.L.vdv_display_startuptime) 5 >
+		{if}
+		
+'		(L.L.vdv_dim_mode) 1 =
+'		{if}
+'			0 (S.L.vdv_visible_dim)
+'		{endif}
+'		(L.L.vdv_dim_mode) 2 =
+'		{if}
+'			"VDV_Display_dimlight.dds" (S.$.vdv_display_dim)
+'			1 (S.L.vdv_visible_dim)
+'		{endif}
+'		(L.L.vdv_dim_mode) 3 =
+'		{if}
+'			"VDV_Display_dimstrong.dds" (S.$.vdv_display_dim)
+'			1 (S.L.vdv_visible_dim)
+'		{endif}
+'		(L.L.vdv_dim_mode) 4 =
+'		{if}
+'			"VDV_Display_dimfull.dds" (S.$.vdv_display_dim)
+'			1 (S.L.vdv_visible_dim)
+'		{endif}
+
+		(L.L.comp_button_down_mode)
+		{if}
+			(L.L.button_up_clamp_timer)  (L.S.Timegap) + 3 min (S.L.button_up_clamp_timer)
+			3 =
+			{if}
+				1 (S.L.vdv_display_changeover_clamped)
+			{endif}
+			(L.L.button_up_clamp_timer) 3 <
+			(L.L.button_up_clamp_timer) 2.95 > &&
+			{if}
+				(T.L.ev_stoermeldung)
+			{endif}
+			(L.L.button_up_clamp_timer) 3 <
+			(L.L.button_up_clamp_timer) 0.5 > &&
+			{if}
+				1 (S.L.vdv_display_changeover)
+			{endif}
+		{else}
+			0 (S.L.button_up_clamp_timer)
+		{endif}
+
+' VDV Infozeile
+
+	(L.L.vdv_update_timer) (L.S.Timegap) + 1 min (S.L.vdv_update_timer)
+
+	(L.L.obd_system_mode) 0 =
+	{if}
+		"" (S.$.vdv_info_left) (S.$.vdv_info_right)
+	{endif}
+	(L.L.obd_system_mode) 1 =
+	{if}
+		"AGN" (S.$.OBD_System)
+		"V013" (S.$.OBD_Version)
+		"A0004665825" (S.$.MBS)
+		"______" (S.$.Fehlermeldung)
+
+		(L.L.vdv_error_retarder_active)
+		{if}
+			"4513" (S.$.Fehlermeldung)
+		{endif}
+
+		(L.L.obd_info_mode) 0 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ "@" $+
+			(L.$.Fehlermeldung) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 1 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MBS " $+ "@" $+
+			(L.$.MBS) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 2 =
+		{if}
+			(L.L.vdv_error_retarder_active) !
+			{if}
+				3 (S.L.obd_info_mode)
+			{endif}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"F 01 " $+ "@" $+
+			(L.$.Fehlermeldung) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 3 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 01 " $+ "@" $+
+			"0" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 4 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 02 " $+ "@" $+
+			"0" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 5 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			(L.L.vdv_update_timer) 1 =
+			{if}
+				(L.L.engine_n) $IntToStr (S.$.engine_n)
+			{endif}
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 03 " $+ "@" $+
+			(L.$.engine_n) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+	{endif}
+	(L.L.obd_system_mode) 2 =
+	{if}
+		"BS" (S.$.OBD_System)
+		"V013" (S.$.OBD_Version)
+		"A0004463636" (S.$.MBS)
+		"______" (S.$.Fehlermeldung)
+
+		(L.L.vdv_info_brakedisc_active)
+		{if}
+			"260404" (S.$.Fehlermeldung)
+		{endif}
+		(L.L.vdv_error_EBS_active)
+		{if}
+			"3020" (S.$.Fehlermeldung)
+		{endif}
+
+		(L.L.obd_info_mode) 0 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ "@" $+
+			(L.$.Fehlermeldung) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 1 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MBS " $+ "@" $+
+			(L.$.MBS) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 2 =
+		{if}
+			(L.L.vdv_error_EBS_active) !
+			{if}
+				3 (S.L.obd_info_mode)
+			{endif}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"F 01 " $+ "@" $+
+			(L.$.Fehlermeldung) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 3 =
+		{if}
+			"260404" (S.$.Fehlermeldung)
+			(L.L.vdv_info_brakedisc_active) !
+			{if}
+				4 (S.L.obd_info_mode)
+			{endif}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			(L.L.vdv_error_EBS_active)
+			{if}
+				"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+				"F 02 " $+ "@" $+
+				(L.$.Fehlermeldung) $+ " " $+ (S.$.vdv_info_right)
+			{else}
+				"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+				"F 01 " $+ "@" $+
+				(L.$.Fehlermeldung) $+ " " $+ (S.$.vdv_info_right)
+			{endif}
+		{endif}
+		(L.L.obd_info_mode) 4 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 01 " $+ "@" $+
+			"0" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+	{endif}
+	(L.L.obd_system_mode) 3 =
+	{if}
+		"CPC" (S.$.OBD_System)
+		"V012" (S.$.OBD_Version)
+		"A0004443539" (S.$.MBS)
+
+		(L.L.obd_info_mode) 0 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ "@" $+
+			"______" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 1 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MBS " $+ "@" $+
+			(L.$.MBS) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 2 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 01 " $+ "@" $+
+			"0" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+	{endif}
+	(L.L.obd_system_mode) 4 =
+	{if}
+		"EGM" (S.$.OBD_System)
+		"V013" (S.$.OBD_Version)
+		"A0004963543" (S.$.MBS)
+
+		(L.L.obd_info_mode) 0 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ "@" $+
+			"______" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 1 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MBS " $+ "@" $+
+			(L.$.MBS) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 2 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 01 " $+ "@" $+
+			"0" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+	{endif}
+	(L.L.obd_system_mode) 5 =
+	{if}
+		"DTCO" (S.$.OBD_System)
+		"V011" (S.$.OBD_Version)
+		"A0004958344" (S.$.MBS)
+
+		(L.L.obd_info_mode) 0 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ "@" $+
+			"______" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 1 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MBS " $+ "@" $+
+			(L.$.MBS) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 2 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 01 " $+ "@" $+
+			(L.L.velocity) $IntToStr $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+	{endif}
+	(L.L.obd_system_mode) 6 =
+	{if}
+		"FPS" (S.$.OBD_System)
+		"V013" (S.$.OBD_Version)
+		"A0004445129" (S.$.MBS)
+		"______" (S.$.Fehlermeldung)
+
+		(L.L.vdv_error_battery_active)
+		{if}
+			"4549" (S.$.Fehlermeldung)
+		{endif}
+
+		(L.L.obd_info_mode) 0 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ "@" $+
+			(L.$.Fehlermeldung) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 1 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MBS " $+ "@" $+
+			(L.$.MBS) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 2 =
+		{if}
+			(L.L.vdv_error_battery_active) !
+			{if}
+				3 (S.L.obd_info_mode)
+			{endif}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"F 01 " $+ "@" $+
+			(L.$.Fehlermeldung) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 3 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 01 " $+ "@" $+
+			"0" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+	{endif}
+	(L.L.obd_system_mode) 7 =
+	{if}
+		"FR" (S.$.OBD_System)
+		"V013" (S.$.OBD_Version)
+		"A0004441278" (S.$.MBS)
+
+		(L.L.obd_info_mode) 0 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ "@" $+
+			"______" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 1 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MBS " $+ "@" $+
+			(L.$.MBS) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 2 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 01 " $+ "@" $+
+			"0" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+	{endif}
+	(L.L.obd_system_mode) 8 =
+	{if}
+		"GS" (S.$.OBD_System)
+		"V011" (S.$.OBD_Version)
+		"A0004464518" (S.$.MBS)
+
+		(L.L.obd_info_mode) 0 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ "@" $+
+			"______" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 1 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MBS " $+ "@" $+
+			(L.$.MBS) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 2 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 01 " $+ "@" $+
+			"0" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+	{endif}
+	(L.L.obd_system_mode) 9 =
+	{if}
+		"HLK" (S.$.OBD_System)
+		"V012" (S.$.OBD_Version)
+		"A0004415559" (S.$.MBS)
+
+		(L.L.obd_info_mode) 0 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ "@" $+
+			"______" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 1 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MBS " $+ "@" $+
+			(L.$.MBS) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 2 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 01 " $+ "@" $+
+			(L.S.Weather_Temperature) $IntToStr $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 3 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 02 " $+ "@" $+
+			(L.L.Cabinair_Temp) $IntToStr $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+	{endif}
+	(L.L.obd_system_mode) 10 =
+	{if}
+		"KWS" (S.$.OBD_System)
+		"V013" (S.$.OBD_Version)
+		"A0004621436" (S.$.MBS)
+
+		(L.L.obd_info_mode) 0 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ "@" $+
+			"______" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 1 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MBS " $+ "@" $+
+			(L.$.MBS) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 2 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 01 " $+ "@" $+
+			"0" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+	{endif}
+	(L.L.obd_system_mode) 11 =
+	{if}
+		"MR/PLD" (S.$.OBD_System)
+		"V012" (S.$.OBD_Version)
+		"A0004914596" (S.$.MBS)
+
+		(L.L.obd_info_mode) 0 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ "@" $+
+			"______" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 1 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MBS " $+ "@" $+
+			(L.$.MBS) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 2 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 01 " $+ "@" $+
+			"0" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+	{endif}
+	(L.L.obd_system_mode) 12 =
+	{if}
+		"MTCO" (S.$.OBD_System)
+		"V013" (S.$.OBD_Version)
+		"A0004488657" (S.$.MBS)
+
+		(L.L.obd_info_mode) 0 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ "@" $+
+			"______" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 1 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MBS " $+ "@" $+
+			(L.$.MBS) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 2 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 01 " $+ "@" $+
+			"0" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+	{endif}
+	(L.L.obd_system_mode) 13 =
+	{if}
+		"MTS" (S.$.OBD_System)
+		"V013" (S.$.OBD_Version)
+		"A0004461125" (S.$.MBS)
+		"______" (S.$.Fehlermeldung)
+
+		(L.L.vdv_error_door_active)
+		{if}
+			"0071" (S.$.Fehlermeldung)
+		{endif}
+
+		(L.L.obd_info_mode) 0 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ "@" $+
+			(L.$.Fehlermeldung) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 1 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MBS " $+ "@" $+
+			(L.$.MBS) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 2 =
+		{if}
+			(L.L.vdv_error_door_active) !
+			{if}
+				3 (S.L.obd_info_mode)
+			{endif}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"F 01 " $+ "@" $+
+			(L.$.Fehlermeldung) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 3 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 01 " $+ "@" $+
+			"0" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+	{endif}
+	(L.L.obd_system_mode) 14 =
+	{if}
+		"NR1" (S.$.OBD_System)
+		"V013" (S.$.OBD_Version)
+		"A0005448127" (S.$.MBS)
+
+		(L.L.obd_info_mode) 0 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ "@" $+
+			"______" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 1 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MBS " $+ "@" $+
+			(L.$.MBS) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 2 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 01 " $+ "@" $+
+			"0" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+	{endif}
+	(L.L.obd_system_mode) 15 =
+	{if}
+		"NR2" (S.$.OBD_System)
+		"V013" (S.$.OBD_Version)
+		"A0005112587" (S.$.MBS)
+
+		(L.L.obd_info_mode) 0 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ "@" $+
+			"______" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 1 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MBS " $+ "@" $+
+			(L.$.MBS) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 2 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 01 " $+ "@" $+
+			"0" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+	{endif}
+	(L.L.obd_system_mode) 16 =
+	{if}
+		"RS" (S.$.OBD_System)
+		"V013" (S.$.OBD_Version)
+		"A0005118775" (S.$.MBS)
+
+		(L.L.obd_info_mode) 0 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ "@" $+
+			"______" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 1 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MBS " $+ "@" $+
+			(L.$.MBS) $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+		(L.L.obd_info_mode) 2 =
+		{if}
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			" " $+ (L.$.OBD_System) $+ "@" $+
+			" " $+ (L.$.OBD_Version) $+ (S.$.vdv_info_left)
+
+			"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+			"MW 01 " $+ "@" $+
+			"0" $+ " " $+ (S.$.vdv_info_right)
+		{endif}
+	{endif}
+
+	(L.L.vdv_outtemp)
+	{if}
+		"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+		(L.S.Weather_Temperature) $IntToStr $+ ",0" $+ "            " $+  "@" $+
+		" " $+ (S.$.vdv_info_right)
+	{endif}
+	(L.L.vdv_consum)
+	{if}
+		(L.L.vdv_update_timer) 1 =
+		{if}
+			(L.L.engine_consumption_h) $IntToStr (S.$.consumption)
+		{endif}
+		"@" "@" $+ "@" $+ "@" $+ "@" $+ "@" $+ "@" $+ "@" $+
+		(L.$.consumption) $+ ",0 l/100km" $+ " " $+  "@" $+
+		" " $+ (S.$.vdv_info_right)
+	{endif}
+
+	(L.L.vdv_update_timer) 1 =
+	{if}
+		0 (S.L.vdv_update_timer)
+	{endif}
+
+'	Mode Select
+
+		(L.L.door_0) 0 =
+		(L.L.door_1) 0 = &&
+		(L.L.door_3) 0 = &&
+		(L.L.door_5) 0 = &&
+		(L.L.bremse_halte) 0 = &&
+		(L.L.bremse_feststell) 0 = &&
+		(L.L.antrieb_getr_gangwahl) 1 > &&
+      		(L.L.bremse_halte_sw) 0 = &&
+		(L.L.door_20h_sw) 0 = &&
+      		(L.L.kneel_timer) 0 = &&
+		(L.L.vdv_display_mode) 1 > &&
+		(L.L.vdv_display_mode) 6 < &&
+		{if}
+			0 (S.L.vdv_display_changeover)
+			1 (S.L.vdv_display_mode)
+		{endif}
+
+		(L.L.door_0) 0 >
+		(L.L.door_1) 0 > ||
+		(L.L.door_3) 0 > ||
+		(L.L.door_5) 0 > ||
+		(L.L.bremse_halte) ||
+		(L.L.bremse_feststell) ||
+		(L.L.antrieb_getr_gangwahl) 1 = ||
+'		(L.L.bremse_halte_sw) ||
+'		(L.L.door_20h_sw) ||
+      		(L.L.kneel_timer) 0 > ||
+		(L.L.vdv_display_mode) 1 = &&
+		{if}
+			0 (S.L.vdv_display_changeover)
+			2 (S.L.vdv_display_mode)
+		{endif}
+'	Drive Mode
+			(L.L.vdv_display_mode) 1 =
+			{if}
+				(L.L.vdv_display_changeover) (L.S.Timegap) + 2 min (S.L.vdv_display_changeover)
+
+				(L.L.vdv_lighting)
+				{if}
+					"display_Background_n.png" (S.$.vdv_background)
+				{else}
+					"display_Background.png" (S.$.vdv_background)
+				{endif}
+
+				(L.L.vdv_display_changeover) 0.5 >
+				{if}
+'		Main symbols
+
+					(L.L.obd_system_mode) 0 =
+					{if}
+							0 (S.L.vdv_info_left_n) (S.L.vdv_info_right_n) (S.L.vdv_info_left) (S.L.vdv_info_right) (S.L.vdv_outtemp) (S.L.vdv_consum) (S.L.vdv_roof)
+					{else}
+						(L.L.vdv_lighting)
+						{if}
+							1 (S.L.vdv_info_left_n) (S.L.vdv_info_right_n)
+							0 (S.L.vdv_info_left) (S.L.vdv_info_right) (S.L.vdv_outtemp) (S.L.vdv_consum) (S.L.vdv_roof)
+						{else}
+							0 (S.L.vdv_info_left_n) (S.L.vdv_info_right_n) (S.L.vdv_outtemp) (S.L.vdv_consum) (S.L.vdv_roof)
+							1 (S.L.vdv_info_left) (S.L.vdv_info_right)
+						{endif}
+					{endif}
+
+					(L.L.ecas_rise_active)
+					{if}
+						1 (S.L.vdv_autokneel)
+					{else}
+						0 (S.L.vdv_autokneel)
+					{endif}
+
+					(L.L.antrieb_retarder)
+					(L.L.cockpit_retarderhebel) 0 > ||
+					(L.L.antrieb_retarder_sw_direkt) ||
+					{if}
+						1 (S.L.vdv_retarder)
+					{else}
+						0 (S.L.vdv_retarder)
+					{endif}
+
+					(L.L.haltewunsch)
+					{if}
+						(L.S.GetTime) 2 % 1 < (S.L.vdv_haltewunsch)
+					{else}
+						0 (S.L.vdv_haltewunsch)
+					{endif}
+
+					(L.L.door_kinderwagenwunsch)
+					{if}
+						(L.S.GetTime) 2 % 1 < (S.L.vdv_kinderwagen)
+					{else}
+						0 (S.L.vdv_kinderwagen)
+					{endif}
+
+					(L.S.Weather_Temperature) 3 <=
+                    (L.L.driver_ac_running) ||
+                    (L.L.passenger_ac_running) ||
+                    (L.L.ac_humidity_management_active) ||
+					{if}
+						1 (S.L.vdv_klima)
+					{else}
+						0 (S.L.vdv_klima)
+					{endif}
+
+					(L.L.cp_dummy_sw06)
+					{if}
+						1 (S.L.vdv_mirror)
+					{else}
+						0 (S.L.vdv_mirror)
+					{endif}
+
+					(L.L.cp_hatch_mode)
+					{if}
+						1 (S.L.vdv_roof)
+					{else}
+						0 (S.L.vdv_roof)
+					{endif}
+
+					(L.L.auxheat_active)
+					{if}
+						1 (S.L.vdv_heater)
+					{else}
+						0 (S.L.vdv_heater)
+					{endif}
+
+					(L.L.cp_ASR_off) 1 =
+					(L.L.engine_ASR_eingriff) ||
+					(L.L.velocity) 15 < &&
+					{if}
+						1 (S.L.vdv_asr)
+					{else}
+						0 (S.L.vdv_asr)
+					{endif}
+
+					(L.L.vdv_error_pressure_active)
+					(L.L.vdv_error_pressure2_active) ||
+					(L.L.vdv_error_EBS_active) ||
+					(L.L.vdv_error_gearstart_active) ||
+					(L.L.vdv_error_door_active) ||
+					(L.L.vdv_error_retarder_active) ||
+					(L.L.vdv_error_coolant_active) ||
+					(L.L.vdv_error_gearbox_active) ||
+					(L.L.vdv_error_ECAS_active) ||
+					(L.L.vdv_error_Battery_active) ||
+					(L.L.vdv_error_EDC_active) ||
+					(L.L.vdv_error_nothahn_active) ||
+					(L.L.vdv_error_hsb_active) ||
+					(L.L.vdv_error_Diesel_active) ||
+					(L.L.vdv_info_brakedisc_active) ||
+					(L.L.vdv_error_light_active) ||
+					{if}
+						(L.L.vdv_lighting)
+						{if}
+							(L.L.vdv_error_Diesel_active)
+							(L.L.vdv_error_pressure_active) ! &&
+							(L.L.vdv_error_pressure2_active) ! &&
+							(L.L.vdv_error_EBS_active) ! &&
+							(L.L.vdv_error_gearstart_active) ! &&
+							(L.L.vdv_error_door_active) ! &&
+							(L.L.vdv_error_retarder_active) ! &&
+							(L.L.vdv_error_coolant_active) ! &&
+							(L.L.vdv_error_gearbox_active) ! &&
+							(L.L.vdv_error_ECAS_active) ! &&
+							(L.L.vdv_error_Battery_active) ! &&
+							(L.L.vdv_error_EDC_active) ! &&
+							(L.L.vdv_error_nothahn_active) ! &&
+							(L.L.vdv_error_hsb_active) ! &&
+							(L.L.vdv_info_brakedisc_active) ! &&
+							(L.L.vdv_error_light_active) ! &&
+							{if}
+								"display_tank_n.png" (S.$.vdv_diagnose)
+							{else}
+								"display_diag_n.png" (S.$.vdv_diagnose)
+							{endif}
+						{else}
+							(L.L.vdv_error_Diesel_active)
+							(L.L.vdv_error_pressure_active) ! &&
+							(L.L.vdv_error_pressure2_active) ! &&
+							(L.L.vdv_error_EBS_active) ! &&
+							(L.L.vdv_error_gearstart_active) ! &&
+							(L.L.vdv_error_door_active) ! &&
+							(L.L.vdv_error_retarder_active) ! &&
+							(L.L.vdv_error_coolant_active) ! &&
+							(L.L.vdv_error_gearbox_active) ! &&
+							(L.L.vdv_error_ECAS_active) ! &&
+							(L.L.vdv_error_Battery_active) ! &&
+							(L.L.vdv_error_EDC_active) ! &&
+							(L.L.vdv_error_nothahn_active) ! &&
+							(L.L.vdv_error_hsb_active) ! &&
+							(L.L.vdv_info_brakedisc_active) ! &&
+							(L.L.vdv_error_light_active) ! &&
+							{if}
+								"display_tank.png" (S.$.vdv_diagnose)
+							{else}
+								"display_diag.png" (S.$.vdv_diagnose)
+							{endif}
+						{endif}
+						1 (S.L.vdv_diagnose)
+					{else}
+						0 (S.L.vdv_diagnose)
+					{endif}
+				{else}
+					0 (S.L.vdv_asr) (S.L.vdv_heater) (S.L.vdv_mirror) (S.L.vdv_klima) (S.L.vdv_retarder) (S.L.vdv_autokneel) (S.L.vdv_roof)
+				{endif}
+			{else}
+				0 (S.L.vdv_asr) (S.L.vdv_heater) (S.L.vdv_mirror) (S.L.vdv_klima) (S.L.vdv_retarder) (S.L.vdv_autokneel) (S.L.vdv_roof)
+			{endif}
+'	Bus Stop Mode (Main)
+			(L.L.vdv_display_mode) 2 =
+			{if}
+				(L.L.vdv_display_changeover) (L.S.Timegap) + 2 min (S.L.vdv_display_changeover)
+
+				(L.L.vdv_lighting)
+				{if}
+					"display_Background_n.png" (S.$.vdv_background)
+				{else}
+					"display_Background.png" (S.$.vdv_background)
+				{endif}
+
+				(L.L.vdv_display_changeover) 0.5 >
+				{if}
+'		Main symbols
+					1 (S.L.vdv_buspiktogramm)
+
+					(L.L.obd_system_mode) 0 =
+					{if}
+							0 (S.L.vdv_info_left_n) (S.L.vdv_info_right_n) (S.L.vdv_info_left) (S.L.vdv_info_right) (S.L.vdv_outtemp) (S.L.vdv_consum)
+					{else}
+						(L.L.vdv_lighting)
+						{if}
+							1 (S.L.vdv_info_left_n) (S.L.vdv_info_right_n)
+							0 (S.L.vdv_info_left) (S.L.vdv_info_right) (S.L.vdv_outtemp) (S.L.vdv_consum)
+						{else}
+							0 (S.L.vdv_info_left_n) (S.L.vdv_info_right_n) (S.L.vdv_outtemp) (S.L.vdv_consum)
+							1 (S.L.vdv_info_left) (S.L.vdv_info_right)
+						{endif}
+					{endif}
+
+					(L.L.doorlock_mode) abs s0 3 = ! s1 (L.L.vdv_error_door_active) ! && (L.L.cp_tuersperre_sw) s2 1 = l0 1 = && l2 -1 = l0 2 = && || &&
+                        (S.L.vdv_doorlock)
+
+					(L.L.Door_Error_Count) (C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * <
+					{if}
+						l1
+						{if}
+                            l0 1 =
+                            {if}
+                                (L.L.door_0) 0.8 >
+                                {if}
+                                    1 (S.L.vdv_door0)
+                                {else}
+									(L.L.door_0_opening_status) 0 = (L.L.door_0_opening_status_post_close_timer) 1 > ||
+                                    {if}
+                                        0 (S.L.vdv_door0)
+                                    {endif}
+                                {endif}
+                                (L.L.door_1_opening_status) 0 = (L.L.door_1_opening_status_post_close_timer) 1 > ||
+                                {if}
+                                    0 (S.L.vdv_door1)
+                                {endif}
+                            {else}
+                                (L.L.door_1) 0.8 >
+                                {if}
+                                    1 (S.L.vdv_door1)
+                                {else}
+                                    (L.L.door_1_opening_status) 0 = (L.L.door_1_opening_status_post_close_timer) 1 > ||
+                                    {if}
+                                        0 (S.L.vdv_door1)
+                                    {endif}
+                                {endif}
+                                (L.L.door_0_opening_status) 0 = (L.L.door_0_opening_status_post_close_timer) 1 > ||
+                                {if}
+                                    0 (S.L.vdv_door0)
+                                {endif}
+                            {endif}
+						{else}
+							(L.L.door_0) 0.8 >
+							(L.L.door_1) 0.8 > ||
+							{if}
+								1 (S.L.vdv_door0) (S.L.vdv_door1)
+							{else}
+                                (L.L.door_01_opening_status) 0 = (L.L.door_01_opening_status_post_close_timer) 1 > ||
+                                {if}
+                                    0 (S.L.vdv_door1) (S.L.vdv_door0)
+                                {endif}
+                            {endif}
+						{endif}
+					{else}
+						(L.L.Tuerfehler_blinkgeber) 0.5 <
+						{if}
+							1 (S.L.vdv_door1) (S.L.vdv_door0)
+						{else}
+							0 (S.L.vdv_door1) (S.L.vdv_door0)
+						{endif}
+					{endif}
+
+					(L.L.Door2_Error_Count) (C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * <
+					{if}
+						(L.L.door_2) 0.8 >
+						(L.L.door_3) 0.8 > ||
+						{if}
+							1 (S.L.vdv_door23)
+						{endif}
+
+						(L.L.door_23_opening_status) 0 = (L.L.door_23_opening_status_post_close_timer) 1 > ||
+						{if}
+							0 (S.L.vdv_door23)
+						{endif}
+					{else}
+						(L.L.Tuerfehler_blinkgeber2) 0.5 <
+						{if}
+							1 (S.L.vdv_door23)
+						{else}
+							0 (S.L.vdv_door23)
+						{endif}
+					{endif}
+
+					(L.L.bremse_feststell)
+					{if}
+						1 (S.L.vdv_p) (S.L.vdv_feststellbremse)
+					{else}
+						0 (S.L.vdv_p) (S.L.vdv_feststellbremse)
+					{endif}
+
+					(L.L.bremse_halte)
+					{if}
+						1 (S.L.vdv_hsb)
+					{else}
+						0 (S.L.vdv_hsb)
+					{endif}
+
+					(L.L.antrieb_getr_gangwahl) 1 =
+					{if}
+						1 (S.L.vdv_neutral)
+					{else}
+						0 (S.L.vdv_neutral)
+					{endif}
+
+					(L.L.pandus_opn) 1 =
+					{if}
+						1 (S.L.vdv_ramp)
+					{else}
+						0 (S.L.vdv_ramp)
+					{endif}
+
+					(L.L.haltewunsch)
+					{if}
+						(L.S.GetTime) 2 % 1 < (S.L.vdv_haltewunsch)
+					{else}
+						0 (S.L.vdv_haltewunsch)
+					{endif}
+
+					(L.L.door_kinderwagenwunsch)
+					{if}
+						(L.S.GetTime) 2 % 1 < (S.L.vdv_kinderwagen)
+					{else}
+						0 (S.L.vdv_kinderwagen)
+					{endif}
+
+					(L.L.vdv_error_pressure_active)
+					(L.L.vdv_error_EBS_active) ||
+					(L.L.vdv_error_gearstart_active) ||
+					(L.L.vdv_error_door_active) ||
+					(L.L.vdv_error_retarder_active) ||
+					(L.L.vdv_error_coolant_active) ||
+					(L.L.vdv_error_gearbox_active) ||
+					(L.L.vdv_error_ECAS_active) ||
+					(L.L.vdv_error_Battery_active) ||
+					(L.L.vdv_error_EDC_active) ||
+					(L.L.vdv_error_nothahn_active) ||
+					(L.L.vdv_error_hsb_active) ||
+					(L.L.vdv_error_Diesel_active) ||
+					(L.L.vdv_info_brakedisc_active) ||
+					(L.L.vdv_error_light_active) ||
+					(L.L.vdv_error_pressure2_active) ||
+					{if}
+						(L.L.vdv_lighting)
+						{if}
+							(L.L.vdv_error_Diesel_active)
+							(L.L.vdv_error_pressure_active) ! &&
+							(L.L.vdv_error_pressure2_active) ! &&
+							(L.L.vdv_error_EBS_active) ! &&
+							(L.L.vdv_error_gearstart_active) ! &&
+							(L.L.vdv_error_door_active) ! &&
+							(L.L.vdv_error_retarder_active) ! &&
+							(L.L.vdv_error_coolant_active) ! &&
+							(L.L.vdv_error_gearbox_active) ! &&
+							(L.L.vdv_error_ECAS_active) ! &&
+							(L.L.vdv_error_Battery_active) ! &&
+							(L.L.vdv_error_EDC_active) ! &&
+							(L.L.vdv_error_nothahn_active) ! &&
+							(L.L.vdv_error_hsb_active) ! &&
+							(L.L.vdv_info_brakedisc_active) ! &&
+							(L.L.vdv_error_light_active) ! &&
+							{if}
+								"display_tank_n.png" (S.$.vdv_diagnose)
+							{else}
+								"display_diag_n.png" (S.$.vdv_diagnose)
+							{endif}
+						{else}
+							(L.L.vdv_error_Diesel_active)
+							(L.L.vdv_error_pressure_active) ! &&
+							(L.L.vdv_error_pressure2_active) ! &&
+							(L.L.vdv_error_EBS_active) ! &&
+							(L.L.vdv_error_gearstart_active) ! &&
+							(L.L.vdv_error_door_active) ! &&
+							(L.L.vdv_error_retarder_active) ! &&
+							(L.L.vdv_error_coolant_active) ! &&
+							(L.L.vdv_error_gearbox_active) ! &&
+							(L.L.vdv_error_ECAS_active) ! &&
+							(L.L.vdv_error_Battery_active) ! &&
+							(L.L.vdv_error_EDC_active) ! &&
+							(L.L.vdv_error_nothahn_active) ! &&
+							(L.L.vdv_error_hsb_active) ! &&
+							(L.L.vdv_info_brakedisc_active) ! &&
+							(L.L.vdv_error_light_active) ! &&
+							{if}
+								"display_tank.png" (S.$.vdv_diagnose)
+							{else}
+								"display_diag.png" (S.$.vdv_diagnose)
+							{endif}
+						{endif}
+						1 (S.L.vdv_diagnose)
+					{else}
+						0 (S.L.vdv_diagnose)
+					{endif}
+				{else}
+					0 (S.L.vdv_hsb) (S.L.vdv_p) (S.L.vdv_feststellbremse) (S.L.vdv_door23) (S.L.vdv_door1) (S.L.vdv_door0) (S.L.vdv_doorlock) (S.L.vdv_neutral) (S.L.vdv_buspiktogramm) (S.L.vdv_kneel) (S.L.vdv_kneel2)
+				{endif}
+			{else}
+				0 (S.L.vdv_hsb) (S.L.vdv_p) (S.L.vdv_feststellbremse) (S.L.vdv_door23) (S.L.vdv_door1) (S.L.vdv_door0) (S.L.vdv_doorlock) (S.L.vdv_neutral) (S.L.vdv_buspiktogramm) (S.L.vdv_kneel) (S.L.vdv_kneel2)
+			{endif}
+
+'	Status Mode Pressure
+			(L.L.vdv_display_mode) 3 =
+			{if}
+				0 (S.L.vdv_diagnose) (S.L.vdv_kinderwagen) (S.L.vdv_haltewunsch)
+				(L.L.vdv_display_changeover) (L.S.Timegap) + 6 min (S.L.vdv_display_changeover)
+
+				(L.L.vdv_display_changeover) 4 >
+				(L.L.vdv_display_changeover_clamped) 0 = &&
+				{if}
+					1 (S.L.vdv_display_mode)
+				{endif}
+				(L.L.vdv_display_changeover) 0.5 <
+				{if}
+					(L.L.vdv_lighting)
+					{if}
+						"display_Background_n.png" (S.$.vdv_background)
+					{else}
+						"display_Background.png" (S.$.vdv_background)
+					{endif}
+				{endif}
+				(L.L.vdv_display_changeover) 0.5 >
+				{if}
+					(L.L.vdv_lighting)
+					{if}
+						"display_menu_press_old_n.png" (S.$.vdv_background)
+					{else}
+						"display_menu_press_old.png" (S.$.vdv_background)
+					{endif}
+'		Main Symbols
+					(L.L.obd_system_mode) 0 =
+					{if}
+							0 (S.L.vdv_info_left_n) (S.L.vdv_info_right_n) (S.L.vdv_info_left) (S.L.vdv_info_right) (S.L.vdv_outtemp) (S.L.vdv_consum)
+					{else}
+						(L.L.vdv_lighting)
+						{if}
+							1 (S.L.vdv_info_left_n) (S.L.vdv_info_right_n)
+							0 (S.L.vdv_info_left) (S.L.vdv_info_right) (S.L.vdv_outtemp) (S.L.vdv_consum)
+						{else}
+							0 (S.L.vdv_info_left_n) (S.L.vdv_info_right_n) (S.L.vdv_outtemp) (S.L.vdv_consum)
+							1 (S.L.vdv_info_left) (S.L.vdv_info_right)
+						{endif}
+					{endif}
+
+					(L.L.vdv_lighting)
+					{if}
+						1 (S.L.vdv_balken1_n) (S.L.vdv_balken2_n) (S.L.vdv_balken3_n) (S.L.vdv_balken4_n)
+						0 (S.L.vdv_balken1) (S.L.vdv_balken2) (S.L.vdv_balken3) (S.L.vdv_balken4)
+					{else}
+						1 (S.L.vdv_balken1) (S.L.vdv_balken2) (S.L.vdv_balken3) (S.L.vdv_balken4)
+						0 (S.L.vdv_balken1_n) (S.L.vdv_balken2_n) (S.L.vdv_balken3_n) (S.L.vdv_balken4_n)
+					{endif}
+
+					(L.L.bremse_p_brzyl_VA) (F.L.press_balken) trunc s0
+					"0" l0 $* (S.$.vdv_balken1)
+
+					(L.L.bremse_p_brzyl_HA) (F.L.press_balken) trunc s1
+					"0" l1 $* (S.$.vdv_balken2)
+
+					(L.L.bremse_p_tank01) (F.L.press_balken) trunc s2
+					"0" l2 $* (S.$.vdv_balken3)
+
+					(L.L.bremse_p_tank02) (F.L.press_balken) trunc s3
+					"0" l3 $* (S.$.vdv_balken4)
+
+				{endif}
+			{else}
+				0 (S.L.vdv_balken1) (S.L.vdv_balken2) (S.L.vdv_balken3) (S.L.vdv_balken4)
+				0 (S.L.vdv_balken1_n) (S.L.vdv_balken2_n) (S.L.vdv_balken3_n) (S.L.vdv_balken4_n)
+			{endif}
+
+'	Status Mode Fuel
+			(L.L.vdv_display_mode) 4 =
+			{if}
+				0 (S.L.vdv_diagnose) (S.L.vdv_kinderwagen) (S.L.vdv_haltewunsch)
+				(L.L.vdv_display_changeover) (L.S.Timegap) + 6 min (S.L.vdv_display_changeover)
+
+				(L.L.vdv_display_changeover) 4 >
+				(L.L.vdv_display_changeover_clamped) 0 = &&
+				{if}
+					1 (S.L.vdv_display_mode)
+				{endif}
+
+				(L.L.vdv_display_changeover) 0.5 <
+				{if}
+					(L.L.vdv_lighting)
+					{if}
+						"display_Background_n.png" (S.$.vdv_background)
+					{else}
+						"display_Background.png" (S.$.vdv_background)
+					{endif}
+				{endif}
+				(L.L.vdv_display_changeover) 0.5 >
+				{if}
+					(L.L.vdv_lighting)
+					{if}
+						"display_menu_tank_old_n.png" (S.$.vdv_background)
+					{else}
+						"display_menu_tank_old.png" (S.$.vdv_background)
+					{endif}
+'		Main Symbols
+					(L.L.obd_system_mode) 0 =
+					{if}
+							0 (S.L.vdv_info_left_n) (S.L.vdv_info_right_n) (S.L.vdv_info_left) (S.L.vdv_info_right) (S.L.vdv_outtemp) (S.L.vdv_consum)
+					{else}
+						(L.L.vdv_lighting)
+						{if}
+							1 (S.L.vdv_info_left_n) (S.L.vdv_info_right_n)
+							0 (S.L.vdv_info_left) (S.L.vdv_info_right) (S.L.vdv_outtemp) (S.L.vdv_consum)
+						{else}
+							0 (S.L.vdv_info_left_n) (S.L.vdv_info_right_n) (S.L.vdv_outtemp) (S.L.vdv_consum)
+							1 (S.L.vdv_info_left) (S.L.vdv_info_right)
+						{endif}
+					{endif}
+
+					(L.L.vdv_lighting)
+					{if}
+						1 (S.L.vdv_balken5_n)
+						0 (S.L.vdv_balken5)
+					{else}
+						1 (S.L.vdv_balken5)
+						0 (S.L.vdv_balken5_n)
+					{endif}
+
+					(L.L.engine_tank_content) (F.L.tank_balken) trunc s0
+					"0" l0 $* (S.$.vdv_balken5)
+				{endif}
+			{else}	
+				0 (S.L.vdv_balken5) (S.L.vdv_balken5_n)
+			{endif}
+
+'	Status Mode Temperature
+			(L.L.vdv_display_mode) 5 =
+			{if}
+				0 (S.L.vdv_diagnose) (S.L.vdv_kinderwagen) (S.L.vdv_haltewunsch)
+				(L.L.vdv_display_changeover) (L.S.Timegap) + 6 min (S.L.vdv_display_changeover)
+
+				(L.L.vdv_display_changeover) 4 >
+				(L.L.vdv_display_changeover_clamped) 0 = &&
+				{if}
+					1 (S.L.vdv_display_mode)
+				{endif}
+
+				(L.L.vdv_lighting)
+				{if}
+					"display_Background_n.png" (S.$.vdv_background)
+				{else}
+					"display_Background.png" (S.$.vdv_background)
+				{endif}
+
+				(L.L.vdv_display_changeover) 0.5 >
+				{if}
+'		Main Symbols
+					1 (S.L.vdv_menu_temp) (S.L.vdv_coolanttemp) (S.L.vdv_geartemp) (S.L.vdv_oiltemp)
+
+					(L.L.obd_system_mode) 0 =
+					{if}
+							0 (S.L.vdv_info_left_n) (S.L.vdv_info_right_n) (S.L.vdv_info_left) (S.L.vdv_info_right) (S.L.vdv_outtemp) (S.L.vdv_consum)
+					{else}
+						(L.L.vdv_lighting)
+						{if}
+							1 (S.L.vdv_info_left_n) (S.L.vdv_info_right_n)
+							0 (S.L.vdv_info_left) (S.L.vdv_info_right) (S.L.vdv_outtemp) (S.L.vdv_consum)
+						{else}
+							0 (S.L.vdv_info_left_n) (S.L.vdv_info_right_n) (S.L.vdv_outtemp) (S.L.vdv_consum)
+							1 (S.L.vdv_info_left) (S.L.vdv_info_right)
+						{endif}
+					{endif}
+
+					(L.S.Weather_temperature) (L.L.engine_temperature) <
+					{if}
+						(L.L.engine_temperature) (F.L.temp_interpreter) (S.L.vdv_coolanttemp_leiste)
+						(L.L.engine_temperature) 0.9 * (F.L.temp_interpreter) (S.L.vdv_geartemp_leiste)
+						(L.L.engine_temperature) 1.1 * (F.L.temp_interpreter) (S.L.vdv_oiltemp_leiste)
+					{else}
+						(L.S.Weather_temperature) (F.L.temp_interpreter) (S.L.vdv_coolanttemp_leiste)
+						(L.S.Weather_temperature) (F.L.temp_interpreter) (S.L.vdv_geartemp_leiste)
+						(L.S.Weather_temperature) (F.L.temp_interpreter) (S.L.vdv_oiltemp_leiste)
+					{endif}
+
+					(L.L.vdv_lighting)
+					{if}
+						(L.L.vdv_coolanttemp_leiste) -0.35 >
+						{if}
+							"coolanttemp_a_n.png" (S.$.vdv_coolanttemp)
+						{else}
+							(L.L.vdv_coolanttemp_leiste) -0.65 >
+							{if}
+								"coolanttemp_b_n.png" (S.$.vdv_coolanttemp)
+							{else}
+								"coolanttemp_c_n.png" (S.$.vdv_coolanttemp)
+							{endif}
+						{endif}
+						(L.L.vdv_geartemp_leiste) -0.35 >
+						{if}
+							"geartemp_a_n.png" (S.$.vdv_geartemp)
+						{else}
+							(L.L.vdv_geartemp_leiste) -0.65 >
+							{if}
+								"geartemp_b_n.png" (S.$.vdv_geartemp)
+							{else}
+								"geartemp_c_n.png" (S.$.vdv_geartemp)
+							{endif}
+						{endif}
+						(L.L.vdv_oiltemp_leiste) -0.35 >
+						{if}
+							"oiltemp_a_n.png" (S.$.vdv_oiltemp)
+						{else}
+							(L.L.vdv_oiltemp_leiste) -0.65 >
+							{if}
+								"oiltemp_b_n.png" (S.$.vdv_oiltemp)
+							{else}
+								"oiltemp_c_n.png" (S.$.vdv_oiltemp)
+							{endif}
+						{endif}
+					{else}
+						(L.L.vdv_coolanttemp_leiste) -0.35 >
+						{if}
+							"coolanttemp_a.png" (S.$.vdv_coolanttemp)
+						{else}
+							(L.L.vdv_coolanttemp_leiste) -0.65 >
+							{if}
+								"coolanttemp_b.png" (S.$.vdv_coolanttemp)
+							{else}
+								"coolanttemp_c.png" (S.$.vdv_coolanttemp)
+							{endif}
+						{endif}
+						(L.L.vdv_geartemp_leiste) -0.35 >
+						{if}
+							"geartemp_a.png" (S.$.vdv_geartemp)
+						{else}
+							(L.L.vdv_geartemp_leiste) -0.65 >
+							{if}
+								"geartemp_b.png" (S.$.vdv_geartemp)
+							{else}
+								"geartemp_c.png" (S.$.vdv_geartemp)
+							{endif}
+						{endif}
+						(L.L.vdv_oiltemp_leiste) -0.35 >
+						{if}
+							"oiltemp_a.png" (S.$.vdv_oiltemp)
+						{else}
+							(L.L.vdv_oiltemp_leiste) -0.65 >
+							{if}
+								"oiltemp_b.png" (S.$.vdv_oiltemp)
+							{else}
+								"oiltemp_c.png" (S.$.vdv_oiltemp)
+							{endif}
+						{endif}
+					{endif}
+
+				{else}
+					0 (S.L.vdv_menu_temp) (S.L.vdv_coolanttemp) (S.L.vdv_geartemp) (S.L.vdv_oiltemp)
+				{endif}
+			{else}
+				0 (S.L.vdv_menu_temp) (S.L.vdv_coolanttemp) (S.L.vdv_geartemp) (S.L.vdv_oiltemp)
+			{endif}
+
+'	Diagnostic Mode
+			(L.L.vdv_display_mode) 6 =
+			{if}
+				0 (S.L.vdv_diagnose) (S.L.vdv_kinderwagen) (S.L.vdv_haltewunsch) (S.L.vdv_consum) (S.L.vdv_outtemp) (S.L.vdv_roof) (S.L.vdv_info_left) (S.L.vdv_info_left_n) (S.L.vdv_info_right) (S.L.vdv_info_right_n)
+				(L.L.vdv_display_changeover) (L.S.Timegap) + 2 min (S.L.vdv_display_changeover)
+				(L.L.vdv_display_changeover) 0.5 <
+				{if}
+					(L.L.vdv_lighting)
+					{if}
+						"display_Background_n.png" (S.$.vdv_background)
+					{else}
+						"display_Background.png" (S.$.vdv_background)
+					{endif}
+				{endif}
+
+				(L.L.vdv_display_changeover) 0.5 >
+				{if}
+'	Master Warning Red STOP!
+'	Priority 1 and 2
+					(L.L.Fehleranzahl) 1 =
+					{if}
+						(L.L.coolant_Signal) 0 >
+						{if}
+							(L.L.vdv_lighting)
+							{if}
+								"vdv_display_error_coolant_n.png" (S.$.vdv_background)
+							{else}
+								"vdv_display_error_coolant.png" (S.$.vdv_background)
+							{endif}
+						{else}
+							(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
+						{endif}
+					{endif}
+					(L.L.Fehleranzahl) 2 =
+					{if}
+						(L.L.gearbox_Signal) 0 >
+						{if}
+							(L.L.vdv_lighting)
+							{if}
+								"vdv_display_error_gearbox_n.png" (S.$.vdv_background)
+							{else}
+								"vdv_display_error_gearbox.png" (S.$.vdv_background)
+							{endif}
+						{else}
+							(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
+						{endif}
+					{endif}
+					(L.L.Fehleranzahl) 3 =
+					{if}
+						(L.L.ecas_Signal) 0 >
+						{if}
+							(L.L.vdv_lighting)
+							{if}
+								"vdv_display_error_ecas_n.png" (S.$.vdv_background)
+							{else}
+								"vdv_display_error_ecas.png" (S.$.vdv_background)
+							{endif}
+						{else}
+							(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
+						{endif}
+					{endif}
+					(L.L.Fehleranzahl) 4 =
+					{if}
+						(L.L.Pressure_Signal) 0 >
+						{if}
+							(L.L.vdv_lighting)
+							{if}
+								"vdv_display_error_pressure_n.png" (S.$.vdv_background)
+							{else}
+								"vdv_display_error_pressure.png" (S.$.vdv_background)
+							{endif}
+						{else}
+							(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
+						{endif}
+					{endif}
+					(L.L.Fehleranzahl) 5 =
+					{if}
+						(L.L.EDC_Signal) 0 >
+						{if}
+							(L.L.vdv_lighting)
+							{if}
+								"vdv_display_error_edc_n.png" (S.$.vdv_background)
+							{else}
+								"vdv_display_error_edc.png" (S.$.vdv_background)
+							{endif}
+						{else}
+							(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
+						{endif}
+					{endif}
+					(L.L.Fehleranzahl) 6 =
+					{if}
+						(L.L.Nothahn_Signal) 0 >
+						{if}
+							(L.L.vdv_lighting)
+							{if}
+								"vdv_display_error_nothahn_n.png" (S.$.vdv_background)
+							{else}
+								"vdv_display_error_nothahn.png" (S.$.vdv_background)
+							{endif}
+						{else}
+							(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
+						{endif}
+					{endif}
+					(L.L.Fehleranzahl) 7 =
+					{if}
+						(L.L.vdv_hsb_signal) 0 >
+						{if}
+							(L.L.vdv_lighting)
+							{if}
+								"up\vdv_display_error_hsb_n.png" (S.$.vdv_background)
+							{else}
+								"up\vdv_display_error_hsb.png" (S.$.vdv_background)
+							{endif}
+						{else}
+							(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
+						{endif}
+					{endif}
+'	Caution Yellow
+'	Priority 3
+					(L.L.Fehleranzahl) 8 =
+					{if}
+						(L.L.EBS_Signal) 0 >
+						{if}
+							(L.L.vdv_lighting)
+							{if}
+								"vdv_display_error_EBS_n.png" (S.$.vdv_background)
+							{else}
+								"vdv_display_error_EBS.png" (S.$.vdv_background)
+							{endif}
+						{else}
+							(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
+						{endif}
+					{endif}
+					(L.L.Fehleranzahl) 9 =
+					{if}
+						(L.L.Gearstart_Signal) 0 >
+						{if}
+							(L.L.vdv_lighting)
+							{if}
+								"vdv_display_error_gearstart_n.png" (S.$.vdv_background)
+							{else}
+								"vdv_display_error_gearstart.png" (S.$.vdv_background)
+							{endif}
+						{else}
+							(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
+						{endif}
+					{endif}
+					(L.L.Fehleranzahl) 10 =
+					{if}
+						(L.L.Door_Signal) 0 >
+						{if}
+							(L.L.vdv_lighting)
+							{if}
+								"vdv_display_error_door_n.png" (S.$.vdv_background)
+							{else}
+								"vdv_display_error_door.png" (S.$.vdv_background)
+							{endif}
+						{else}
+							(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
+						{endif}
+					{endif}
+					(L.L.Fehleranzahl) 11 =
+					{if}
+						(L.L.Retarder_Signal) 0 >
+						{if}
+							(L.L.vdv_lighting)
+							{if}
+								"vdv_display_error_retarder_n.png" (S.$.vdv_background)
+							{else}
+								"vdv_display_error_retarder.png" (S.$.vdv_background)
+							{endif}
+						{else}
+							(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
+						{endif}
+					{endif}
+					(L.L.Fehleranzahl) 12 =
+					{if}
+						(L.L.Diesel_Signal) 0 >
+						{if}
+							(L.L.vdv_lighting)
+							{if}
+								"vdv_display_error_diesel_n.png" (S.$.vdv_background)
+							{else}
+								"vdv_display_error_diesel.png" (S.$.vdv_background)
+							{endif}
+						{else}
+							(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
+						{endif}
+					{endif}
+					(L.L.Fehleranzahl) 13 =
+					{if}
+						(L.L.Battery_Signal) 0 >
+						{if}
+							(L.L.vdv_lighting)
+							{if}
+								"vdv_display_error_battery_n.png" (S.$.vdv_background)
+							{else}
+								"vdv_display_error_battery.png" (S.$.vdv_background)
+							{endif}
+						{else}
+							(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
+						{endif}
+					{endif}
+					(L.L.Fehleranzahl) 14 =
+					{if}
+						(L.L.Pressure2_Signal) 0 >
+						{if}
+							(L.L.vdv_lighting)
+							{if}
+								"vdv_display_error_pressure2_n.png" (S.$.vdv_background)
+							{else}
+								"vdv_display_error_pressure2.png" (S.$.vdv_background)
+							{endif}
+						{else}
+							(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
+						{endif}
+					{endif}
+'	Caution Yellow 10 Sec
+'	Priority 3
+					(L.L.Fehleranzahl) 15 =
+					{if}
+						(L.L.Light_Signal) 0 >
+						{if}
+							(L.L.vdv_lighting)
+							{if}
+								"vdv_display_error_light_n.png" (S.$.vdv_background)
+							{else}
+								"vdv_display_error_light.png" (S.$.vdv_background)
+							{endif}
+							(L.L.light_error_timer) (L.S.Timegap) + 10 min (S.L.light_error_timer)
+							10 =
+							{if}
+								17 (S.L.Fehleranzahl)
+							{endif}
+						{else}
+							(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
+							0 (S.L.light_error_timer)
+						{endif}
+					{endif}
+'	Uncritical Caution
+'	Priority 4
+					(L.L.Fehleranzahl) 16 =
+					{if}
+						(L.L.Brakedisc_Signal) 0 >
+						{if}
+							(L.L.vdv_lighting)
+							{if}
+								"vdv_display_info_brakedisc_n.png" (S.$.vdv_background)
+							{else}
+								"vdv_display_info_brakedisc.png" (S.$.vdv_background)
+							{endif}
+						{else}
+							(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
+						{endif}
+					{endif}
+
+					(L.L.Fehleranzahl) 17 >=
+					{if}
+						(L.L.vdv_lighting)
+						{if}
+							"display_Background_n.png" (S.$.vdv_background)
+						{else}
+							"display_Background.png" (S.$.vdv_background)
+						{endif}
+
+						(L.L.vdv_display_masterwarn)
+						{if}
+							0 (S.L.vdv_display_changeover) (S.L.light_error_timer)
+							1 (S.L.Fehleranzahl)
+						{else}
+							1 (S.L.vdv_display_mode) (S.L.Fehleranzahl)
+							0 (S.L.light_error_timer) (S.L.vdv_display_changeover)
+						{endif}
+					{endif}
+				{endif}
+			{endif}
+		{endif}
+
+'	Error System
+
+'	Multiple Errors
+
+	(L.L.vdv_error_pressure_active)
+	(L.L.vdv_error_pressure2_active) +
+	(L.L.vdv_error_coolant_active) +
+	(L.L.vdv_error_gearbox_active) +
+	(L.L.vdv_error_ECAS_active) +
+	(L.L.vdv_error_EBS_active) +
+	(L.L.vdv_error_gearstart_active) +
+	(L.L.vdv_error_door_active) +
+	(L.L.vdv_error_retarder_active) +
+	(L.L.vdv_error_Diesel_active) +
+	(L.L.vdv_error_EDC_active) +
+	(L.L.vdv_error_Battery_active) +
+	(L.L.vdv_error_nothahn_active) +
+	(L.L.vdv_error_hsb_active) +
+	(L.L.vdv_info_brakedisc_active) +
+	(L.L.vdv_error_light_active) +
+	1 >
+	{if}
+		1 (S.L.vdv_display_error_multiple)
+	{else}
+		0 (S.L.vdv_display_error_multiple)
+	{endif}
+
+
+
+	(L.L.vdv_display_error_multiple)
+	(L.L.vdv_display_mode) 6 = &&
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(L.L.vdv_display_changeover) 1 > &&
+	{if}
+		1 (S.L.vdv_scroll)
+	{else}
+		0 (S.L.vdv_scroll)
+	{endif}
+
+'	Master Warn Red STOP!
+	(L.L.vdv_error_pressure_active)
+	(L.L.vdv_error_coolant_active) ||
+	(L.L.vdv_error_gearbox_active) ||
+	(L.L.vdv_error_ECAS_active) ||
+	(L.L.vdv_error_EDC_active) ||
+	(L.L.vdv_error_nothahn_active) ||
+	(L.L.vdv_error_hsb_active) ||
+	{if}
+		1 (S.L.vdv_display_masterwarn)
+	{else}
+		0 (S.L.vdv_display_masterwarn)
+	{endif}
+
+
+'	Caution Yellow ######################################################
+
+
+'	EBS Warn Yellow
+	(L.L.EBS_Error_dist) (L.L.velocity) 3600 / (L.S.Timegap) * + (S.L.EBS_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * >
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(L.L.vdv_display_startuptime) 16 > &&
+	(L.L.vdv_display_masterwarn) ! &&
+	{if}
+		1 (S.L.vdv_error_EBS_active)
+		(L.L.EBS_Signal) 1 + (S.L.EBS_Signal)
+		1 =
+		{if}
+'			(T.L.ev_stoermeldung)
+			6 (S.L.vdv_display_mode)
+			0 (S.L.vdv_display_changeover)
+			7 (S.L.Fehleranzahl)
+		{endif}
+	{else}
+		0 (S.L.EBS_Signal) (S.L.vdv_error_EBS_active)
+	{endif}
+
+'	Gearstart Warn Yellow
+	(L.L.antrieb_getr_gangwahl) 1 >
+	(L.L.key_mode) 4 = &&
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(L.L.vdv_display_startuptime) 16 > &&
+	(L.L.vdv_display_masterwarn) ! &&
+	{if}
+		1 (S.L.vdv_error_gearstart_active)
+		(L.L.gearstart_Signal) 1 + (S.L.gearstart_Signal)
+		1 =
+		{if}
+'			(T.L.ev_stoermeldung)
+			6 (S.L.vdv_display_mode)
+			0 (S.L.vdv_display_changeover)
+			8 (S.L.Fehleranzahl)
+		{endif}
+	{else}
+		0 (S.L.gearstart_Signal) (S.L.vdv_error_gearstart_active)
+	{endif}
+
+'	Door Warn Yellow
+	(L.L.Door_Error_Count) (C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * >
+	(L.L.Door2_Error_Count) (C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * > ||
+	(L.L.Door3_Error_Count) (C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * > ||
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(L.L.vdv_display_startuptime) 16 > &&
+	(L.L.vdv_display_masterwarn) ! &&
+	{if}
+		1 (S.L.vdv_error_door_active)
+		(L.L.door_Signal) 1 + (S.L.door_Signal)
+		1 =
+		{if}
+'			(T.L.ev_stoermeldung)
+			6 (S.L.vdv_display_mode)
+			0 (S.L.vdv_display_changeover)
+			9 (S.L.Fehleranzahl)
+		{endif}
+	{else}
+		0 (S.L.door_Signal) (S.L.vdv_error_door_active)
+	{endif}
+
+'	Retarder Warn Yellow
+	(L.L.Retarder_Error_dist) (L.L.velocity) 3600 / (L.S.Timegap) * + (S.L.Retarder_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * >
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(L.L.vdv_display_startuptime) 16 > &&
+	(L.L.vdv_display_masterwarn) ! &&
+	{if}
+		1 (S.L.vdv_error_retarder_active)
+		(L.L.retarder_Signal) 1 + (S.L.retarder_Signal)
+		1 =
+		{if}
+'			(T.L.ev_stoermeldung)
+			6 (S.L.vdv_display_mode)
+			0 (S.L.vdv_display_changeover)
+			10 (S.L.Fehleranzahl)
+		{endif}
+	{else}
+		0 (S.L.retarder_Signal) (S.L.vdv_error_retarder_active)
+	{endif}
+
+'	Low Diesel Warn Yellow
+	(L.L.engine_tank_content) 50 <
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(L.L.vdv_display_startuptime) 16 > &&
+	(L.L.vdv_display_masterwarn) ! &&
+	{if}
+		1 (S.L.vdv_error_diesel_active)
+		(L.L.diesel_Signal) 1 + (S.L.diesel_Signal)
+		1 =
+		{if}
+'			(T.L.ev_stoermeldung)
+			6 (S.L.vdv_display_mode)
+			0 (S.L.vdv_display_changeover)
+			11 (S.L.Fehleranzahl)
+		{endif}
+	{else}
+		0 (S.L.diesel_Signal) (S.L.vdv_error_diesel_active)
+	{endif}
+
+'	Battery Warn Yellow
+	(L.L.Battery_Error_dist) (L.L.velocity) 3600 / (L.S.Timegap) * + (S.L.Battery_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * >
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(L.L.vdv_display_startuptime) 16 > &&
+	(L.L.vdv_display_masterwarn) ! &&
+	{if}
+		1 (S.L.vdv_error_Battery_active)
+		(L.L.Battery_Signal) 1 + (S.L.Battery_Signal)
+		1 =
+		{if}
+'			(T.L.ev_stoermeldung)
+			6 (S.L.vdv_display_mode)
+			0 (S.L.vdv_display_changeover)
+			12 (S.L.Fehleranzahl)
+		{endif}
+	{else}
+		0 (S.L.Battery_Signal) (S.L.vdv_error_Battery_active)
+	{endif}
+
+'	Pressure Warn Yellow
+	(L.L.bremse_p_tank04) 550000 <
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(L.L.vdv_display_startuptime) 16 > &&
+	(L.L.vdv_display_masterwarn) ! &&
+	{if}
+		1 (S.L.vdv_error_pressure2_active)
+		(L.L.Pressure2_Signal) 1 + (S.L.Pressure2_Signal)
+		1 =
+		{if}
+'			(T.L.ev_stoermeldung)
+			6 (S.L.vdv_display_mode)
+			0 (S.L.vdv_display_changeover)
+			13 (S.L.Fehleranzahl)
+		{endif}
+	{else}
+		0 (S.L.Pressure2_Signal) (S.L.vdv_error_pressure2_active)
+	{endif}
+
+'	Caution Yellow 10 Sec ######################################################
+
+
+'	Light Warn Yellow 10 Sec
+	(L.L.lights_stand_l_bulb_lifetime) 0 <=
+	(L.L.lights_stand_r_bulb_lifetime) 0 <= ||
+	(L.L.lights_abbl_l_bulb_lifetime) 0 <= ||
+	(L.L.lights_abbl_r_bulb_lifetime) 0 <= ||
+	(L.L.lights_fern_l_bulb_lifetime) 0 <= ||
+	(L.L.lights_fern_r_bulb_lifetime) 0 <= ||
+	(L.L.lights_drl_l_unit_lifetime) 0 <= (L.L.lights_cti_has_drl) && ||
+	(L.L.lights_drl_r_unit_lifetime) 0 <= (L.L.lights_cti_has_drl) && ||
+	(L.L.lights_nebelschw_l_bulb_lifetime) 0 <= (L.L.lights_cti_has_head_fog_lights) && ||
+	(L.L.lights_nebelschw_r_bulb_lifetime) 0 <= (L.L.lights_cti_has_head_fog_lights) && ||
+	(L.L.lights_brems_l_t_bulb_lifetime) 0 <= ||
+	(L.L.lights_brems_r_t_bulb_lifetime) 0 <= ||
+	(L.L.lights_brems_l_m_bulb_lifetime) 0 <= ||
+	(L.L.lights_brems_r_m_bulb_lifetime) 0 <= ||
+	(L.L.lights_blinker_h_l_bulb_lifetime) 0 <= ||
+	(L.L.lights_blinker_s_l_1_bulb_lifetime) 0 <= ||
+	(L.L.lights_blinker_t_l_m_bulb_lifetime) 0 <= ||
+	(L.L.lights_blinker_t_l_t_bulb_lifetime) 0 <= ||
+	(L.L.lights_blinker_s_l_2_bulb_lifetime) 0 <= ||
+	(L.L.lights_blinker_h_r_bulb_lifetime) 0 <= ||
+	(L.L.lights_blinker_s_r_1_bulb_lifetime) 0 <= ||
+	(L.L.lights_blinker_t_r_m_bulb_lifetime) 0 <= ||
+	(L.L.lights_blinker_t_r_t_bulb_lifetime) 0 <= ||
+	(L.L.lights_blinker_s_r_2_bulb_lifetime) 0 <= ||
+	(L.L.lights_rueckfahr_l_bulb_lifetime) 0 <= (L.L.lights_cti_has_second_reverse_and_tail_fog_light) && ||
+	(L.L.lights_rueckfahr_r_bulb_lifetime) 0 <= ||
+	(L.L.lights_nebelschluss_l_bulb_lifetime) 0 <= ||
+	(L.L.lights_nebelschluss_r_bulb_lifetime) 0 <= (L.L.lights_cti_has_second_reverse_and_tail_fog_light) && ||
+	(L.L.lights_position_h_l_bulb_lifetime) 0 <= ||
+	(L.L.lights_position_h_r_bulb_lifetime) 0 <= ||
+	(L.L.lights_position_s_l_1_bulb_lifetime) 0 <= ||
+	(L.L.lights_position_s_r_1_bulb_lifetime) 0 <= ||
+	(L.L.lights_position_s_l_2_bulb_lifetime) 0 <= ||
+	(L.L.lights_position_s_r_2_bulb_lifetime) 0 <= ||
+	(L.L.lights_position_s_l_3_bulb_lifetime) 0 <= ||
+	(L.L.lights_position_s_r_3_bulb_lifetime) 0 <= ||
+	(L.L.lights_position_s_l_4_bulb_lifetime) 0 <= ||
+	(L.L.lights_position_s_r_4_bulb_lifetime) 0 <= ||
+	(L.L.lights_position_s_l_5_bulb_lifetime) 0 <= ||
+	(L.L.lights_position_s_r_5_bulb_lifetime) 0 <= ||
+	(L.L.lights_position_t_l_t_bulb_lifetime) 0 <= ||
+	(L.L.lights_position_t_r_t_bulb_lifetime) 0 <= ||
+	(L.L.lights_position_t_l_m_bulb_lifetime) 0 <= ||
+	(L.L.lights_position_t_r_m_bulb_lifetime) 0 <= ||
+	(L.L.lights_position_t_l_b_bulb_lifetime) 0 <= ||
+	(L.L.lights_position_t_r_b_bulb_lifetime) 0 <= ||
+	(L.L.lights_kennz_hinten_l_bulb_lifetime) 0 <= ||
+	(L.L.lights_kennz_hinten_r_bulb_lifetime) 0 <= ||
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(L.L.vdv_display_startuptime) 16 > &&
+	(L.L.vdv_display_masterwarn) ! &&
+	{if}
+		1 (S.L.vdv_error_light_active)
+		(L.L.light_Signal) 1 + (S.L.light_Signal)
+		1 =
+		{if}
+'			(T.L.ev_stoermeldung)
+			6 (S.L.vdv_display_mode)
+			0 (S.L.vdv_display_changeover)
+			14 (S.L.Fehleranzahl)
+		{endif}
+	{else}
+		0 (S.L.light_Signal) (S.L.vdv_error_light_active)
+	{endif}
+
+'	Caution Uncritical ######################################################
+
+'	Brakedisc Info
+	(L.L.Brakedisc_Error_dist) (L.L.velocity) 3600 / (L.S.Timegap) * + (S.L.Brakedisc_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * >
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(L.L.vdv_display_startuptime) 16 > &&
+	(L.L.vdv_display_masterwarn) ! &&
+	{if}
+		1 (S.L.vdv_info_brakedisc_active)
+		(L.L.Brakedisc_Signal) 1 + (S.L.Brakedisc_Signal)
+	{else}
+		0 (S.L.Brakedisc_Signal) (S.L.vdv_info_brakedisc_active)
+	{endif}
+
+'	Master Warn Red ######################################################
+
+'	Coolant Warn Red - not cancelable
+	(L.L.engine_temperature) 106 >
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(L.L.vdv_display_startuptime) 16 > &&
+	{if}
+		1 (S.L.vdv_error_coolant_active)
+		(L.L.coolant_Signal) 1 + (S.L.coolant_Signal)
+		1 =
+		{if}
+			(T.L.ev_stoermeldung)
+			6 (S.L.vdv_display_mode)
+			0 (S.L.vdv_display_changeover)
+			1 (S.L.Fehleranzahl)
+		{endif}
+	{else}
+		(L.L.engine_temperature) 100 <
+		{if}
+			0 (S.L.coolant_Signal) (S.L.vdv_error_coolant_active)
+		{endif}
+	{endif}
+
+'	Gearbox Warn Red - not cancelable
+	(L.L.Gear_Error_dist) (L.L.velocity) 3600 / (L.S.Timegap) * + (S.L.Gear_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * > (S.L.antrieb_failure_general)
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(L.L.vdv_display_startuptime) 16 > &&
+	{if}
+		1 (S.L.vdv_error_gearbox_active)
+		(L.L.gearbox_Signal) 1 + (S.L.gearbox_Signal)
+		1 =
+		{if}
+			(T.L.ev_stoermeldung)
+			6 (S.L.vdv_display_mode)
+			0 (S.L.vdv_display_changeover)
+			2 (S.L.Fehleranzahl)
+		{endif}
+	{else}
+		0 (S.L.gearbox_Signal) (S.L.vdv_error_gearbox_active)
+	{endif}
+
+'	ECAS Warn Red - not cancelable
+	(L.L.ECAS_Error_dist) (L.L.velocity) 3600 / (L.S.Timegap) * + (S.L.ECAS_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * >
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(L.L.vdv_display_startuptime) 16 > &&
+	{if}
+		1 (S.L.vdv_error_ecas_active)
+		(L.L.ecas_Signal) 1 + (S.L.ecas_Signal)
+		1 =
+		{if}
+			(T.L.ev_stoermeldung)
+			6 (S.L.vdv_display_mode)
+			0 (S.L.vdv_display_changeover)
+			3 (S.L.Fehleranzahl)
+		{endif}
+	{else}
+		0 (S.L.ecas_Signal) (S.L.vdv_error_ecas_active)
+	{endif}
+
+'	Pressure Warn Red - not cancelable
+	(L.L.bremse_p_tank01) 550000 <
+	(L.L.bremse_p_tank02) 550000 < ||
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(L.L.engine_n) 300 > &&
+	(L.L.vdv_display_startuptime) 16 > &&
+	{if}
+		1 (S.L.vdv_error_pressure_active)
+		(L.L.Pressure_Signal) 1 + (S.L.Pressure_Signal)
+		1 =
+		{if}
+			(T.L.ev_stoermeldung)
+			6 (S.L.vdv_display_mode)
+			0 (S.L.vdv_display_changeover)
+			4 (S.L.Fehleranzahl)
+		{endif}
+	{else}
+		0 (S.L.Pressure_Signal) (S.L.vdv_error_pressure_active)
+	{endif}
+
+'	EDC Warn Red - not cancelable
+	(L.L.EDC_Error_dist) (L.L.velocity) 3600 / (L.S.Timegap) * + (S.L.EDC_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * > (S.L.engine_failure_general)
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(L.L.vdv_display_startuptime) 16 > &&
+	{if}
+		1 (S.L.vdv_error_edc_active)
+		(L.L.edc_Signal) 1 + (S.L.edc_Signal)
+		1 =
+		{if}
+			(T.L.ev_stoermeldung)
+			6 (S.L.vdv_display_mode)
+			0 (S.L.vdv_display_changeover)
+			5 (S.L.Fehleranzahl)
+		{endif}
+	{else}
+		0 (S.L.edc_Signal) (S.L.vdv_error_edc_active)
+	{endif}
+
+'	Nothahn Warn Red - not cancelable
+	(L.L.door_01_nothahn_sw)
+	(L.L.door_23_nothahn_sw) ||
+	(L.L.door_45_nothahn_sw) ||
+	(L.L.door_67_nothahn_sw) ||
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(L.L.vdv_display_startuptime) 16 > &&
+	{if}
+		1 (S.L.vdv_error_nothahn_active)
+		(L.L.nothahn_Signal) 1 + (S.L.nothahn_Signal)
+		1 =
+		{if}
+			(T.L.ev_stoermeldung)
+			6 (S.L.vdv_display_mode)
+			0 (S.L.vdv_display_changeover)
+			6 (S.L.Fehleranzahl)
+		{endif}
+	{else}
+		0 (S.L.nothahn_Signal) (S.L.vdv_error_nothahn_active)
+	{endif}
+
+' HSB overridden or faulty - not cancelable
+	(L.L.cp_not_aus_sw) (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > && (L.L.vdv_display_startuptime) 16 > &&
+	{if}
+		1 (S.L.vdv_error_hsb_active)
+		(L.L.vdv_hsb_signal) 1 + (S.L.vdv_hsb_signal) 1 =
+		{if}
+			(T.L.ev_stoermeldung)
+			6 (S.L.vdv_display_mode)
+			0 (S.L.vdv_display_changeover)
+			7 (S.L.Fehleranzahl)
+		{endif}
+	{else}
+		0 (S.L.vdv_hsb_signal) (S.L.vdv_error_hsb_active)
+	{endif}
+
+'	Door Clear
+	(L.L.door_01_nothahn_sw)
+	(L.L.Door_Error_Count) (C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * > &&
+	{if}
+		(C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * random (S.L.Door_Error_Count)
+	{endif}
+	(L.L.door_23_nothahn_sw)
+	(L.L.Door2_Error_Count) (C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * > &&
+	{if}
+		(C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * random (S.L.Door2_Error_Count)
+	{endif}
+
+'#####################################################################################
+
+
+'	Kneeling signal
+
+(L.L.vdv_error_ECAS_active) !
+{if}	
+	(L.L.doorTarget_0) 1 = (L.L.doorTarget_1) 1 = || (L.L.doorTarget_23) 1 = || (L.L.doorTarget_45) 1 = || (L.L.kneel_allowed) 1 = && (L.L.bremse_halte) 1 = &&
+	(L.L.doorTarget_0) 1 = (L.L.doorTarget_1) 1 = || (L.L.doorTarget_23) 1 = || (L.L.doorTarget_45) 1 = || (L.L.kneel_auto_set) 1 = && (L.L.bremse_halte) 1 = && ||
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(L.L.bremse_p_tank01) 500000 > &&
+	(L.L.bremse_p_tank02) 500000 > &&
+	(L.L.bremse_p_tank03) 500000 > &&
+	{if}
+		(L.L.kneeling_blinkgeber) (L.S.Timegap) + 1 min (S.L.kneeling_blinkgeber)
+		1 =
+		{if}
+			0 (S.L.kneeling_blinkgeber)
+		{endif}
+		(L.L.kneel_timer) (L.S.timegap) + 5 min (S.L.kneel_timer)
+		(L.L.kneel_timer) 5 =
+		(L.L.vdv_display_mode) 2 = &&
+		(L.L.vdv_display_changeover) 0.5 > &&
+		{if}
+			0 (S.L.vdv_kneel)
+			1 (S.L.vdv_kneel2)
+		{else}
+			(L.L.kneeling_blinkgeber) 0.5 >
+			(L.L.vdv_display_mode) 2 = &&
+			(L.L.vdv_display_changeover) 0.5 > &&
+			{if}
+				1 (S.L.vdv_kneel)
+				0 (S.L.vdv_kneel2)
+			{else}
+				0 (S.L.vdv_kneel)
+				0 (S.L.vdv_kneel2)
+			{endif}
+		{endif}
+	{endif}
+
+	(L.L.doorTarget_0) 0 = (L.L.doorTarget_1) 0 = && (L.L.doorTarget_23) 0 = && (L.L.doorTarget_45) 0 = &&
+	(L.L.kneel_allowed) 0 = (L.L.kneel_locked) 0 = && (L.L.kneel_auto_set) 0 = && ||
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(L.L.bremse_p_tank01) 500000 > &&
+	(L.L.bremse_p_tank02) 500000 > &&
+	(L.L.bremse_p_tank03) 500000 > &&
+	{if}
+		(L.L.doortimer23) (C.L.tuerverzoegerung) >=
+		(L.L.doortimer45) (C.L.tuerverzoegerung) >= &&
+		(L.L.kneel_allowed) 0 = (L.L.kneel_locked) 0 = && (L.L.kneel_auto_set) 0 = && ||
+		{if}
+			(L.L.kneeling_blinkgeber) (L.S.Timegap) + 1 min (S.L.kneeling_blinkgeber)
+			1 =
+			{if}
+				0 (S.L.kneeling_blinkgeber)
+			{endif}
+			(L.L.kneel_timer) (L.S.timegap) 2 * - 0 max (S.L.kneel_timer)
+			(L.L.kneel_timer) 0 =
+			{if}
+				0 (S.L.vdv_kneel)
+				0 (S.L.vdv_kneel2)
+			{endif}
+			(L.L.kneel_timer) 0 >
+			{if}
+				(L.L.kneeling_blinkgeber) 0.5 >
+				(L.L.vdv_display_mode) 2 = &&
+				{if}
+					1 (S.L.vdv_kneel)
+					0 (S.L.vdv_kneel2)
+				{else}
+					0 (S.L.vdv_kneel)
+					0 (S.L.vdv_kneel2)
+				{endif}
+			{endif}
+		{endif}
+	{endif}
+	(L.L.ecas_fill_front) (L.L.ecas_fill_mid) || (L.L.ecas_fill_back) || (L.L.ecas_rise_active) || (L.L.kneel_timer) 0 = && ||
+	(L.L.vdv_display_mode) 2 = &&
+	{if}
+		1 (S.L.vdv_kneel)
+	{endif}
+{endif}
+
+
+	{else}
+		0 (S.L.vdv_display_startuptime) (S.L.vdv_display_changeover) (S.L.vdv_display_mode)
+		0 (S.L.vdv_diagnose) (S.L.vdv_asr) (S.L.vdv_heater) (S.L.vdv_mirror) (S.L.vdv_klima) (S.L.vdv_kinderwagen) (S.L.vdv_haltewunsch) (S.L.vdv_retarder) (S.L.vdv_autokneel) (S.L.vdv_buspiktogramm) (S.L.vdv_consum) (S.L.vdv_outtemp)
+		0 (S.L.vdv_kinderwagen) (S.L.vdv_haltewunsch) (S.L.vdv_hsb) (S.L.vdv_p) (S.L.vdv_feststellbremse) (S.L.vdv_door23) (S.L.vdv_door1) (S.L.vdv_door0) (S.L.vdv_doorlock) (S.L.vdv_neutral) (S.L.vdv_kneel) (S.L.vdv_kneel2) (S.L.vdv_roof)
+		0 (S.L.vdv_menu_press) (S.L.vdv_menu_temp) (S.L.vdv_menu_fuel) (S.L.vdv_info_left) (S.L.vdv_info_left_n) (S.L.vdv_info_right) (S.L.vdv_info_right_n) (S.L.vdv_scroll)
+		0 (S.L.vdv_coolanttemp) (S.L.vdv_geartemp) (S.L.vdv_oiltemp) (S.L.vdv_tank) (S.L.vdv_oilpress) (S.L.vdv_airpress1_1) (S.L.vdv_airpress1_2) (S.L.vdv_airpress2_1) (S.L.vdv_airpress2_2)
+		0 (S.L.vdv_balken1) (S.L.vdv_balken1_n) (S.L.vdv_balken2) (S.L.vdv_balken2_n) (S.L.vdv_balken3) (S.L.vdv_balken3_n) (S.L.vdv_balken4) (S.L.vdv_balken4_n) (S.L.vdv_balken5) (S.L.vdv_balken5_n)
+
+'	Verbraucherwarnung:
+		(L.L.cp_light_sw) (L.L.cp_passenger_light_sw) || (L.L.cp_fahrerlicht_sw) || (L.L.lights_Rinv_sum_ext_without_indicators) 0 > &&
+			(L.L.lights_blinker_running) || (L.L.elec_busbar_avail) 0 > && (L.L.engine_n) 100 < && (L.L.elec_failure_general) ! &&
+		{if}
+			1 (S.L.vdv_light)
+			"vdv_display_error_power.png" (S.$.vdv_background)
+		{else}
+			0 (S.L.vdv_light)
+			"vdv_display_off.png" (S.$.vdv_background)
+		{endif}
+
+'	Possible Manual Error fixing
+
+'	EDC Clear
+	(L.L.EDC_Error_dist) (C.L.Fehlertoleranz) (L.L.wearlifespan) * >
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) <= &&
+	(L.L.engine_n) 0 = &&
+	{if}
+		(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.EDC_Error_dist)
+	{endif}
+
+'	Door Clear
+	(L.L.Door_Error_Count) (C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * >
+	(L.L.Door2_Error_Count) (C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * > ||
+	(L.L.Door3_Error_Count) (C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * > ||
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) <= &&
+	{if}
+		(C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * random (S.L.Door_Error_Count)
+		(C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * random (S.L.Door2_Error_Count)
+		(C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * random (S.L.Door3_Error_Count)
+	{endif}
+
+'	Retarder Clear
+	(L.L.Retarder_Error_dist) (C.L.Fehlertoleranz) (L.L.wearlifespan) * >
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) <= &&
+	(L.L.engine_n) 0 = &&
+	(L.L.antrieb_getr_aktugang) 0 = &&
+	{if}
+		(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.Retarder_Error_dist)
+	{endif}
+	{endif}
+{end}

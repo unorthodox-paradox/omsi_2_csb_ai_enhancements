@@ -1,0 +1,235 @@
+[const]
+auto_HST_bremse
+0
+
+[const]
+kneel_time_up
+0.08
+
+[const]
+kneel_time_down
+3.5
+
+[const]
+kneel_target_pressure
+500
+
+[const]
+max_bremskraft
+90000
+
+[const]
+bremse_ABS
+1
+
+Massenstrom des Kompressors in kg pro Motorumdrehung
+[const]
+bremse_m_kompressor
+0.00045
+
+Volumen [m³] Luftleitung Kompressor-Schutzventil
+[const]
+bremse_V_leitung01
+0.002
+
+Volumen [m³] Luftleitung Kreis 1+2 nach 3+4
+[const]
+bremse_V_leitung02
+0.002
+
+Querschnittsfläche Rückschlagventile für Füllleitung Kreise 3+4
+[const]
+bremse_A_Rueckschlagventil_1
+0.00003
+
+Volumen [m³] Luftbehälter Kreis 1 (HA)
+[const]
+bremse_V_tank01
+0.04
+
+Volumen [m³] Luftbehälter Kreis 2 (VA)
+[const]
+bremse_V_tank02
+0.04
+
+Volumen [m³] Luftbehälter Kreis 3 (FBA)
+[const]
+bremse_V_tank03
+0.04
+
+Volumen [m³] Luftbehälter Kreis 4 (Federung+Türen+HBA)
+[const]
+bremse_V_tank04
+0.04
+
+Volumen Bremszylinder HA
+[const]
+bremse_V_Brzyl_HA
+0.0025
+
+Volumen Bremszylinder HA rechts
+[const]
+bremse_V_Brzyl_HA_R
+0.00125
+
+Volumen Bremszylinder HA
+[const]
+bremse_V_Brzyl_HA_L
+0.00125
+
+Volumen Bremszylinder VA
+[const]
+bremse_V_Brzyl_VA
+0.0025
+
+Volumen Bremszylinder VA rechts
+[const]
+bremse_V_Brzyl_VA_R
+0.00125
+
+Volumen Bremszylinder VA links
+[const]
+bremse_V_Brzyl_VA_L
+0.00125
+
+Volumen Bremszylinder FBA
+[const]
+bremse_V_brzyl_FBA
+0.01
+
+Volumen Luftfederbalg 0 R
+[const]
+bremse_V_balg_0_R
+0.005
+
+Volumen Luftfederbalg 0 L
+[const]
+bremse_V_balg_0_L
+0.005
+
+Volumen Luftfederbalg 1 R
+[const]
+bremse_V_balg_1_R
+0.01
+
+Volumen Luftfederbalg 1 L
+[const]
+bremse_V_balg_1_L
+0.01
+
+Volumen Luftfederbalg 2 R
+[const]
+bremse_V_balg_2_R
+0.01
+
+Volumen Luftfederbalg 2 L
+[const]
+bremse_V_balg_2_L
+0.01
+
+Gaskonstante * Durchschnittstemperatur
+[const]
+RT_Luft
+84091
+
+Betriebsdruck Haltestellenbremse
+[const]
+bremse_pmax_halte
+450000
+
+Öffnungsdruck Überstromventil Kreis 1
+[const]
+bremse_UeVentil_1_oeffnungsdruck
+750000
+
+Schließdruck Überstromventil Kreis 1
+[const]
+bremse_UeVentil_1_schliessdruck
+600000
+
+Öffnungsdruck Überstromventil Kreis 2
+[const]
+bremse_UeVentil_2_oeffnungsdruck
+750000
+
+Schließdruck Überstromventil Kreis 2
+[const]
+bremse_UeVentil_2_schliessdruck
+600000
+
+Öffnungsdruck Überstromventil Kreis 3
+[const]
+bremse_UeVentil_3_oeffnungsdruck
+750000
+
+Schließdruck Überstromventil Kreis 3
+[const]
+bremse_UeVentil_3_schliessdruck
+600000
+
+Öffnungsdruck Überstromventil Kreis 4
+[const]
+bremse_UeVentil_4_oeffnungsdruck
+750000
+
+Schließdruck Überstromventil Kreis 4
+[const]
+bremse_UeVentil_4_schliessdruck
+600000
+
+[newcurve]
+Bremskraft_FBA
+
+[pnt]
+100000
+35000
+
+[pnt]
+650000
+0
+
+[pnt]
+10000000
+0
+
+Sollwert für Niveauregulierung
+[const]
+bremse_level_setpoint
+-0.105
+
+
+
+Regeltolerenz für elektronische Niveauregulierung:
+[const]
+bremse_levelcontrol_tolerance
+0.005
+
+Simulation des Pulsverhaltens der Regelventile bei Annäherung an Sollwert (Vermeidung von Instabilitäten)
+[newcurve]
+bremse_suspension_regulatorcurve
+
+[pnt]
+-0.03
+1
+
+[pnt]
+-0.01
+0.15
+
+[pnt]
+0
+0.2
+
+[pnt]
+0.005
+0.5
+
+[pnt]
+0.01
+1
+
+
+Testleckquerschnitt
+[const]
+bremse_A_Leck
+0.0001

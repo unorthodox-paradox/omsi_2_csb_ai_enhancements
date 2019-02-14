@@ -1,0 +1,40 @@
+***************************************
+CVAG 72 (Experimental)
+***************************************
+
+[item]
+CVAG 72
+repaint_body
+..\Main.tga
+
+[item]
+CVAG 72
+repaint_body_kk
+..\Main.tga
+
+[item]
+CVAG 72
+repaint_sid
+..\Sitz.dds
+
+[item]
+CVAG 72
+repaint_poruch
+..\Stange.dds
+
+[item]
+CVAG 72
+repaint_details
+..\Details.dds
+
+[setvar]
+lights_cti_int_lights_level_2_requires_running_engine
+1
+
+[setvar]
+uchill_cti_passenger_ac_maintenance_mode_requires_full_elec
+1
+
+[setvar]
+cp_cti_has_door_wing_lock_switch
+1

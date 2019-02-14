@@ -1,0 +1,35 @@
+{macro:utils_gradual_constant_update}
+    l0 l1 = !
+    {if}
+        l1 l0 - sgn s7 l2 (L.S.Timegap) * * l0 + s0 l1 >= l7 1 = && l0 l1 <= l7 -1 = && ||
+        {if}
+            l1 s0
+        {endif}
+    {endif}
+{end}
+
+{macro:utils_duration}
+    l0 l1 <=
+    {if}
+        l1 l0 -
+    {else}
+        86400 l0 - l1 +
+    {endif}
+    s2
+{end}
+
+{macro:utils_service_trip_heuristic}
+    (L.L.humans_count) ! s0
+    {if}
+        (L.L.schedule_active) ! s0 !
+        {if}
+            (L.L.AI_Light) (L.L.AI_Interiorlight) ! && s0 !
+            {if}
+                (M.V.GetTTBusstopCount) 1 <= (L.L.target_index_int) 0 (M.V.GetTerminusString) $RemoveSpaces (S.$.sr0) "" $= ||
+                    (L.$.sr0) "Betribsfahrt" $= || (L.$.sr0) "BETRIEBSFAHRT" $= || (L.$.sr0) "Dienstfahrt" $= || (L.$.sr0) "DIENSTFAHRT" $= ||
+                    (L.$.sr0) "Sonderfahrt" $= || (L.$.sr0) "SONDERFAHRT" $= || (L.$.sr0) "Pause" $= || (L.$.sr0) "PAUSE" $= ||
+                    (L.$.sr0) "Betriebshof" $= || (L.$.sr0) "BETRIEBSHOF" $= || s0
+            {endif}
+        {endif}
+    {endif}
+{end}

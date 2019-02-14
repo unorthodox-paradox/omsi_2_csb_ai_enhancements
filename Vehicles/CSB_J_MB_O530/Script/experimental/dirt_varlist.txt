@@ -1,0 +1,6 @@
+dirt_initialized
+dirt_ai_affinity
+dirt_dirt_norm
+Dirt_Wiped
+Dirt_Wiper_Pos
+Dirt_Wiper_Pos_Prev

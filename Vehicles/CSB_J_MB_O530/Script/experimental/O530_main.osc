@@ -1,0 +1,124 @@
+'########################################
+'#                                      #
+'#              MAIN SCRIPT             #
+'#                                      #
+'#    MAN Standarddoppeldecker SD200    #
+'#                                      #
+'#             Bauart SD85              #
+'#                                      #
+'########################################
+
+'(c) 10.08.2009 Marcel Kuhnt, Rüdiger Hülsmann
+
+'Script Version: 1.0
+'Omsi release: 1.0
+
+
+'Revision History:
+'- Marcel Kuhnt		10.08.2009	Added Revision History
+'- Marcel Kuhnt		30.11.2010	Bugfix: press [D] in AI mode if motor running but neutral
+
+'------------------------------------------------------------------------------------------
+
+'----------------------------------
+'Crash:
+
+{trigger:collision}
+	(M.L.Collision_Trigger)
+{end}
+
+'----------------------------------
+'malfunction reset:
+
+{trigger:malfunction_reset}
+	(M.L.Collision_Malfunction_Reset)
+	(M.L.Elec_Malfunction_Reset)
+	(M.L.lights_repair)
+
+	1.0 (S.L.elec_V_battery)
+	60 (S.L.engine_temperature)
+	(L.L.vdv_on) ! (L.L.key_mode) 3 = &&
+	{if}
+		1 (S.L.vdv_on)
+	{endif}
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.EBS_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.Retarder_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.Gear_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.ECAS_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.EDC_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.Battery_Error_dist)
+	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.Brakedisc_Error_dist)
+	(C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * random (S.L.Door_Error_Count)
+	(C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * random (S.L.Door2_Error_Count)
+	(C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * random (S.L.Door3_Error_Count)
+{end}
+
+'----------------------------------
+'malfunction time calc:
+
+{trigger:malfunction_gettime}
+	0 s0
+	(M.L.Collision_Malfunction_TimeCalc)
+	(M.L.Elec_Malfunction_TimeCalc)
+	(M.L.lights_repair_timecalc)
+	l0
+{end}
+
+'######################
+'	Hauptteil
+'######################
+
+{init}
+	(M.L.ai_pre_cockpit_init)
+	(M.L.cockpit_init)
+	(M.L.Elec_Init)
+	(M.L.bremse_init)
+	(M.L.engine_Init)
+	(M.L.Antrieb_Init)
+	(M.L.Door_Init)
+	(M.L.lights_init)
+	(M.L.wiper_init)
+	(M.L.uchill_init)
+	(M.L.IBIS_init)
+	(M.L.Matrix_init)
+	(M.L.ticketprinter_init)
+	(M.L.VDV_init)
+	(M.L.daueranimation_init)
+{end}
+
+{frame}
+	1 (S.L.o530_main_vehicle_focused)
+	(M.L.o530_main_frame)
+{end}
+
+{frame_ai}
+	0 (S.L.o530_main_vehicle_focused)
+	(M.L.o530_main_frame)
+{end}
+
+{macro:o530_main_frame}
+	(M.L.ai_pre_cockpit_frame)
+	(M.L.Collision_Frame)
+	(M.L.cockpit_frame)
+	(M.L.Elec_Frame)
+	(M.L.bremse_frame)
+	(M.L.Engine_Frame)
+	(M.L.Antrieb_Frame)
+	(M.L.Door_frame)
+	(M.L.lights_frame)
+	(M.L.wiper_frame)
+	(M.L.uchill_frame)
+	(M.L.IBIS_frame)
+	(M.L.Matrix_frame)
+	(M.L.ticketprinter_frame)
+	(M.L.cashdesk_frame)
+	(M.L.VDV_frame)
+	(M.L.rain_frame)
+	(M.L.dirt_frame)
+	(M.L.Auspuff_Frame)
+	(M.L.spray_frame)
+	(M.L.sound_volume_frame)
+	(M.L.klappern_frame)
+	(M.L.FF_frame)
+	(M.L.wimpel_frame)
+{end}
