@@ -3315,7 +3315,7 @@
     {if}
         l1 1 = ! l2 &&
         {if}
-            (L.L.lights_ai_int_lighting_darker_or_on_timer) s0 (L.L.ai_pre_cockpit_passenger_window_adjustment_phase) ! (L.L.lights_ai_test_status) || &&
+            (L.L.lights_ai_int_lighting_darker_or_on_timer) s0 (L.L.ai_pre_cockpit_passenger_window_adjustment_phase) ! (L.L.lights_ai_int_lighting_env_perception) -1 = ! (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic) ! || (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic) -1 = (L.L.ai_pre_cockpit_stop_phase) 3 >= && || && (L.L.lights_ai_test_status) || &&
             {if}
                 l0 (L.L.ai_pre_cockpit_ai_timegap) - 0 max (S.L.lights_ai_int_lighting_darker_or_on_timer) s0
             {endif}
