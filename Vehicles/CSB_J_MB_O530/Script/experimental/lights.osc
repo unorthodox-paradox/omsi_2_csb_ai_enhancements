@@ -1493,7 +1493,7 @@
 '       // maintenance factor
         (L.L.AI)
         {if}
-            10000 random (M.V.NrSpecRandom) 0.5 <
+            10000 random (M.V.NrSpecRandom) 0.8 <
             {if}
                 100
             {else}
@@ -1507,9 +1507,9 @@
         {else}
             (L.L.wearlifespan) 100 min
         {endif}
+'       // ...normalized (0 = best, 1 = worst)
         s1 0.1 <
         {if}
-'           // ...normalized (0 = best, 1 = worst)
             1
         {else}
             l1 1 <

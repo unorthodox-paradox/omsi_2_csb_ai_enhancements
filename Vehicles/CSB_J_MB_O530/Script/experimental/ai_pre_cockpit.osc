@@ -6760,9 +6760,10 @@
 '   // ai_pre_cockpit_indicator_pc_factor_high traits. Preferences are always expressed dynamically.
 '   // XXX: When under case (4) the vehicle "forgets" / "neglects" adjustment, and the next n path segments prescribe
 '   //      the same indicator setting, the vehicle will repeatedly "forget" / "neglect" adjustment until entering
-'   //      the (n+1)th segment following the initial choice. This is obviously detrimental to realism, but
-'   //      unfortunately cannot be worked-around (except perhaps by relying on steering angle as a heuristic, which
-'   //      would be error-prone to say the least).
+'   //      the (n+1)th segment following the initial choice. This is obviously detrimental to realism when the
+'   //      adjacent segments represent _individual_ curves / junctions / turns, causing the vehicle to appear
+'   //      too neglectful even for human standards. Unfortunately there is no workaround (except perhaps by relying on
+'   //      steering angle as a heuristic, which would be error-prone to say the least).
 
     (L.L.ai_pre_cockpit_indicator_sw_target) s0 s7 0 <
     {if}
@@ -6857,8 +6858,7 @@
                     (L.L.ai_pre_cockpit_stop_phase) 1 =
                     {if}
 '                       // Case 1
-                        (L.L.ai_pre_cockpit_indicator_sw_target_context) 1 <
-                            (L.L.ai_pre_cockpit_indicator_sw_target_context) 2 > ||
+                        (L.L.ai_pre_cockpit_indicator_sw_target_context) 1 = !
                         {if}
                             1 (S.L.ai_pre_cockpit_indicator_sw_target_context)
                             l1 (S.L.ai_pre_cockpit_indicator_sw_target_last_arrival)
