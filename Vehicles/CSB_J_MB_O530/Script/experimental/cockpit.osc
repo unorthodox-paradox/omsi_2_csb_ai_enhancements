@@ -601,7 +601,7 @@
     (L.L.AI) !
     {if}
         1 (S.L.cockpit_wischer_drehschalter_dragged)
-    {endif}
+
         (L.S.mouse_y) -50 / (L.L.cockpit_wischer_drehschalter) + 0 max 1 min (S.L.cockpit_wischer_drehschalter) s0
 
 '        Stufen:
@@ -1835,8 +1835,8 @@
                 0 (S.L.ev_window_down_move)
             {endif}
         {endif}
-	{else}
-		0 (S.L.ev_window_up_move) (S.L.ev_window_down_move)
+    {else}
+        0 (S.L.ev_window_up_move) (S.L.ev_window_down_move)
     {endif}
 {end}
 
