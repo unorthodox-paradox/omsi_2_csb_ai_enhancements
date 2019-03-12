@@ -1425,6 +1425,20 @@
     {endif}
 {end}
 
+{trigger:bus_doorfront0_ext}
+    (L.L.AI) !
+    {if}
+        1 (S.L.cockpit_tuertaster1_ext)
+    {endif}
+{end}
+
+{trigger:bus_doorfront0_ext_off}
+    (L.L.AI) !
+    {if}
+        0 (S.L.cockpit_tuertaster1_ext)
+    {endif}
+{end}
+
 {trigger:bus_doorfront1}
     (L.L.AI) !
     {if}
@@ -2668,102 +2682,21 @@
         0 (S.L.engine_timer_start)
     {endif}
 
-    (L.L.engine_timer_start) 4.4 <
-    (L.L.cockpit_light_masterfailure) ||
-    (L.L.vdv_on) &&
-    {if}
-        1 (S.L.indic_1)
-    {else}
-        0 (S.L.indic_1)
-    {endif}
+    (L.L.engine_timer_start) 4.4 < (L.L.cockpit_light_masterfailure) || (L.L.vdv_on) && (S.L.cp_vdv_indic_1)
 
-    (L.L.vdv_error_pressure2_active)
-    (L.L.vdv_error_EBS_active) ||
-    (L.L.vdv_error_gearstart_active) ||
-    (L.L.vdv_error_door_active) ||
-    (L.L.vdv_error_retarder_active) ||
-    (L.L.vdv_error_Diesel_active) ||
-    (L.L.vdv_error_Battery_active) ||
-    (L.L.vdv_error_light_active) ||
-    (L.L.vdv_display_mode) 6 = &&
-    (L.L.engine_timer_start) 4.4 < ||
-    (L.L.vdv_on) &&
-    {if}
-        1 (S.L.indic_2)
-    {else}
-        0 (S.L.indic_2)
-    {endif}
+    (L.L.vdv_error_pressure2_active) (L.L.vdv_error_EBS_active) || (L.L.vdv_error_gearstart_active) || (L.L.vdv_error_door_active) ||
+        (L.L.vdv_error_retarder_active) || (L.L.vdv_error_Diesel_active) || (L.L.vdv_error_Battery_active) || (L.L.vdv_error_light_active) ||
+        (L.L.vdv_display_mode) 6 = && (L.L.engine_timer_start) 4.4 < || (L.L.vdv_on) && (S.L.cp_vdv_indic_2)
 
-    (L.L.engine_timer_start) 4.3 <
-    (L.L.lights_fern) ||
-    (L.L.vdv_on) &&
-    {if}
-        1 (S.L.indic_4)
-    {else}
-        0 (S.L.indic_4)
-    {endif}
+'   XXX: cp_vdv_indic_indic_3 set in lights.osc:lights_runblinkgeber
 
-    (L.L.engine_timer_start) 2.6 <
-    (L.L.cockpit_light_feststellbremse) ||
-    (L.L.vdv_on) &&
-    {if}
-        1 (S.L.indic_5)
-    {else}
-        0 (S.L.indic_5)
-    {endif}
+    (L.L.engine_timer_start) 4.3 < (L.L.lights_fern) || (L.L.vdv_on) && (S.L.cp_vdv_indic_4)
 
-    (L.L.engine_timer_start) 5.2 <
-    (L.L.cp_ASR_off) 1 = ||
-    (L.L.engine_ASR_eingriff) ||
-    (L.L.bremse_ABS_eingriff_0R) ||
-    (L.L.bremse_ABS_eingriff_0L) ||
-    (L.L.bremse_ABS_eingriff_1R) ||
-    (L.L.bremse_ABS_eingriff_1L) ||
-    (L.L.vdv_error_EBS_active) ||
-    (L.L.vdv_on) &&
-    {if}
-        1 (S.L.indic_6)
-    {else}
-        0 (S.L.indic_6)
-    {endif}
+    (L.L.engine_timer_start) 2.6 < (L.L.cockpit_light_feststellbremse) || (L.L.vdv_on) && (S.L.cp_vdv_indic_5)
 
-    (L.L.engine_timer_start) 1.6 <
-    (L.L.haltewunschlampe) ||
-    (L.L.vdv_on) &&
-    {if}
-        1 (S.L.indic_7)
-    {else}
-        0 (S.L.indic_7)
-    {endif}
+'   XXX: cp_vdv_indic_indic_6 set in lights.osc:lights_runblinkgeber
 
-    (L.L.engine_timer_start) 5.3 <
-    (L.L.cockpit_light_zentralschmierung) ||
-    (L.L.vdv_on) &&
-    {if}
-        1 (S.L.indic_8)
-    {else}
-        0 (S.L.indic_8)
-    {endif}
-
-    (L.L.engine_timer_start) 4.25 <
-    (L.L.cockpit_light_tuerkontrolle) ||
-    (L.L.vdv_on) &&
-    {if}
-        1 (S.L.indic_9)
-    {else}
-        0 (S.L.indic_9)
-    {endif}
-
-    (L.L.engine_timer_start) 4.25 <
-    (L.L.engine_n) 100 < ||
-    (L.L.vdv_on) &&
-    {if}
-        1 (S.L.indic_10)
-    {else}
-        0 (S.L.indic_10)
-    {endif}
-
-    (L.L.engine_timer_start) 4.25 < (L.L.vdv_on) && (S.L.cp_vdv_indic_no_function)
+    (L.L.engine_timer_start) 4.25 < (L.L.vdv_on) && (S.L.cp_vdv_indic_7) (S.L.cp_vdv_indic_8) (S.L.cp_vdv_indic_9) (S.L.cp_vdv_indic_10)
 {end}
 
 {macro:pandus_frame}

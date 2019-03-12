@@ -21,18 +21,17 @@ Rotor
 ev_window_down_move
 ev_window_up_move
 
-indic_1
-indic_1b
-indic_2
-indic_3
-indic_4
-indic_5
-indic_6
-indic_7
-indic_8
-indic_9
-indic_10
-cp_vdv_indic_no_function
+cp_vdv_indic_1
+cp_vdv_indic_2
+cp_vdv_indic_3
+cp_vdv_indic_4
+cp_vdv_indic_5
+cp_vdv_indic_6
+cp_vdv_indic_7
+cp_vdv_indic_8
+cp_vdv_indic_9
+cp_vdv_indic_10
+
 engine_timer_start
 
 cp_kneel_up_sw
@@ -88,6 +87,7 @@ cockpit_wischer_drehschalter_lastmode
 cockpit_tuertaster1
 cockpit_tuertaster2
 cockpit_tuertaster3
+cockpit_tuertaster1_ext
 cockpit_light_door_1
 cockpit_light_door_2
 cockpit_light_door_3

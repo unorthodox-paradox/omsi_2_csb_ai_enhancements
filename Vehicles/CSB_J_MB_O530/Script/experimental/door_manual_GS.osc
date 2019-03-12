@@ -110,7 +110,7 @@
 	(M.L.Door4_Calc)
 	(M.L.Door5_Calc)
 
-	(L.L.elec_busbar_avail)
+	(L.L.elec_busbar_avail) (C.L.elec_busbar_minV) >
 	{if}
 		(L.L.door_0) (L.L.doorTarget_0) || (L.L.doorSpeed_0) ||
 		{if}
@@ -351,10 +351,10 @@
         {endif}
     {endif}
 
-    (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > (L.L.bremse_p_tank04) 550000 > && (L.L.door_01_nothahn_sw) ! &&
-		l2 &&
+    (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > (L.L.elec_busbar_avail) (C.L.elec_busbar_minV) > (L.L.cockpit_tuertaster1_ext) && ||
+		(L.L.bremse_p_tank04) 550000 > && (L.L.door_01_nothahn_sw) ! && l2 &&
     {if}
-        (L.L.doorlock_mode) s0 0 > (L.L.cockpit_tuertaster1) &&
+        (L.L.doorlock_mode) s0 0 > (L.L.cockpit_tuertaster1) (L.L.cockpit_tuertaster1_ext) || &&
         {if}
             (L.L.velocity) abs (C.L.tueroeffnung) <
             {if}
@@ -388,7 +388,7 @@
 				{endif}
             {endif}
         {else}
-            (L.L.doorlock_mode) s0 0 < (L.L.cockpit_tuertaster1) &&
+            (L.L.doorlock_mode) s0 0 < (L.L.cockpit_tuertaster1) (L.L.cockpit_tuertaster1_ext) || &&
             {if}
 				(L.L.Door_Error_Count) 1 + (S.L.Door_Error_Count)
 				(C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * (L.L.Door_Error_Count) > (L.L.AI) ||

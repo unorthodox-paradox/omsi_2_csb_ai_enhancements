@@ -215,7 +215,7 @@
 {endif}
 
 (C.L.auto_HST_bremse)
-(L.L.velocity) 0.1 < &&
+(L.L.velocity) abs 0.1 < &&
 (L.L.cockpit_brake) 0.1 > &&
 (L.L.bremse_halte) ! &&
 (L.L.antrieb_gear_engaged_timer) (C.L.antrieb_gear_engaged_mintime) >= &&
@@ -1089,12 +1089,10 @@
 	{endif}
 
 'Niveauprüfung und anschließender nötiger Ausgleich
-	(L.L.ecas_init) !
-	(L.L.ecas_kneel) ! &&
-	(L.L.ecas_kneel_up) ! &&
-	(L.L.ecas_rise_active) ! &&
-	(L.L.velocity) 1 < &&
-	(L.L.kneel_timer) 0 = &&
+	(L.L.ecas_init) ! (L.L.ecas_kneel) ! && (L.L.ecas_kneel_up) ! && (L.L.ecas_rise_active) ! &&
+		(L.L.velocity) abs 1 < && (L.L.kneel_timer) 0 = && (L.L.bremse_halte) (L.L.bremse_feststell) || &&
+		(L.L.door_01_opening_status) 0 <= && (L.L.door_23_opening_status) 0 <= && (L.L.door_45_opening_status) 0 <= &&
+		(L.L.door_67_opening_status) 0 <= &&
 	{if}
 '	Vorderachse Differenzbildung/Grenzwertprüfung
 
@@ -1325,7 +1323,7 @@
 
 	(L.L.kneel_allowed)
 	(L.L.kneel_auto_set) ||
-	(L.L.Velocity) 0.1 < &&
+	(L.L.Velocity) abs 0.1 < &&
 	{if}
 		(L.L.doorTarget_0) 1 =
 		(L.L.doorTarget_1) 1 = ||

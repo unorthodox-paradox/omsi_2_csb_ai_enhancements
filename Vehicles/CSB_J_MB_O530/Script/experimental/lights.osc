@@ -831,7 +831,9 @@
 '   //      required refactoring effort, to implement).
 '   // XXX: This temp-fix still doesn't account for changes in VDV state (which are likewise not evaluated until after
 '   //      this script's execution). When such changes occur, the visual effect will still be off by 1 frame.
-    (L.L.engine_timer_start) 3.3 < (L.L.lights_blinkgeber) || (L.L.vdv_on) && (S.L.indic_3)
+    (L.L.engine_timer_start) 3.3 < (L.L.lights_blinkgeber) || (L.L.vdv_on) && (S.L.cp_vdv_indic_3)
+
+    (L.L.engine_timer_start) 3.3 < (L.L.lights_warnblinkgeber) || (L.L.vdv_on) && (S.L.cp_vdv_indic_6)
 
     (L.L.lights_schulfahrschaltung) (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > && (S.L.cockpit_light_schulfahrschaltung)
 
