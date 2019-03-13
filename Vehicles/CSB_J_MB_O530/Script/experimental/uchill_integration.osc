@@ -107,14 +107,9 @@
     (L.L.passenger_ac_int_sound_vol) 100 * (S.L.cp_klima_RPM)
     (L.L.cabin_heaters_sound_vol) 100 * (S.L.cp_cabinheater_RPM)
     (L.L.auxheat_sound_vol) (S.L.standheizung_volume_stufe2)
-    (L.L.auxheat_start_stop_timer) s0 ! (L.L.auxheat_active) s1 ! && ! l0 (C.L.auxheat_start_delay_min) <= l1 ! && ||
-    {if}
-        0
-    {else}
-        1
-    {endif}
-    s2
-    (C.L.uchill_integration_impl__auxheat_start_stop_sound_update_rate) s3
-    (L.L.standheizung_volume_stufe1) s0 l2 s1 l3 s2
-        (M.L.utils_gradual_constant_update) l0 (S.L.standheizung_volume_stufe1)
+    (L.L.standheizung_volume_stufe1) s0 (L.L.engine_temperature) (C.L.auxheat_engine_t_max)
+        (C.L.auxheat_cooldown_threshold_t_diff) - < (L.L.auxheat_start_stop_timer) d
+        (L.L.auxheat_start_stop_delay) 0 max 3 / > && && (L.L.auxheat_active) ! && s1
+        (C.L.uchill_integration_impl__auxheat_start_stop_sound_update_rate) s2 (M.L.utils_gradual_constant_update) l0
+        (S.L.standheizung_volume_stufe1)
 {end}

@@ -214,7 +214,7 @@
 '                           //      realism. Additionally switch toggling is currently instant, which is likewise
 '                           //      suboptimal.
 
-'                            // Steering wheel should always be visible.
+'                           // Steering wheel should always be visible.
                             1 (S.L.cp_lenkrad_visible)
 
 '                           // If an emergency door valve is or was previously opened by user, then "drag" attached

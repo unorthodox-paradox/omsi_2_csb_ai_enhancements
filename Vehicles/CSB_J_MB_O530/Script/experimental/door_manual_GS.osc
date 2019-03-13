@@ -273,7 +273,7 @@
 		(M.L.door_traegheit)
 		(S.L.doorDragAcc_1)
 
-		(L.L.cockpit_tuertaster1)
+		(L.L.cockpit_tuertaster1) (L.L.cockpit_tuertaster1_ext) ||
 		{if}
 			0 (S.L.door_01_nothahn) (S.L.doorTarget_0) (S.L.doorTarget_1)
 			(L.L.door_0) 0.5 >

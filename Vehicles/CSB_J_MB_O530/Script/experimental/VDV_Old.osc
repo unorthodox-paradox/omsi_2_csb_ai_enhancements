@@ -1610,10 +1610,10 @@
 						0 (S.L.vdv_diagnose)
 					{endif}
 				{else}
-					0 (S.L.vdv_hsb) (S.L.vdv_p) (S.L.vdv_feststellbremse) (S.L.vdv_door23) (S.L.vdv_door1) (S.L.vdv_door0) (S.L.vdv_doorlock) (S.L.vdv_neutral) (S.L.vdv_buspiktogramm) (S.L.vdv_kneel) (S.L.vdv_kneel2)
+					0 (S.L.vdv_hsb) (S.L.vdv_p) (S.L.vdv_feststellbremse) (S.L.vdv_door23) (S.L.vdv_door1) (S.L.vdv_door0) (S.L.vdv_doorlock) (S.L.vdv_neutral) (S.L.vdv_buspiktogramm) (S.L.vdv_kneel) (S.L.vdv_kneel2) (S.L.vdv_ramp)
 				{endif}
 			{else}
-				0 (S.L.vdv_hsb) (S.L.vdv_p) (S.L.vdv_feststellbremse) (S.L.vdv_door23) (S.L.vdv_door1) (S.L.vdv_door0) (S.L.vdv_doorlock) (S.L.vdv_neutral) (S.L.vdv_buspiktogramm) (S.L.vdv_kneel) (S.L.vdv_kneel2)
+				0 (S.L.vdv_hsb) (S.L.vdv_p) (S.L.vdv_feststellbremse) (S.L.vdv_door23) (S.L.vdv_door1) (S.L.vdv_door0) (S.L.vdv_doorlock) (S.L.vdv_neutral) (S.L.vdv_buspiktogramm) (S.L.vdv_kneel) (S.L.vdv_kneel2) (S.L.vdv_ramp)
 			{endif}
 
 '	Status Mode Pressure
@@ -2666,7 +2666,7 @@
 	{else}
 		0 (S.L.vdv_display_startuptime) (S.L.vdv_display_changeover) (S.L.vdv_display_mode)
 		0 (S.L.vdv_diagnose) (S.L.vdv_asr) (S.L.vdv_heater) (S.L.vdv_mirror) (S.L.vdv_klima) (S.L.vdv_kinderwagen) (S.L.vdv_haltewunsch) (S.L.vdv_retarder) (S.L.vdv_autokneel) (S.L.vdv_buspiktogramm) (S.L.vdv_consum) (S.L.vdv_outtemp)
-		0 (S.L.vdv_kinderwagen) (S.L.vdv_haltewunsch) (S.L.vdv_hsb) (S.L.vdv_p) (S.L.vdv_feststellbremse) (S.L.vdv_door23) (S.L.vdv_door1) (S.L.vdv_door0) (S.L.vdv_doorlock) (S.L.vdv_neutral) (S.L.vdv_kneel) (S.L.vdv_kneel2) (S.L.vdv_roof)
+		0 (S.L.vdv_kinderwagen) (S.L.vdv_haltewunsch) (S.L.vdv_hsb) (S.L.vdv_p) (S.L.vdv_feststellbremse) (S.L.vdv_door23) (S.L.vdv_door1) (S.L.vdv_door0) (S.L.vdv_doorlock) (S.L.vdv_neutral) (S.L.vdv_kneel) (S.L.vdv_kneel2) (S.L.vdv_roof) (S.L.vdv_ramp)
 		0 (S.L.vdv_menu_press) (S.L.vdv_menu_temp) (S.L.vdv_menu_fuel) (S.L.vdv_info_left) (S.L.vdv_info_left_n) (S.L.vdv_info_right) (S.L.vdv_info_right_n) (S.L.vdv_scroll)
 		0 (S.L.vdv_coolanttemp) (S.L.vdv_geartemp) (S.L.vdv_oiltemp) (S.L.vdv_tank) (S.L.vdv_oilpress) (S.L.vdv_airpress1_1) (S.L.vdv_airpress1_2) (S.L.vdv_airpress2_1) (S.L.vdv_airpress2_2)
 		0 (S.L.vdv_balken1) (S.L.vdv_balken1_n) (S.L.vdv_balken2) (S.L.vdv_balken2_n) (S.L.vdv_balken3) (S.L.vdv_balken3_n) (S.L.vdv_balken4) (S.L.vdv_balken4_n) (S.L.vdv_balken5) (S.L.vdv_balken5_n)
