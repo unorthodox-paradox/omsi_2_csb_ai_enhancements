@@ -129,12 +129,7 @@
 '       // Note that none of these should normally be possible in a bus that was initially spawned in AI mode; it is
 '       // nevertheless possible that the user hand a damaged vehicle over to the AI, and it is then that this failsafe
 '       // should trigger.
-'       // XXX: The edge case where a user crashes into an AI bus, causing damage of the aforementioned kinds, is
-'       //      currently not addressed. This means that such a crashed-into AI bus would fail to become functional
-'       //      again on its own, i.e., without user intervention. Fixing this would entail a) heuristically detecting
-'       //      the crash (OMSI conveys hazard indicator mode activation), b) heuristically detecting that the user
-'       //      called the police (OMSI conveys hazard indicator mode deactivation), and c) auto-repairing the vehicle
-'       //      at the time it gets re-spawned next.
+'       // XXX: #6
         (L.L.elec_failure_general) (L.L.engine_failure_general) || (L.L.antrieb_failure_general) ||
             (L.L.engine_tank_content) ! || (L.L.elec_battery_load) 0.01 <= || (S.L.ai_pre_cockpit_master_failsafe) !
         {if}
@@ -209,10 +204,7 @@
                         {else}
 '                           // Former user vehicle that has now been assigned to the AI; reset/deactivate certain
 '                           // functions that would only cause us trouble down the road.
-'                           // XXX: Currently all of the following adjustments are carried out instantly. Some
-'                           //      non-crucial / aesthetics-oriented of them could be randomly delayed, for added
-'                           //      realism. Additionally switch toggling is currently instant, which is likewise
-'                           //      suboptimal.
+'                           // XXX: #43
 
 '                           // Steering wheel should always be visible.
                             1 (S.L.cp_lenkrad_visible)
@@ -1428,8 +1420,7 @@
 '   // affects the group's tolerance to change -- the greater the value, the more promptly the group will adjust their
 '   // window to their liking.
 
-'   // XXX: When the vehicle is unfocused, OMSI appears not to communicate seat occupation status to scripts, hence
-'   //      window adjustment by AI passengers cannot be carried out then.
+'   // XXX: #8
 
 '   // XXX: Currently certain standing places contribute to both opposing (windows') groups. The occupant of such a
 '   //      seat, particularly when they are the sole member of both groups, might then act in a self-contradicting
@@ -3766,27 +3757,7 @@
 '       // In a similar fashion, and independent of schedule, doors may also be closed eagerly when the weather
 '       // conditions are either uncomfortably cold or hot (provided the A/C is running).
 '       //
-'       // XXX: Sometimes the bus will fail to predict late-arriving-passengers. In a worst-case-scenario, the
-'       //      following happens:
-'       //      1. Bus opens both doors -- front for passengers waiting at the stop to board, and rear one for
-'       //         passengers wanting to disembark.
-'       //      2. Boarding completes sooner than disembarking. Only at that time, some 20 m away from the vehicle,
-'       //         OMSI decides to spawn another human, who then begins slooooowly approaching the vehicle to board.
-'       //      3. The lone human walks towards the front door. The bus, being clueless about the fact (since it does
-'       //         not get notified by the game until a human stands _right in front of_ a door) "eagerly" closes the
-'       //         front door.
-'       //      4. Disembarking has in the meantime completed, so the loner, now perceiving the rear door as "open" /
-'       //         "clear", alters its route to approach it.
-'       //      5. Before the unfortunate human can reach the rear door, the bus eagerly closes it as well.
-'       //      6. Human walks back to front door, bus opens it, human boards, bus finally departs.
-'       //
-'       //      Outcome / conclusion:
-'       //      It looks ugly and the bus ends up losing more time than it would have, had it simply "lazily" left both
-'       //      doors open throughout the entirety of the stop's duration. Unfortunately, there is simply no way for
-'       //      correctly predicting the general case. When a bus stops, it doesn't know _why_ it is told to (it has no
-'       //      access to the so-called "stop profile" assigned via the editor), so all it can do is guess... in vain.
-'       //      So why even bother with this feature? Well, simply because it succeeds more often than it fails (and
-'       //      certainly looks nice when it does succeed!).
+'       // XXX: #17
         (L.L.ai_pre_cockpit_stop_tt_eager_door_closing_allowed) -1 =
         {if}
             (L.L.schedule_active) (L.L.ai_pre_cockpit_stop_prolonging_heuristic) ! && 10000 random 10000 /
@@ -3926,17 +3897,7 @@
 '                   // but it seems like it will not occur until after the door has already been opened, reschedule it
 '                   // to occur just before opening.
 
-'                   // XXX: Normally at prolonged/2 (engine-off) stops, under hot conditions, the wing lock is reset,
-'                   //      if previously engaged, such that both wings can be eagerly opened while the A/C is
-'                   //      inactive. If however a passenger wishes to board just upon arrival, the wing lock may fail
-'                   //      to be reset on time, causing only one wing to be opened. The underlying cause for this is
-'                   //      that the stop's nature (prolonged vs regular) can only be acknowledged a few seconds after
-'                   //      arrival, when OMSI sets the AI_Engine variable to -1. A fix would thus entail detecting
-'                   //      this case (prolonged/2 stop + hot conditions + A/C active + door lock switch off + only one
-'                   //      wing open) and responding by closing and re-opening the door. Fortunately this issue only
-'                   //      tends to manifest at those rare intermediate stops where the engine is to be deactivated
-'                   //      (since typically boarding does not occur at terminal/initial stops that are most often of
-'                   //      the prolonged kind).
+'                   // XXX: #21
                     0.15 10000 random 10000 / 0.85 * + (L.L.ai_pre_cockpit_door_lock_sw_timer) min
                         (S.L.ai_pre_cockpit_door_lock_sw_timer)
                     0 (S.L.ai_pre_cockpit_door_01_sw_target)
@@ -5117,9 +5078,7 @@
 '   // - Preferred wing lock setting (condition-independent):
 '   //   1. "front wing locked": 70%
 '   //   2. "rear wing locked": 30% (remainder)
-'   // XXX: At prolonged/2 (engine-off) stops the wing lock switch may fail to be reset on time, when passenger
-'   //      boarding occurs immediately upon arrival. See related note in ai_pre_cockpit_stop macro's "front door
-'   //      button scheduling" block.
+'   // XXX: #21
     (L.L.cp_cti_has_door_wing_lock_switch)
     {if}
         (L.L.ai_pre_cockpit_door_lock_usage_scope)
