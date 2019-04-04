@@ -185,7 +185,7 @@
 
 				(S.L.IBIS_Linie_Suffix)
 
-				(L.$.Yard) "Waldhofen" $=
+				(L.$.Yard) "Mainz" $=
 				{if}			
 					1 (S.L.IBIS_SelectIndex)
 				{endif}
@@ -567,12 +567,12 @@
 		
 		(L.L.IBIS_mode) 1 =
 		{if}
-			"LINIE/KURS   :"
+			"LINIE/KURS    :"
 			(L.L.IBIS_input_count) 0 =
 			{if}
 				(L.$.IBIS_Complex_Line) $+
 			{else}
-				" " 6 (L.L.IBIS_input_count) - $* $+ (L.L.IBIS_input) "0" (L.L.IBIS_input_count) $IntToStr $+ $IntToStrEnh $+ 
+				" " 5 (L.L.IBIS_input_count) - $* $+ (L.L.IBIS_input) "0" (L.L.IBIS_input_count) $IntToStr $+ $IntToStrEnh $+ 
 			{endif}
 		{else}
 		(L.L.IBIS_mode) 2 =
@@ -759,7 +759,7 @@
 		1 (S.L.IBIS_DepartureTime)
 		0 (S.L.IBIS_mode)
 		2 (S.L.IBIS_SelectIndex)
-		(T.L.ev_IBIS_piep)
+		(T.L.ev_IBIS_piepabfahrt)
 	{endif}
 
 'Omsi sagen, dass die Strings-Ausgaben aktualisiert werden sollen:
@@ -826,9 +826,7 @@
 
 
 'Bedingung, dass die erste Haltestelle des Fahrplanes aktiv ist
-(L.$.Yard) "Waldhofen" $=
-(L.$.Yard) "Waldhofen" $= ||
-(L.$.Yard) "Ettbruck 1995" $= ||
+(L.$.Yard) "Mainz" $=
 (L.L.schedule_active) 1 = &&
 (M.V.GetTTBusstopIndex) 0 = &&
 (L.L.IBIS_SelectIndex) 0 = &&
@@ -838,7 +836,7 @@
 {endif}
 
 'Setzte den Index an der 2. HST wieder auf null für den nächsten Wechsel am Ende der Route
-(L.$.Yard) "Waldhofen" $=
+(L.$.Yard) "Mainz" $=
 (L.L.schedule_active) 1 = &&
 (M.V.GetTTBusstopIndex) 0 > &&
 (L.L.IBIS_SelectIndex) 2 = &&
@@ -846,9 +844,7 @@
     	0 (S.L.IBIS_SelectIndex)
 {endif}
 
-(L.$.Yard) "Waldhofen" $=
-(L.$.Yard) "Waldhofen" $= ||
-(L.$.Yard) "Ettbruck 1995" $= ||
+(L.$.Yard) "Mainz" $=
 (L.L.schedule_active) 1 = &&
 {if}
 	0 (M.V.GetTTBusstopDep) 3600 / s0 trunc s1 "02" $IntToStrEnh ":" $+ l0 l1 - 60 * trunc s2 "02" $IntToStrEnh $+ (S.$.RouteSel_Time)
@@ -868,7 +864,7 @@
 (M.V.GetTTBusstopIndex) (M.V.GetTTBusstopName) "Kl-Win. Bf" $= ||
 (M.V.GetTTBusstopIndex) (M.V.GetTTBusstopName) "Berliner Platz" $= ||
 (M.V.GetTTBusstopIndex) 0 = ||
-(L.$.Yard) "Waldhofen" $= &&
+(L.$.Yard) "Mainz" $= &&
 (L.L.schedule_active) 1 = &&
 (L.L.Velocity) 3 < &&
 {if}
@@ -883,7 +879,7 @@
 	{endif}
 {endif}
 
-(L.$.Yard) "Waldhofen" $=
+(L.$.Yard) "Mainz" $=
 (L.L.IBIS_TerminusStatus) 1 = &&
 (L.L.IBIS_TerminusCounter) 6 > &&
 {if}
@@ -938,7 +934,7 @@
 
 
 'Sonst zeige die Bushaltestelle
-	(L.L.IBIS_busstop_index) 1 (M.V.GetBusstopString)
+	(L.L.IBIS_busstop_index) 3 (M.V.GetBusstopString)
 	(S.$.IBIS_busstop_name)
 
 'Ausrechnen der neuen Entwerterposition:
@@ -973,35 +969,35 @@
 'Haltestelle kleinergleich höhstmöglichem Index?
 		l0 l2 <=
 		{if}
-			(L.L.IBIS_RouteIndex) l0 (L.L.IBIS_korr) + (M.V.GetRouteBusstopIdent) (M.V.GetBusstopIndex) 1 (M.V.GetBusstopString) (S.$.IBIS_stop1)
+			(L.L.IBIS_RouteIndex) l0 (L.L.IBIS_korr) + (M.V.GetRouteBusstopIdent) (M.V.GetBusstopIndex) 3 (M.V.GetBusstopString) (S.$.IBIS_stop1)
 		{else}
 			"" (S.$.IBIS_stop1)
 		{endif}
 		
 		l0 1 + l2 <=
 		{if}
-			(L.L.IBIS_RouteIndex) l0 1 + (L.L.IBIS_korr) + (M.V.GetRouteBusstopIdent) (M.V.GetBusstopIndex) 1 (M.V.GetBusstopString) (S.$.IBIS_stop2)
+			(L.L.IBIS_RouteIndex) l0 1 + (L.L.IBIS_korr) + (M.V.GetRouteBusstopIdent) (M.V.GetBusstopIndex) 3 (M.V.GetBusstopString) (S.$.IBIS_stop2)
 		{else}
 			"" (S.$.IBIS_stop2)
 		{endif}
 		
 		l0 2 + l2 <=
 		{if}
-			(L.L.IBIS_RouteIndex) l0 2 + (L.L.IBIS_korr) + (M.V.GetRouteBusstopIdent) (M.V.GetBusstopIndex) 1 (M.V.GetBusstopString) (S.$.IBIS_stop3)
+			(L.L.IBIS_RouteIndex) l0 2 + (L.L.IBIS_korr) + (M.V.GetRouteBusstopIdent) (M.V.GetBusstopIndex) 3 (M.V.GetBusstopString) (S.$.IBIS_stop3)
 		{else}
 			"" (S.$.IBIS_stop3)
 		{endif}
 		
 		l0 3 + l2 <=
 		{if}
-			(L.L.IBIS_RouteIndex) l0 3 + (L.L.IBIS_korr) + (M.V.GetRouteBusstopIdent) (M.V.GetBusstopIndex) 1 (M.V.GetBusstopString) (S.$.IBIS_stop4)
+			(L.L.IBIS_RouteIndex) l0 3 + (L.L.IBIS_korr) + (M.V.GetRouteBusstopIdent) (M.V.GetBusstopIndex) 3 (M.V.GetBusstopString) (S.$.IBIS_stop4)
 		{else}
 			"" (S.$.IBIS_stop4)
 		{endif}
 		
 		l0 4 + l2 <=
 		{if}
-			(L.L.IBIS_RouteIndex) l0 4 + (L.L.IBIS_korr) + (M.V.GetRouteBusstopIdent) (M.V.GetBusstopIndex) 1 (M.V.GetBusstopString) (S.$.IBIS_stop5)
+			(L.L.IBIS_RouteIndex) l0 4 + (L.L.IBIS_korr) + (M.V.GetRouteBusstopIdent) (M.V.GetBusstopIndex) 3 (M.V.GetBusstopString) (S.$.IBIS_stop5)
 		{else}
 			"" (S.$.IBIS_stop5)
 		{endif}		
@@ -1171,9 +1167,9 @@
 		{else}
 			(L.L.haltewunsch) 0 =
 			{if}
-				(L.L.IBIS_RouteIndex) (L.L.IBIS_busstop) (M.V.GetRouteBusstopIdent) (M.V.GetBusstopIndex) 1 (M.V.GetBusstopString) 25 $SetLengthC (S.$.IBIS_HSTanzeige)
+				(L.L.IBIS_RouteIndex) (L.L.IBIS_busstop) (M.V.GetRouteBusstopIdent) (M.V.GetBusstopIndex) 3 (M.V.GetBusstopString) 25 $SetLengthC (S.$.IBIS_HSTanzeige)
 			{else}
-				(L.L.IBIS_RouteIndex) (L.L.IBIS_busstop) (M.V.GetRouteBusstopIdent) (M.V.GetBusstopIndex) 1 (M.V.GetBusstopString) 21 $SetLengthC (S.$.IBIS_HSTanzeige)
+				(L.L.IBIS_RouteIndex) (L.L.IBIS_busstop) (M.V.GetRouteBusstopIdent) (M.V.GetBusstopIndex) 3 (M.V.GetBusstopString) 21 $SetLengthC (S.$.IBIS_HSTanzeige)
 			{endif}
 		{endif}
 	{endif}
@@ -1224,35 +1220,25 @@
 
 {macro:IBIS_LCD-refresh_2}
 
-'Formatierung der D92-Innenanzeige
-
 	(L.L.IBIS_RouteIndex) 0 >=
 	{if}
-		(L.L.door_1) 0 = (L.L.door_2) 0 = &&
+		(L.L.IBIS_LCD-zeile) 1 = 
+		(L.L.haltewunschlampe) &&
 		{if}
-			(L.L.IBIS_LCD-zeile) 1 = 
-			(L.L.IBIS_busstop_index) 1 (M.V.GetBusstopString) $length 0 > &&
-			{if}
-				(L.L.IBIS_RouteIndex) 0 >=
-			{if}
-					(L.L.IBIS_LCD-zeile) 
-					(L.L.IBIS_busstop_index) 1 (M.V.GetBusstopString)
-					(S.$.IBIS_cabindisplay)
-			{endif}
+			"Wagen hält" (S.$.IBIS_HSTanzeige)
 		{else}
-			(L.L.IBIS_RouteIndex) 0 >=
+			(L.$.Haltestelle) (L.L.IBIS_busstop_index) 0 (M.V.GetBusstopString) $=
 			{if}
-					(L.L.IBIS_LCD-zeile) 
-					(L.L.IBIS_busstop_index) 1 (M.V.GetBusstopString) 
-					(S.$.IBIS_cabindisplay)
-			{endif}
-		{endif}
-	{else}
 		(L.$.Matrix_Liniennummerstring)
 		" " $+
 		(L.$.IBIS_terminus_name) $+	
-	{endif}
-	(S.$.IBIS_cabindisplay)
+		(S.$.IBIS_HSTanzeige)
+			{else}
+				(L.L.IBIS_LCD-zeile) 
+				(L.L.IBIS_busstop_index) 1 (M.V.GetBusstopString) 
+				(S.$.IBIS_HSTanzeige)
+			{endif}
+		{endif}
 	{endif}
 {end}
 
@@ -1260,7 +1246,7 @@
 	s0
 	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) >
 	{if}
-		(L.L.IBIS_mode) 1 = (L.L.IBIS_input_count) 6 < &&
+		(L.L.IBIS_mode) 1 = (L.L.IBIS_input_count) 5 < &&
 		(L.L.IBIS_mode) 2 = (L.L.IBIS_input_count) 2 < && ||
 		(L.L.IBIS_mode) 3 = (L.L.IBIS_input_count) 3 < && ||
 		{if}
@@ -1276,7 +1262,7 @@
 {end}
 
 {macro:ExtrahiereLNNrausTT}
-	(L.$.Yard) "Waldhofen" $=
+	(L.$.Yard) "Mainz" $=
 	{if}
 'Hole LinienNr. String, speichern um nicht x mal das Macro aufzurufen:
 '			letzte Ziffer:
@@ -1359,7 +1345,7 @@
 	
 'Sind wir in Mainz unterwegs? Und ist die Zahlenfolge überhaupt lang genug?
 	(M.V.GetTTLineString) $RemoveSpaces $length 2 >
-	(L.$.Yard) "Waldhofen" $= &&
+	(L.$.Yard) "Mainz" $= &&
 	{if}
 'Ja? Schön: Leerzeichen weg, den String seiner zwei letzten Zeichen berauben & speichern:
 		(M.V.GetTTLineString) $RemoveSpaces $length 2 - $SetLengthL (S.$.Liniennummer)

@@ -8,9 +8,9 @@
 ' -------------
 '
 ' OMSI version                                    : 2.2.032 ~ 2.3.004
-' Supported CSB modules                           : MB O530 - 1.30
-' Supported CSB vehicles                          : CVAG 72
-' CSB AI enhancements version                     : 1.5.1
+' CSB modification version                        : 1.40
+' Supported CSB vehicles                          : ETP 3, ETP 11
+' ACE modification version                        : 1.5.2
 '
 '==============================================================================
 '
@@ -5493,7 +5493,8 @@
             (L.L.lights_ai_int_lighting_darker_or_on_timer)
             (L.L.lights_ai_int_lighting_darkness_tolerance) 120 min >= &&
             (L.L.lights_ai_int_lighting_brighter_or_off_timer)
-            (L.L.lights_ai_int_lighting_brightness_tolerance) 120 min >= && s3
+            (L.L.lights_ai_int_lighting_brightness_tolerance) 120 min >= &&
+            (L.L.ai_pre_cockpit_ibis_departure_clearance_acknowledgment_timer) -1 = && s3
 
         (L.L.ai_pre_cockpit_stop_phase) d 4 = ! && (L.L.ai_pre_cockpit_unscheduled_stop_phase) 2 > || s4
 
@@ -5638,80 +5639,83 @@
 '   //      - P-7: P-6 and 20%
 '   //   8. < default / any other >
 '   //      - P-8: 0%
-    (L.L.ai_pre_cockpit_initialized) 5 < (L.L.ai_pre_cockpit_env_perception_changed) ||
+    (L.L.cp_cti_has_hatch_switch)
     {if}
-        (L.L.ai_pre_cockpit_env_perception_wet) ! (L.L.ai_pre_cockpit_env_perception_chilly)
-            (L.L.ai_pre_cockpit_env_perception_nighttime) ! &&
-            (L.L.ai_pre_cockpit_opening_hatches_when_env_chilly_dry_daytime) &&
-            (L.L.ai_pre_cockpit_env_perception_ideal) (L.L.ai_pre_cockpit_env_perception_nighttime) !
-            (L.L.ai_pre_cockpit_opening_hatches_when_env_ideal_dry_daytime) &&
-            (L.L.ai_pre_cockpit_opening_hatches_when_env_ideal_dry_nighttime) || && ||
-            (L.L.ai_pre_cockpit_env_perception_warm) (L.L.ai_pre_cockpit_env_perception_nighttime) !
-            (L.L.ai_pre_cockpit_opening_hatches_when_env_warm_dry_daytime) &&
-            (L.L.ai_pre_cockpit_opening_hatches_when_env_warm_dry_nighttime) || && ||
-            (L.L.ai_pre_cockpit_env_perception_hot) (L.L.ai_pre_cockpit_env_perception_nighttime)
-            (L.L.ai_pre_cockpit_opening_hatches_when_env_hot_dry_nighttime) &&
-            (L.L.ai_pre_cockpit_opening_hatches_when_env_hot_dry_daytime) || && || &&
+        (L.L.ai_pre_cockpit_initialized) 5 < (L.L.ai_pre_cockpit_env_perception_changed) ||
         {if}
-            (L.L.ai_pre_cockpit_hatch_sw_target) !
+            (L.L.ai_pre_cockpit_env_perception_wet) ! (L.L.ai_pre_cockpit_env_perception_chilly)
+                (L.L.ai_pre_cockpit_env_perception_nighttime) ! &&
+                (L.L.ai_pre_cockpit_opening_hatches_when_env_chilly_dry_daytime) &&
+                (L.L.ai_pre_cockpit_env_perception_ideal) (L.L.ai_pre_cockpit_env_perception_nighttime) !
+                (L.L.ai_pre_cockpit_opening_hatches_when_env_ideal_dry_daytime) &&
+                (L.L.ai_pre_cockpit_opening_hatches_when_env_ideal_dry_nighttime) || && ||
+                (L.L.ai_pre_cockpit_env_perception_warm) (L.L.ai_pre_cockpit_env_perception_nighttime) !
+                (L.L.ai_pre_cockpit_opening_hatches_when_env_warm_dry_daytime) &&
+                (L.L.ai_pre_cockpit_opening_hatches_when_env_warm_dry_nighttime) || && ||
+                (L.L.ai_pre_cockpit_env_perception_hot) (L.L.ai_pre_cockpit_env_perception_nighttime)
+                (L.L.ai_pre_cockpit_opening_hatches_when_env_hot_dry_nighttime) &&
+                (L.L.ai_pre_cockpit_opening_hatches_when_env_hot_dry_daytime) || && || &&
             {if}
-                1 (S.L.ai_pre_cockpit_hatch_sw_target)
-                (L.L.ai_pre_cockpit_initialized) 5 < (L.L.ai_pre_cockpit_initial_spawn_as_ai_vehicle) 1 = &&
+                (L.L.ai_pre_cockpit_hatch_sw_target) !
                 {if}
-'                   // Initialization: Instant adjustment
-                    0
-                {else}
-'                   // Non-initialization: Adjustment delayed by 5~15 sec
-                    -1
+                    1 (S.L.ai_pre_cockpit_hatch_sw_target)
+                    (L.L.ai_pre_cockpit_initialized) 5 < (L.L.ai_pre_cockpit_initial_spawn_as_ai_vehicle) 1 = &&
+                    {if}
+'                       // Initialization: Instant adjustment
+                        0
+                    {else}
+'                       // Non-initialization: Adjustment delayed by 5~15 sec
+                        -1
+                    {endif}
+                    (S.L.ai_pre_cockpit_hatch_sw_timer)
                 {endif}
-                (S.L.ai_pre_cockpit_hatch_sw_timer)
+            {else}
+                (L.L.ai_pre_cockpit_hatch_sw_target)
+                {if}
+                    0 (S.L.ai_pre_cockpit_hatch_sw_target)
+                    (L.L.ai_pre_cockpit_initialized) 5 < (L.L.ai_pre_cockpit_initial_spawn_as_ai_vehicle) 1 = &&
+                    {if}
+'                       // Initialization: Instant adjustment
+                        0
+                    {else}
+'                       // Non-initialization: Adjustment delayed by 5~15 sec
+                        -1
+                    {endif}
+                    (S.L.ai_pre_cockpit_hatch_sw_timer)
+                {endif}
+            {endif}
+        {endif}
+
+'       // ----- Adjustment -----
+
+        (L.L.ai_pre_cockpit_hatch_sw_target) (L.L.cp_hatch_sw) = !
+        {if}
+'           // Only flip switch if ignition key at position 2, or when at position 1 and hatches unconstrained.
+'           // Otherwise wait for ai_pre_cockpit_engine_transmission_handbrake macro to rotate ignition key to a
+'           // position allowing hatch operation.
+            (L.L.ai_pre_cockpit_hatch_sw_timer) -1 =
+                (L.L.ai_pre_cockpit_passenger_window_adjustment_phase) ! && (L.L.cp_key_rot) 0.4 >=
+                (L.L.cp_cti_hatches_require_full_elec) ! || &&
+            {if}
+                5 10000 random 10000 / 10 * + (S.L.ai_pre_cockpit_hatch_sw_timer)
+            {endif}
+            (L.L.ai_pre_cockpit_hatch_sw_timer) 0 >
+            {if}
+                (L.L.ai_pre_cockpit_hatch_sw_timer) (L.L.ai_pre_cockpit_ai_timegap) - 0 max
+                    (S.L.ai_pre_cockpit_hatch_sw_timer)
+            {endif}
+            (L.L.ai_pre_cockpit_hatch_sw_timer) !
+            {if}
+                (L.L.ai_pre_cockpit_hatch_sw_target) (S.L.cp_hatch_sw)
+                {if}
+                    (T.L.ev_VDV_on)
+                {else}
+                    (T.L.ev_VDV_off)
+                {endif}
             {endif}
         {else}
-            (L.L.ai_pre_cockpit_hatch_sw_target)
-            {if}
-                0 (S.L.ai_pre_cockpit_hatch_sw_target)
-                (L.L.ai_pre_cockpit_initialized) 5 < (L.L.ai_pre_cockpit_initial_spawn_as_ai_vehicle) 1 = &&
-                {if}
-'                   // Initialization: Instant adjustment
-                    0
-                {else}
-'                   // Non-initialization: Adjustment delayed by 5~15 sec
-                    -1
-                {endif}
-                (S.L.ai_pre_cockpit_hatch_sw_timer)
-            {endif}
+            -1 (S.L.ai_pre_cockpit_hatch_sw_timer)
         {endif}
-    {endif}
-
-'   // ----- Adjustment -----
-
-    (L.L.ai_pre_cockpit_hatch_sw_target) (L.L.cp_hatch_sw) = !
-    {if}
-'       // Only flip switch if ignition key at position 2, or when at position 1 and hatches unconstrained. Otherwise
-'       // wait for ai_pre_cockpit_engine_transmission_handbrake macro to rotate ignition key to a position allowing
-'       // hatch operation.
-        (L.L.ai_pre_cockpit_hatch_sw_timer) -1 =
-            (L.L.ai_pre_cockpit_passenger_window_adjustment_phase) ! && (L.L.cp_key_rot) 0.4 >=
-            (L.L.cp_cti_hatches_require_full_elec) ! || &&
-        {if}
-            5 10000 random 10000 / 10 * + (S.L.ai_pre_cockpit_hatch_sw_timer)
-        {endif}
-        (L.L.ai_pre_cockpit_hatch_sw_timer) 0 >
-        {if}
-            (L.L.ai_pre_cockpit_hatch_sw_timer) (L.L.ai_pre_cockpit_ai_timegap) - 0 max
-                (S.L.ai_pre_cockpit_hatch_sw_timer)
-        {endif}
-        (L.L.ai_pre_cockpit_hatch_sw_timer) !
-        {if}
-            (L.L.ai_pre_cockpit_hatch_sw_target) (S.L.cp_hatch_sw)
-            {if}
-                (T.L.ev_VDV_on)
-            {else}
-                (T.L.ev_VDV_off)
-            {endif}
-        {endif}
-    {else}
-        -1 (S.L.ai_pre_cockpit_hatch_sw_timer)
     {endif}
 {end}
 
@@ -7121,6 +7125,7 @@
                 (L.L.lights_ai_int_lighting_darkness_tolerance) 120 min >= &&
                 (L.L.lights_ai_int_lighting_brighter_or_off_timer)
                 (L.L.lights_ai_int_lighting_brightness_tolerance) 120 min >= &&
+                (L.L.ai_pre_cockpit_ibis_departure_clearance_acknowledgment_timer) -1 = &&
                 (L.L.ai_pre_cockpit_stop_prolonging_heuristic) &&
                 (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic) 1 = ! &&
                 (L.L.ai_pre_cockpit_stop_phase) d 4 = ! && && s0

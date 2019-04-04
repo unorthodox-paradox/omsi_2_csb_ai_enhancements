@@ -24,4 +24,3 @@ IBIS_StopList
 RouteSel_Time
 RouteSel_Data
 Prüfziffer
-Haltestelle

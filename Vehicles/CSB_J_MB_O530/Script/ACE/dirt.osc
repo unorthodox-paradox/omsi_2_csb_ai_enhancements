@@ -20,7 +20,10 @@
 '--------------------------------------------------------------------------------------
 
 {trigger:veh_wash}
-	(L.L.dirt_dirt_norm) 0.015 (L.S.Timegap) * - 0 max (S.L.dirt_dirt_norm)
+    (L.L.AI) !
+	{if}
+	    (L.L.dirt_dirt_norm) 0.015 (L.S.Timegap) * - 0 max (S.L.dirt_dirt_norm)
+	{endif}
 {end}
 
 {macro:dirt_frame}

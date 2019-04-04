@@ -8,9 +8,9 @@
 ' -------------
 '
 ' OMSI version                                    : 2.2.032 ~ 2.3.004
-' Supported CSB modules                           : MB O530 - 1.30
-' Supported CSB vehicles                          : CVAG 72
-' CSB AI enhancements version                     : 1.5.1
+' CSB modification version                        : 1.40
+' Supported CSB vehicles                          : ETP 3, ETP 11
+' ACE modification version                        : 1.5.2
 '
 '==============================================================================
 '

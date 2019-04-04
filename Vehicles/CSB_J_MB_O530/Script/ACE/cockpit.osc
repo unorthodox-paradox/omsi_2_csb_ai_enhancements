@@ -473,25 +473,6 @@
     {endif}
 {end}
 
-{trigger:automatic_r-frei}
-    (L.L.AI) !
-    {if}
-        1 (S.L.cockpit_gang_r-frei)
-        (L.L.cockpit_gangR_toggle) (L.L.cockpit_gang2_toggle) ! (L.L.cockpit_gang3_toggle) ! && &&
-        {if}
-            (L.S.getTime) (S.L.antrieb_getr_gangwahlzeitpunkt)
-            0 (S.L.antrieb_getr_gangvorwahl)
-        {endif}
-    {endif}
-{end}
-
-{trigger:automatic_r-frei_off}
-    (L.L.AI) !
-    {if}
-        0 (S.L.cockpit_gang_r-frei)
-    {endif}
-{end}
-
 {trigger:horn}
     (L.L.AI) !
     {if}
@@ -511,28 +492,6 @@
             (T.L.ev_hupe_aus)
         {endif}
         0 (S.L.cockpit_hupe)
-    {endif}
-{end}
-
-{trigger:horn_swheel}
-    (L.L.AI) !
-    {if}
-        (L.L.cockpit_hupe_swheel) ! (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
-        {if}
-            (T.L.ev_hupe_an)
-        {endif}
-        1 (S.L.cockpit_hupe_swheel)
-    {endif}
-{end}
-
-{trigger:horn_swheel_off}
-    (L.L.AI) !
-    {if}
-        (L.L.cockpit_hupe_swheel) (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
-        {if}
-            (T.L.ev_hupe_aus)
-        {endif}
-        0 (S.L.cockpit_hupe_swheel)
     {endif}
 {end}
 
@@ -601,7 +560,6 @@
     (L.L.AI) !
     {if}
         1 (S.L.cockpit_wischer_drehschalter_dragged)
-
         (L.S.mouse_y) -50 / (L.L.cockpit_wischer_drehschalter) + 0 max 1 min (S.L.cockpit_wischer_drehschalter) s0
 
 '        Stufen:
@@ -627,6 +585,7 @@
             {endif}
         {endif}
         (S.L.cockpit_wischer_drehschalter_mode)
+
     {endif}
 {end}
 
@@ -697,7 +656,7 @@
 {trigger:cp_window_up}
     (L.L.AI) !
     {if}
-        -1 (S.L.cp_dummy_sw08) s1
+        -1 (S.L.cp_dummy_sw08)
         (T.L.ev_VDV_toggle_on)
     {endif}
 {end}
@@ -841,6 +800,7 @@
 {trigger:cp_key_rot_drag}
     (L.L.AI) !
     {if}
+
         (L.S.mouse_y) -30 / (L.L.cp_key_rot) + 0 max 1 min (S.L.cp_key_rot) s1
 
         l1 0.2 <
@@ -942,7 +902,7 @@
 {trigger:cp_schluessel_mov_off}
     (L.L.AI) !
     {if}
-'        Einrasten auf den festen Positionen:
+'       Einrasten auf den festen Positionen:
         (L.L.cp_schluessel_trans_mode) (S.L.cp_schluessel_trans)
         (L.L.cp_schluessel_rot_mode) 2 / (S.L.cp_schluessel_rot)
     {endif}
@@ -1064,7 +1024,7 @@
 {end}
 
 {trigger:cp_hatch}
-    (L.L.AI) !
+    (L.L.AI) ! (L.L.cp_cti_has_hatch_switch) &&
     {if}
         (L.L.cp_hatch_sw) ! (S.L.cp_hatch_sw) s1
         (M.L.kippschaltersound)
@@ -1098,10 +1058,6 @@
     {endif}
 {end}
 
-{trigger:mers_logo_visible}
-    (L.L.mers_logo_visible) ! (S.L.mers_logo_visible)
-{end}
-
 'Kneels button by Wizard
 
 {trigger:cp_kneel_up_toggle}
@@ -1115,7 +1071,7 @@
 {trigger:cp_kneel_up_toggle_off}
     (L.L.AI) !
     {if}
-        0 (S.L.cp_kneel_up_antirepeat) (S.L.cp_kneel_up_mode) s1
+        0 (S.L.cp_kneel_up_antirepeat) (S.L.cp_kneel_up_mode)
         (T.L.ev_VDV_toggle_off)
     {endif}
 {end}
@@ -1135,14 +1091,14 @@
         {if}
             0 (S.L.kneel_allowed) (S.L.kneel_locked) (S.L.kneel_auto_set)
         {endif}
-        1 (S.L.cp_kneel_down_mode) s1
+        1 (S.L.cp_kneel_down_mode)
     {endif}
 {end}
 
 {trigger:cp_kneel_down_toggle_off}
     (L.L.AI) !
     {if}
-        0 (S.L.cp_kneel_down_antirepeat) (S.L.cp_kneel_down_mode) s1
+        0 (S.L.cp_kneel_down_antirepeat) (S.L.cp_kneel_down_mode)
         (T.L.ev_VDV_toggle_off)
     {endif}
 {end}
@@ -1370,7 +1326,7 @@
     {endif}
 {end}
 
-{trigger:taster_standheizung}
+{trigger:cp_taster_standheizung}
     (L.L.AI) !
     {if}
         1 (S.L.cp_taster_standheizung)
@@ -1379,7 +1335,7 @@
     {endif}
 {end}
 
-{trigger:taster_standheizung_off}
+{trigger:cp_taster_standheizung_off}
     (L.L.AI) !
     {if}
         0 (S.L.cp_taster_standheizung)
@@ -2688,15 +2644,17 @@
         (L.L.vdv_error_retarder_active) || (L.L.vdv_error_Diesel_active) || (L.L.vdv_error_Battery_active) || (L.L.vdv_error_light_active) ||
         (L.L.vdv_display_mode) 6 = && (L.L.engine_timer_start) 4.4 < || (L.L.vdv_on) && (S.L.cp_vdv_indic_2)
 
-'   XXX: cp_vdv_indic_indic_3 set in lights.osc:lights_runblinkgeber
+'   XXX: cp_vdv_indic_3 set in lights.osc:lights_runblinkgeber
 
     (L.L.engine_timer_start) 4.3 < (L.L.lights_fern) || (L.L.vdv_on) && (S.L.cp_vdv_indic_4)
 
     (L.L.engine_timer_start) 2.6 < (L.L.cockpit_light_feststellbremse) || (L.L.vdv_on) && (S.L.cp_vdv_indic_5)
 
-'   XXX: cp_vdv_indic_indic_6 set in lights.osc:lights_runblinkgeber
+'   XXX: cp_vdv_indic_6 set in lights.osc:lights_runblinkgeber
 
-    (L.L.engine_timer_start) 4.25 < (L.L.vdv_on) && (S.L.cp_vdv_indic_7) (S.L.cp_vdv_indic_8) (S.L.cp_vdv_indic_9) (S.L.cp_vdv_indic_10)
+    (L.L.engine_timer_start) 4.25 < (L.L.vdv_on) && (S.L.cp_vdv_indic_7) (S.L.cp_vdv_indic_8) (S.L.cp_vdv_indic_10)
+
+'   XXX: cp_vdv_indic_9 set in VDV_Old.osc:VDV_frame
 {end}
 
 {macro:pandus_frame}

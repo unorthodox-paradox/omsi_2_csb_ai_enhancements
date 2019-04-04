@@ -241,14 +241,14 @@
 	(M.L.DoorAftCalc)
 
 	(L.L.cp_fahrertuer_pos) s1
-	(L.L.door_0) 0.9 > l1 0.05 < && (S.L.PAX_Entry0_Open)
-	(L.L.door_1) 0.9 > l1 0.5 < && (S.L.PAX_Entry1_Open)
+	(L.L.door_0) 0.9 > (L.L.door_0) 0.75 > (L.L.doorTarget_0) && (L.L.doorSpeed_0) 0.05 > && || l1 0.05 < && (S.L.PAX_Entry0_Open)
+	(L.L.door_1) 0.9 > (L.L.door_1) 0.75 > (L.L.doorTarget_1) && (L.L.doorSpeed_0) 0.05 > && || l1 0.5 < && (S.L.PAX_Entry1_Open)
 	(L.L.PAX_Exit0_Req) ! (L.L.PAX_Exit1_Req) ! && s1
-	(L.L.door_2) 0.9 > (S.L.PAX_Exit0_Open) l1 && (S.L.PAX_Entry2_Open)
-	(L.L.door_3) 0.9 > (S.L.PAX_Exit1_Open) l1 && (S.L.PAX_Entry3_Open)
+	(L.L.door_2) 0.9 > (L.L.door_2) 0.75 > (L.L.doorTarget_23) && (L.L.doorSpeed_2) 0.05 > && || (S.L.PAX_Exit0_Open) l1 && (S.L.PAX_Entry2_Open)
+	(L.L.door_3) 0.9 > (L.L.door_3) 0.75 > (L.L.doorTarget_23) && (L.L.doorSpeed_3) 0.05 > && || (S.L.PAX_Exit1_Open) l1 && (S.L.PAX_Entry3_Open)
 	(L.L.PAX_Exit2_Req) ! (L.L.PAX_Exit3_Req) ! && s1
-	(L.L.door_4) 0.9 > (S.L.PAX_Exit2_Open) l1 && (S.L.PAX_Entry4_Open)
-	(L.L.door_5) 0.9 > (S.L.PAX_Exit3_Open) l1 && (S.L.PAX_Entry5_Open)
+	(L.L.door_4) 0.9 > (L.L.door_4) 0.75 > (L.L.doorTarget_45) && (L.L.doorSpeed_4) 0.05 > && || (S.L.PAX_Exit2_Open) l1 && (S.L.PAX_Entry4_Open)
+	(L.L.door_5) 0.9 > (L.L.door_5) 0.75 > (L.L.doorTarget_45) && (L.L.doorSpeed_5) 0.05 > && || (S.L.PAX_Exit3_Open) l1 && (S.L.PAX_Entry5_Open)
 
 '	Nothahn-Rebelüftung
 

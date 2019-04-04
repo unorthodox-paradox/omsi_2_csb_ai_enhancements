@@ -1,29 +1,29 @@
 ***************************************
-CVAG 72 (Experimental)
+ETP 3 - ACE
 ***************************************
 
 [item]
-CVAG 72
+ETP 3
 repaint_body
 ..\Main.tga
 
 [item]
-CVAG 72
+ETP 3
 repaint_body_kk
 ..\Main.tga
 
 [item]
-CVAG 72
+ETP 3
 repaint_sid
 ..\Sitz.dds
 
 [item]
-CVAG 72
+ETP 3
 repaint_poruch
 ..\Stange.dds
 
 [item]
-CVAG 72
+ETP 3
 repaint_details
 ..\Details.dds
 

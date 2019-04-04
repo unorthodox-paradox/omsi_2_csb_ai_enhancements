@@ -110,9 +110,7 @@
 {trigger:comp_button_qiut_off}
 	(L.L.AI) !
 	{if}
-		0 (S.L.obd_info_mode) (S.L.obd_system_mode)
-
-		0 (S.L.comp_button_qiut_mode)
+		0 (S.L.obd_info_mode) (S.L.obd_system_mode) (S.L.comp_button_qiut_mode)
 		(T.L.ev_VDV_toggle_off)
 	{endif}
 {end}
@@ -2712,4 +2710,7 @@
 		(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.Retarder_Error_dist)
 	{endif}
 	{endif}
+
+'	cockpit.osc:engine_diagnostic provision, for proper syncing between VDV display wheelchair request icon and corresponding dashboard control light
+	(L.L.vdv_on) (L.L.engine_timer_start) 4.25 < (L.L.door_kinderwagenwunsch) (L.S.GetTime) 2 % 1 < && || && (S.L.cp_vdv_indic_9)
 {end}

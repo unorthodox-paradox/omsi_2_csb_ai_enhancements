@@ -1,6 +1,7 @@
 cockpit_initialized
 
 cp_cti_has_door_wing_lock_switch
+cp_cti_has_hatch_switch
 cp_cti_has_openable_passenger_windows
 cp_cti_has_blinking_hazard_indicator_switch
 cp_cti_hatches_require_full_elec
