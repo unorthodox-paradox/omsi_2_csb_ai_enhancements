@@ -1565,8 +1565,9 @@
 {end}
 
 {trigger:blinker_left_set}
-    (L.L.AI) !
+    (L.L.AI) ! (L.L.cockpit_blinkerhebel_moved) ! &&
     {if}
+        1 (S.L.cockpit_blinkerhebel_moved)
         (L.L.lights_sw_blinker) s0 1 = !
         {if}
             l0
@@ -1583,9 +1584,40 @@
     {endif}
 {end}
 
-{trigger:blinker_right_set}
-    (L.L.AI) !
+{trigger:blinker_left_set_off}
+    0 (S.L.cockpit_blinkerhebel_moved)
+{end}
+
+{trigger:blinker_left_move}
+    (L.L.AI) ! (L.L.cockpit_blinkerhebel_moved) ! &&
     {if}
+        1 (S.L.cockpit_blinkerhebel_moved)
+        (L.L.lights_sw_blinker) s0 1 = !
+        {if}
+            l0
+            {if}
+                (L.L.lights_blinker_running) (L.L.lights_sw_warnblinker) ! && (L.L.lights_schulfahrschaltung) ! &&
+                {if}
+                    0 (S.L.lights_blinker_running)
+                {endif}
+            {endif}
+            1 (S.L.lights_sw_blinker)
+            (M.L.lights_calc_geberfaktor)
+            (M.L.lights_startblinkgeber)
+        {else}
+            0 (S.L.lights_sw_blinker)
+        {endif}
+    {endif}
+{end}
+
+{trigger:blinker_left_off}
+    0 (S.L.cockpit_blinkerhebel_moved)
+{end}
+
+{trigger:blinker_right_set}
+    (L.L.AI) ! (L.L.cockpit_blinkerhebel_moved) ! &&
+    {if}
+        1 (S.L.cockpit_blinkerhebel_moved)
         (L.L.lights_sw_blinker) s0 2 = !
         {if}
             l0
@@ -1600,6 +1632,36 @@
             (M.L.lights_startblinkgeber)
         {endif}
     {endif}
+{end}
+
+{trigger:blinker_right_set_off}
+    0 (S.L.cockpit_blinkerhebel_moved)
+{end}
+
+{trigger:blinker_right_move}
+    (L.L.AI) ! (L.L.cockpit_blinkerhebel_moved) ! &&
+    {if}
+        1 (S.L.cockpit_blinkerhebel_moved)
+        (L.L.lights_sw_blinker) s0 2 = !
+        {if}
+            l0
+            {if}
+                (L.L.lights_blinker_running) (L.L.lights_sw_warnblinker) ! && (L.L.lights_schulfahrschaltung) ! &&
+                {if}
+                    0 (S.L.lights_blinker_running)
+                {endif}
+            {endif}
+            2 (S.L.lights_sw_blinker)
+            (M.L.lights_calc_geberfaktor)
+            (M.L.lights_startblinkgeber)
+        {else}
+            0 (S.L.lights_sw_blinker)
+        {endif}
+    {endif}
+{end}
+
+{trigger:blinker_right_off}
+    0 (S.L.cockpit_blinkerhebel_moved)
 {end}
 
 {trigger:blinker_warn_toggle}
@@ -1983,7 +2045,7 @@
         l0 (S.L.cockpit_blinkerhebel)
     {endif}
 
-'    Hebel-Animation für Fernlicht
+'   Hebel-Animation für Fernlicht
     (L.L.lights_sw_fern) s0 2 =
     {if}
         1

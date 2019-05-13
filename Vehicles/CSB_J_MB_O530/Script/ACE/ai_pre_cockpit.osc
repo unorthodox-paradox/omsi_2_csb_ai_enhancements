@@ -209,6 +209,9 @@
 '                           // Steering wheel should always be visible.
                             1 (S.L.cp_lenkrad_visible)
 
+'                           // Discard any prior user influence (trigger invocation) on indicator lever
+                            0 (S.L.cockpit_blinkerhebel_moved)
+
 '                           // If an emergency door valve is or was previously opened by user, then "drag" attached
 '                           // door wings open manually, then close the valve if open, so that door is anew in a state
 '                           // that the ai_pre_cockpit_stop macro can subsequently handle as usual (via the cockpit

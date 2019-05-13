@@ -311,7 +311,8 @@
         {if}
             0 (S.L.lights_blinkautom_r_armed)
             (L.L.AI) 10000 random 10000 / (L.L.ai_pre_cockpit_indicator_pc_factor_low) 2 / >= (L.L.AI_Blinker_R) ! ||
-                (L.L.AI_Blinker_L) (L.L.AI_Blinker_R) 2 * + 3 = || && (L.L.AI) ! ||
+                (L.L.AI_Blinker_L) (L.L.AI_Blinker_R) 2 * + 3 = || && (L.L.AI) !
+                (L.L.cockpit_blinkerhebel_moved) ! && ||
             {if}
                 (L.L.AI)
                 {if}
@@ -342,7 +343,8 @@
         {if}
             0 (S.L.lights_blinkautom_l_armed)
             (L.L.AI) 10000 random 10000 / (L.L.ai_pre_cockpit_indicator_pc_factor_low) 2 / >= (L.L.AI_Blinker_L) ! ||
-                (L.L.AI_Blinker_L) (L.L.AI_Blinker_R) 2 * + 3 = || && (L.L.AI) ! ||
+                (L.L.AI_Blinker_L) (L.L.AI_Blinker_R) 2 * + 3 = || && (L.L.AI) !
+                (L.L.cockpit_blinkerhebel_moved) ! && ||
             {if}
                 (L.L.AI)
                 {if}

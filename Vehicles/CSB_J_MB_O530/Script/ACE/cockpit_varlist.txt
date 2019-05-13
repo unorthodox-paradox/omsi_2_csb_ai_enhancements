@@ -80,6 +80,7 @@ cockpit_gang_r-frei
 cockpit_hupe
 cockpit_hupe_volume
 cockpit_blinkerhebel
+cockpit_blinkerhebel_moved
 cockpit_fernlichthebel
 cockpit_wischer_drehschalter
 cockpit_wischer_drehschalter_dragged
