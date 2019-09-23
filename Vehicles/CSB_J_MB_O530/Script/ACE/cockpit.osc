@@ -1589,9 +1589,9 @@
 {end}
 
 {trigger:blinker_left_move}
-    (L.L.AI) ! (L.L.cockpit_blinkerhebel_moved) ! &&
+    (L.L.AI) !
     {if}
-        1 (S.L.cockpit_blinkerhebel_moved)
+		0 (S.L.cockpit_blinkerhebel_moved)
         (L.L.lights_sw_blinker) s0 1 = !
         {if}
             l0
@@ -1608,10 +1608,6 @@
             0 (S.L.lights_sw_blinker)
         {endif}
     {endif}
-{end}
-
-{trigger:blinker_left_off}
-    0 (S.L.cockpit_blinkerhebel_moved)
 {end}
 
 {trigger:blinker_right_set}
@@ -1639,9 +1635,9 @@
 {end}
 
 {trigger:blinker_right_move}
-    (L.L.AI) ! (L.L.cockpit_blinkerhebel_moved) ! &&
+    (L.L.AI) !
     {if}
-        1 (S.L.cockpit_blinkerhebel_moved)
+        0 (S.L.cockpit_blinkerhebel_moved)
         (L.L.lights_sw_blinker) s0 2 = !
         {if}
             l0
@@ -1658,10 +1654,6 @@
             0 (S.L.lights_sw_blinker)
         {endif}
     {endif}
-{end}
-
-{trigger:blinker_right_off}
-    0 (S.L.cockpit_blinkerhebel_moved)
 {end}
 
 {trigger:blinker_warn_toggle}
