@@ -1591,7 +1591,7 @@
 {trigger:blinker_left_move}
     (L.L.AI) !
     {if}
-		0 (S.L.cockpit_blinkerhebel_moved)
+        0 (S.L.cockpit_blinkerhebel_moved)
         (L.L.lights_sw_blinker) s0 1 = !
         {if}
             l0
