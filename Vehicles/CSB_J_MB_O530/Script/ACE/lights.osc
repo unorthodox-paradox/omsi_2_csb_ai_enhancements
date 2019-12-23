@@ -10,7 +10,7 @@
 ' OMSI version                                    : 2.2.032 ~ 2.3.004
 ' CSB modification version                        : 1.40
 ' Supported CSB vehicles                          : ETP 3, ETP 11
-' ACE modification version                        : 1.5.2
+' ACE modification version                        : 1.5.3
 '
 '==============================================================================
 '
@@ -72,16 +72,22 @@
 ' This macro is executed once at initial vehicle spawn time, as well as upon
 ' each subsequent reload of a saved situation "containing" the vehicle.
 '
-' Note that this does not account for light source lifetime / "health", and AI
-' preference set initialization, both of which are deferred to the first few
-' "normal" frames / script executions (see corresponding macro documentation
-' for why that is).
+' Note that this macro does not account for initialization of light source
+' lifetime / "health", configuration, and AI preferences -- these tasks are
+' deferred until after the first few "normal" frames / script executions have
+' completed (an explanation for why that is is given in e.g.
+' lights_ai_profile_apply).
 '------------------------------------------------------------------------------
 {macro:lights_init}
+    (L.L.lights_initialized_once) !
+    {if}
+        -1 (S.L.Spot_Select) (S.L.lights_pseudo_lichthupe_timer)
+        (M.L.lights_cfg_reset_overrides)
+        (M.L.lights_cfg_apply_defaults)
+    {endif}
+
     (M.L.lights_ai_init)
-    -1 (S.L.Spot_Select)
-    0 (S.L.lights_pseudo_lichthupe)
-    -1 (S.L.lights_pseudo_lichthupe_timer)
+    0 (S.L.lights_initialized)
 {end}
 
 '------------------------------------------------------------------------------
@@ -98,11 +104,15 @@
     {else}
         (L.L.lights_initialized) 1 =
         {if}
-'           // Deferred initialization of light source "health": It is only at this point that we can discern between user-
-'           // and AI-controlled vehicles (the latter have "infinite" wearlifespan).
-            (M.L.lights_repair)
+            (L.L.lights_initialized_once) !
+            {if}
+'               // Deferred initialization tasks that only occur once: Light source "health" initialization
+                (M.L.lights_repair)
+                1 (S.L.lights_initialized_once)
+            {endif}
             2 (S.L.lights_initialized)
         {endif}
+        (M.L.lights_cfg_apply_overrides)
     {endif}
 
 '   // Delegation of AI lighting-related decision making to lights_ai.osc.
@@ -128,6 +138,76 @@
 
 '   // Mapping from light source state to model.cfg-specific illumination effects.
     (M.L.lights_model_illumination_effects)
+{end}
+
+'------------------------------------------------------------------------------
+' Captures and applies, any post-spawn customization requested either
+' statically, by means of color-scheme [setvar]s, or dynamically, in-game, by
+' the user directly (by means of some configuration mechanism yet to be
+' implemented). This macro gets executed anew each frame.
+'------------------------------------------------------------------------------
+{macro:lights_cfg_apply_overrides}
+    (C.L.global_cfg_no_cti_overrides) 1 = ! s0
+
+    (L.L.lights_cfg_on_demand_has_head_fog_lights) s1 0 = l1 1 = || !
+    {if}
+        (L.L.lights_cfg_cti_has_head_fog_lights) s1 0 = l1 1 = || l0 && (C.L.lights_cfg_no_cti_override_has_head_fog_lights) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.lights_cfg_effective_has_head_fog_lights)
+    {endif}
+
+    (L.L.lights_cfg_on_demand_has_drl) s1 0 = l1 1 = || !
+    {if}
+        (L.L.lights_cfg_cti_has_drl) s1 0 = l1 1 = || l0 && (C.L.lights_cfg_no_cti_override_has_drl) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.lights_cfg_effective_has_drl)
+    {endif}
+
+    (L.L.lights_cfg_on_demand_has_second_reverse_and_tail_fog_light) s1 0 = l1 1 = || !
+    {if}
+        (L.L.lights_cfg_cti_has_second_reverse_and_tail_fog_light) s1 0 = l1 1 = || l0 && (C.L.lights_cfg_no_cti_override_has_second_reverse_and_tail_fog_light) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.lights_cfg_effective_has_second_reverse_and_tail_fog_light)
+    {endif}
+
+    (L.L.lights_cfg_on_demand_indicating_left_or_right_requires_full_elec) s1 0 = l1 1 = || !
+    {if}
+        (L.L.lights_cfg_cti_indicating_left_or_right_requires_full_elec) s1 0 = l1 1 = || l0 && (C.L.lights_cfg_no_cti_override_indicating_left_or_right_requires_full_elec) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.lights_cfg_effective_indicating_left_or_right_requires_full_elec)
+    {endif}
+
+    (L.L.lights_cfg_on_demand_int_lights_level_2_requires_running_engine) s1 0 = l1 1 = || !
+    {if}
+        (L.L.lights_cfg_cti_int_lights_level_2_requires_running_engine) s1 0 = l1 1 = || l0 && (C.L.lights_cfg_no_cti_override_int_lights_level_2_requires_running_engine) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.lights_cfg_effective_int_lights_level_2_requires_running_engine)
+    {endif}
 {end}
 
 '------------------------------------------------------------------------------
@@ -425,7 +505,7 @@
             {if}
                 l0
             {else}
-                l1 (L.L.cp_key_rot) 0.4 >= (L.L.lights_cti_indicating_left_or_right_requires_full_elec) ! || *
+                l1 (L.L.cp_key_rot) 0.4 >= (L.L.lights_cfg_effective_indicating_left_or_right_requires_full_elec) ! || *
             {endif}
             l2 (C.L.lights_blinker_engine_revs_since_start_min) > l3 (C.L.lights_blinker_elec_battery_load_min) > || *
                 d (C.L.lights_blinker_elec_busbar_avail_V_min) > *
@@ -441,7 +521,7 @@
             {if}
                 l0
             {else}
-                l1 (L.L.cp_key_rot) 0.4 >= (L.L.lights_cti_indicating_left_or_right_requires_full_elec) ! || *
+                l1 (L.L.cp_key_rot) 0.4 >= (L.L.lights_cfg_effective_indicating_left_or_right_requires_full_elec) ! || *
             {endif}
             l2 (C.L.lights_blinker_engine_revs_since_start_min) > l3 (C.L.lights_blinker_elec_battery_load_min) > || *
                 d (C.L.lights_blinker_elec_busbar_avail_V_min) > *
@@ -489,7 +569,7 @@
         (S.L.lights_fern)
 
 '       // Head fog lights (where available)
-        l4 (L.L.cp_fog_light_sw) s5 && (L.L.lights_cti_has_head_fog_lights) &&
+        l4 (L.L.cp_fog_light_sw) s5 && (L.L.lights_cfg_effective_has_head_fog_lights) &&
         {if}
             l5 1 =
             {if}
@@ -515,7 +595,7 @@
         (S.L.lights_drl)
 
 '       // Brake
-        (L.L.cockpit_brake) 0.1 > (L.L.AI) (L.L.cockpit_brake) 0.01 > && || (L.L.bremse_halte) (C.L.lights_brems_haltestellenbremse) && ||
+        (L.L.cockpit_brake) 0.1 > (L.L.bremse_halte) (C.L.lights_brems_haltestellenbremse) && ||
         {if}
             l0 l2 (C.L.lights_brems_engine_revs_since_start_min) > l3 (C.L.lights_brems_elec_battery_load_min) > || *
                 d (C.L.lights_brems_elec_busbar_avail_V_min) > *
@@ -705,7 +785,7 @@
 '       // - Tubes 2R + 3L require that 2L + 3R be active _and_ a) the engine be running, or b) the "master" dashboard
 '       //   key be set to "on" or "ignition" and battery have sufficient load.
 '       // XXX: Must also account for the quite different interior light arrangement of the articulated variant.
-        l0 (L.L.cp_key_rot) 0.4 >= (L.L.lights_cti_int_lights_level_2_requires_running_engine) ! && (L.L.engine_n) 20 < &&
+        l0 (L.L.cp_key_rot) 0.4 >= (L.L.lights_cfg_effective_int_lights_level_2_requires_running_engine) ! && (L.L.engine_n) 20 < &&
             l2 (C.L.lights_passenger_cabin_engine_revs_since_start_min) > || s2
             l3 (C.L.lights_passenger_cabin_elec_battery_load_min) > || *
             d (C.L.lights_passenger_cabin_elec_busbar_avail_V_min) > * s7
@@ -794,7 +874,7 @@
 '------------------------------------------------------------------------------
 {macro:lights_runblinkgeber}
     (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > (L.L.cp_key_rot) 0.4 >=
-        (L.L.lights_cti_indicating_left_or_right_requires_full_elec) ! || && (L.L.lights_sw_blinker) &&
+        (L.L.lights_cfg_effective_indicating_left_or_right_requires_full_elec) ! || && (L.L.lights_sw_blinker) &&
         (L.L.elec_busbar_avail) (C.L.elec_busbar_minV) > (L.L.lights_sw_warnblinker)
         (L.L.lights_schulfahrschaltung) || && ||
     {if}
@@ -840,7 +920,7 @@
     (L.L.lights_schulfahrschaltung) (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > && (S.L.cockpit_light_schulfahrschaltung)
 
     (L.L.vdv_lighting) 2 * s0
-    (L.L.cp_cti_has_blinking_hazard_indicator_switch)
+    (L.L.cp_cfg_effective_has_blinking_hazard_indicator_switch)
     {if}
         l0 (L.L.lights_sw_warnblinker) (L.L.lights_warnblinkgeber) * + s0
     {endif}
@@ -911,12 +991,12 @@
     (L.L.lights_brems_r_m_bulb_lifetime) 0 > {if} (L.L.lights_brems) {else} 0 {endif} (S.L.lights_brems_r_m_bulb)
 
 '   // Reverse (left unit optional)
-    (L.L.lights_rueckfahr_l_bulb_lifetime) 0 > (L.L.lights_cti_has_second_reverse_and_tail_fog_light) && {if} (L.L.lights_rueckfahr) {else} 0 {endif} (S.L.lights_rueckfahr_l_bulb)
+    (L.L.lights_rueckfahr_l_bulb_lifetime) 0 > (L.L.lights_cfg_effective_has_second_reverse_and_tail_fog_light) && {if} (L.L.lights_rueckfahr) {else} 0 {endif} (S.L.lights_rueckfahr_l_bulb)
     (L.L.lights_rueckfahr_r_bulb_lifetime) 0 > {if} (L.L.lights_rueckfahr) {else} 0 {endif} (S.L.lights_rueckfahr_r_bulb)
 
 '   // Tail fog lights (right unit optional)
     (L.L.lights_nebelschluss_l_bulb_lifetime) 0 > {if} (L.L.lights_nebelschluss) {else} 0 {endif} (S.L.lights_nebelschluss_l_bulb)
-    (L.L.lights_nebelschluss_r_bulb_lifetime) 0 > (L.L.lights_cti_has_second_reverse_and_tail_fog_light) && {if} (L.L.lights_nebelschluss) {else} 0 {endif} (S.L.lights_nebelschluss_r_bulb)
+    (L.L.lights_nebelschluss_r_bulb_lifetime) 0 > (L.L.lights_cfg_effective_has_second_reverse_and_tail_fog_light) && {if} (L.L.lights_nebelschluss) {else} 0 {endif} (S.L.lights_nebelschluss_r_bulb)
 
 '   // Marker
 '   // Head
@@ -1474,10 +1554,84 @@
 {end}
 
 '------------------------------------------------------------------------------
-' Initializes, and resets, whenever the game's native repair function gets
-' triggered by the user, the lifetime of each light source.
+' Resets all lighting-relevant configuration variables to an invalid initial
+' value. This is essential for the lights_cfg_apply_overrides macro to be able
+' to distinguish absence-of-value (the value of zero that would otherwise have
+' been assigned by OMSI, as is the case with every uninitialized variable) from
+' deliberate assignment (the value of zero actually carrying non-default
+' configuration semantics).
+'------------------------------------------------------------------------------
+{macro:lights_cfg_reset_overrides}
+    -1 (S.L.lights_cfg_cti_has_head_fog_lights)
+        (S.L.lights_cfg_cti_has_drl)
+        (S.L.lights_cfg_cti_has_second_reverse_and_tail_fog_light)
+        (S.L.lights_cfg_cti_indicating_left_or_right_requires_full_elec)
+        (S.L.lights_cfg_cti_int_lights_level_2_requires_running_engine)
+
+        (S.L.lights_cfg_on_demand_has_head_fog_lights)
+        (S.L.lights_cfg_on_demand_has_drl)
+        (S.L.lights_cfg_on_demand_has_second_reverse_and_tail_fog_light)
+        (S.L.lights_cfg_on_demand_indicating_left_or_right_requires_full_elec)
+        (S.L.lights_cfg_on_demand_int_lights_level_2_requires_running_engine)
+{end}
+
+'------------------------------------------------------------------------------
+' Assigns, when the vehicle gets spawned for the very first time (saved
+' situation reload does not count), default values to all lighting-relevant
+' configuration variables. Each default is either the value of the
+' corresponding constant, when valid, or a hard-coded fall-back value,
+' otherwise. Implicitly this also enables the default unnamed color-scheme, for
+' which, normally, no .cti-file exists, to be configured.
+'------------------------------------------------------------------------------
+{macro:lights_cfg_apply_defaults}
+    (C.L.lights_cfg_default_has_head_fog_lights) s0 0 = l0 1 = ||
+    {if}
+        l0
+    {else}
+        0
+    {endif}
+    (S.L.lights_cfg_effective_has_head_fog_lights)
+
+    (C.L.lights_cfg_default_has_drl) s0 0 = l0 1 = ||
+    {if}
+        l0
+    {else}
+        0
+    {endif}
+    (S.L.lights_cfg_effective_has_drl)
+
+    (C.L.lights_cfg_default_has_second_reverse_and_tail_fog_light) s0 0 = l0 1 = ||
+    {if}
+        l0
+    {else}
+        0
+    {endif}
+    (S.L.lights_cfg_effective_has_second_reverse_and_tail_fog_light)
+
+    (C.L.lights_cfg_default_indicating_left_or_right_requires_full_elec) s0 0 = l0 1 = ||
+    {if}
+        l0
+    {else}
+        1
+    {endif}
+    (S.L.lights_cfg_effective_indicating_left_or_right_requires_full_elec)
+
+    (C.L.lights_cfg_default_int_lights_level_2_requires_running_engine) s0 0 = l0 1 = ||
+    {if}
+        l0
+    {else}
+        1
+    {endif}
+    (S.L.lights_cfg_effective_int_lights_level_2_requires_running_engine)
+{end}
+
+'------------------------------------------------------------------------------
+' Called, when the vehicle gets spawned for the very first time (saved
+' situation reload does not count), but also whenever the game's native repair
+' function gets triggered by the user, to initialize or reset, accordingly, the
+' lifetime of each light source.
 '
-' The following factors affect the lifetime of each source:
+' The following factors affect lifetime:
 ' - The average lifetime given by the manufacturer, depending primarily on the
 '   type of light source.
 ' - The user's maintenance (wearlifespan) setting. When the vehicle is spawned
@@ -1492,7 +1646,7 @@
 ' - Random chance.
 '------------------------------------------------------------------------------
 {macro:lights_repair}
-    (L.L.lights_initialized) 1 = s0
+    (L.L.lights_initialized_once) ! s0
     {if}
 '       // maintenance factor
         (L.L.AI)
@@ -2051,12 +2205,12 @@
     (L.L.lights_fern_r_bulb_lifetime) 0 <= 3 * l0 + s0
 
 '   // DRL
-    (L.L.lights_drl_l_unit_lifetime) 0 <= (L.L.lights_cti_has_drl) && 10 * l0 + s0
-    (L.L.lights_drl_r_unit_lifetime) 0 <= (L.L.lights_cti_has_drl) && 10 * l0 + s0
+    (L.L.lights_drl_l_unit_lifetime) 0 <= (L.L.lights_cfg_effective_has_drl) && 10 * l0 + s0
+    (L.L.lights_drl_r_unit_lifetime) 0 <= (L.L.lights_cfg_effective_has_drl) && 10 * l0 + s0
 
 '   // Head fog lights
-    (L.L.lights_nebelschw_l_bulb_lifetime) 0 <= (L.L.lights_cti_has_head_fog_lights) && 3 * l0 + s0
-    (L.L.lights_nebelschw_r_bulb_lifetime) 0 <= (L.L.lights_cti_has_head_fog_lights) && 3 * l0 + s0
+    (L.L.lights_nebelschw_l_bulb_lifetime) 0 <= (L.L.lights_cfg_effective_has_head_fog_lights) && 3 * l0 + s0
+    (L.L.lights_nebelschw_r_bulb_lifetime) 0 <= (L.L.lights_cfg_effective_has_head_fog_lights) && 3 * l0 + s0
 
 '   // Brake
     (L.L.lights_brems_l_t_bulb_lifetime) 0 <= 3 * l0 + s0
@@ -2065,12 +2219,12 @@
     (L.L.lights_brems_r_m_bulb_lifetime) 0 <= 3 * l0 + s0
 
 '   // Reverse
-    (L.L.lights_rueckfahr_l_bulb_lifetime) 0 <= (L.L.lights_cti_has_second_reverse_and_tail_fog_light) && 1 * l0 + s0
+    (L.L.lights_rueckfahr_l_bulb_lifetime) 0 <= (L.L.lights_cfg_effective_has_second_reverse_and_tail_fog_light) && 1 * l0 + s0
     (L.L.lights_rueckfahr_r_bulb_lifetime) 0 <= 1 * l0 + s0
 
 '   // Tail fog lights
     (L.L.lights_nebelschluss_l_bulb_lifetime) 0 <= 1 * l0 + s0
-    (L.L.lights_nebelschluss_r_bulb_lifetime) 0 <= (L.L.lights_cti_has_second_reverse_and_tail_fog_light) && 1 * l0 + s0
+    (L.L.lights_nebelschluss_r_bulb_lifetime) 0 <= (L.L.lights_cfg_effective_has_second_reverse_and_tail_fog_light) && 1 * l0 + s0
 
 '   // Indicator
     (L.L.lights_blinker_h_l_bulb_lifetime) 0 <= 3 * l0 + s0

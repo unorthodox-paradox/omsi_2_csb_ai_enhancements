@@ -1,3 +1,6 @@
+IBIS_initialized
+IBIS_initialized_once
+
 IBIS_energy_last
 IBIS_sufficient_power_supply
 IBIS_mode

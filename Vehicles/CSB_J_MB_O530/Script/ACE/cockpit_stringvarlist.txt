@@ -39,3 +39,6 @@ bvg_taster
 LCD_Leer
 LCD_030
 LCD_000
+
+cockpit_additional_transmission_mode_selector_texture
+cockpit_no_printer_and_cashdesk_shadows_plastics_texture

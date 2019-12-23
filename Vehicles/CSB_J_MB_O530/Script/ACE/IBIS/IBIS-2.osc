@@ -405,14 +405,41 @@
 {end}
 
 {macro:IBIS_init}
-	"     " (S.$.IBIS_Complex_Line)
-	-1 (S.L.IBIS_RouteIndex)
-	0 (S.L.IBIS_State)
-	-1 (S.L.current_stopindex)
+    (L.L.IBIS_initialized_once) !
+    {if}
+        "     " (S.$.IBIS_Complex_Line)
+        -1 (S.L.IBIS_RouteIndex)
+        0 (S.L.IBIS_State)
+        -1 (S.L.current_stopindex)
 
+        (M.L.IBIS_cfg_reset_overrides)
+        (M.L.IBIS_cfg_apply_defaults)
+    {endif}
+
+    0 (S.L.IBIS_initialized)
+{end}
+
+{macro:IBIS_cfg_reset_overrides}
+{end}
+
+{macro:IBIS_cfg_apply_defaults}
 {end}
 
 {macro:IBIS_frame}
+    (L.L.IBIS_initialized) !
+    {if}
+        1 (S.L.IBIS_initialized)
+    {else}
+        (L.L.IBIS_initialized) 1 =
+        {if}
+            (L.L.IBIS_initialized_once) !
+            {if}
+                1 (S.L.IBIS_initialized_once)
+            {endif}
+            2 (S.L.IBIS_initialized)
+        {endif}
+        (M.L.IBIS_cfg_apply_overrides)
+    {endif}
 
 	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > (S.L.IBIS_sufficient_power_supply)
 
@@ -888,6 +915,9 @@
 	0 (S.L.IBIS_TerminusStatus)		
 {endif}
 
+{end}
+
+{macro:IBIS_cfg_apply_overrides}
 {end}
 
 {macro:IBIS_RefreshBusstop}

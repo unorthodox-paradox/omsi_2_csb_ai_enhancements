@@ -1,1 +1,12 @@
+visual_initialized
+visual_initialized_once
+
+visual_cfg_cti_has_static_registration_identifiers
+
+visual_cfg_on_demand_has_static_registration_identifiers
+
+visual_cfg_effective_has_static_registration_identifiers
+
 var_vdvhasrpm
+
+visual_perm_anim

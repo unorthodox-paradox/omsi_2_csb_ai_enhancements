@@ -1,3 +1,6 @@
+vdv_initialized
+vdv_initialized_once
+
 vdv_background
 vdv_buspiktogramm
 vdv_feststellbremse

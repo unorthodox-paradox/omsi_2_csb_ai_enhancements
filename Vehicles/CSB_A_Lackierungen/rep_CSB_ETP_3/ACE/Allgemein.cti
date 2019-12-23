@@ -28,13 +28,33 @@ repaint_details
 ..\Details.dds
 
 [setvar]
-lights_cti_int_lights_level_2_requires_running_engine
+lights_cfg_cti_indicating_left_or_right_requires_full_elec
+0
+
+[setvar]
+cp_cfg_cti_has_additional_transmission_mode_selectors
 1
 
 [setvar]
-uchill_cti_passenger_ac_maintenance_mode_requires_full_elec
-1
+cp_cfg_cti_has_hatch_switch
+0
 
 [setvar]
-cp_cti_has_door_wing_lock_switch
+cp_cfg_cti_has_openable_passenger_windows
+0
+
+[setvar]
+cp_cfg_cti_driver_window_requires_full_elec
+0
+
+[setvar]
+wiper_cfg_cti_wipers_require_full_elec
+0
+
+[setvar]
+uchill_cfg_cti_driver_ac_maintenance_mode_requires_full_elec
+0
+
+[setvar]
+visual_cfg_cti_has_static_registration_identifiers
 1

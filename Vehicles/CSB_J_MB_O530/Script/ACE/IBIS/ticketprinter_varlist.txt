@@ -1,3 +1,6 @@
+ticketprinter_initialized
+ticketprinter_initialized_once
+
 ticketprinter_button_ticket_0
 ticketprinter_button_ticket_1
 ticketprinter_button_ticket_2

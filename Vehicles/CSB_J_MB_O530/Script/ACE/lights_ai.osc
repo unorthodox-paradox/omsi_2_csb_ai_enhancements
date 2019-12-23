@@ -10,7 +10,7 @@
 ' OMSI version                                    : 2.2.032 ~ 2.3.004
 ' CSB modification version                        : 1.40
 ' Supported CSB vehicles                          : ETP 3, ETP 11
-' ACE modification version                        : 1.5.2
+' ACE modification version                        : 1.5.3
 '
 '==============================================================================
 '
@@ -417,9 +417,9 @@
 
 '   // ----- Context-sensitive test metrics -----
 
-    0 (S.L.lights_ai_test_ctx_ext_off_percent_without_drl) (S.L.lights_ai_test_ctx_standstill_percent_without_drl) (S.L.lights_ai_test_ctx_standstill_and_front_fog_lights_percent_without_drl) (S.L.lights_ai_test_ctx_standstill_and_full_fog_lights_percent_without_drl) (S.L.lights_ai_test_ctx_headlights_percent_without_drl) (S.L.lights_ai_test_ctx_headlights_and_front_fog_lights_percent_without_drl) (S.L.lights_ai_test_ctx_headlights_and_full_fog_lights_percent_without_drl)
-        (S.L.lights_ai_test_ctx_ext_off_percent_drl) (S.L.lights_ai_test_ctx_standstill_percent_drl) (S.L.lights_ai_test_ctx_standstill_and_front_fog_lights_percent_drl) (S.L.lights_ai_test_ctx_standstill_and_full_fog_lights_percent_drl) (S.L.lights_ai_test_ctx_headlights_percent_drl) (S.L.lights_ai_test_ctx_headlights_and_front_fog_lights_percent_drl) (S.L.lights_ai_test_ctx_headlights_and_full_fog_lights_percent_drl)
-        (S.L.lights_ai_test_ctx_ext_off_percent) (S.L.lights_ai_test_ctx_standstill_percent) (S.L.lights_ai_test_ctx_standstill_and_front_fog_lights_percent) (S.L.lights_ai_test_ctx_standstill_and_full_fog_lights_percent) (S.L.lights_ai_test_ctx_headlights_percent) (S.L.lights_ai_test_ctx_headlights_and_front_fog_lights_percent) (S.L.lights_ai_test_ctx_headlights_and_full_fog_lights_percent)
+    0 (S.L.lights_ai_test_ctx_ext_off_percent_without_drl) (S.L.lights_ai_test_ctx_standstill_percent_without_drl) (S.L.lights_ai_test_ctx_standstill_and_head_fog_lights_percent_without_drl) (S.L.lights_ai_test_ctx_standstill_and_full_fog_lights_percent_without_drl) (S.L.lights_ai_test_ctx_headlights_percent_without_drl) (S.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent_without_drl) (S.L.lights_ai_test_ctx_headlights_and_full_fog_lights_percent_without_drl)
+        (S.L.lights_ai_test_ctx_ext_off_percent_drl) (S.L.lights_ai_test_ctx_standstill_percent_drl) (S.L.lights_ai_test_ctx_standstill_and_head_fog_lights_percent_drl) (S.L.lights_ai_test_ctx_standstill_and_full_fog_lights_percent_drl) (S.L.lights_ai_test_ctx_headlights_percent_drl) (S.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent_drl) (S.L.lights_ai_test_ctx_headlights_and_full_fog_lights_percent_drl)
+        (S.L.lights_ai_test_ctx_ext_off_percent) (S.L.lights_ai_test_ctx_standstill_percent) (S.L.lights_ai_test_ctx_standstill_and_head_fog_lights_percent) (S.L.lights_ai_test_ctx_standstill_and_full_fog_lights_percent) (S.L.lights_ai_test_ctx_headlights_percent) (S.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent) (S.L.lights_ai_test_ctx_headlights_and_full_fog_lights_percent)
 
         (S.L.lights_ai_test_ctx_ext_on_for_seeing_percent_without_drl) (S.L.lights_ai_test_ctx_ext_on_for_seeing_reduced_percent_without_drl) (S.L.lights_ai_test_ctx_ext_on_for_seeing_adverse_percent_without_drl) (S.L.lights_ai_test_ctx_ext_on_for_being_seen_percent_without_drl)
         (S.L.lights_ai_test_ctx_ext_on_for_seeing_percent_drl) (S.L.lights_ai_test_ctx_ext_on_for_seeing_reduced_percent_drl) (S.L.lights_ai_test_ctx_ext_on_for_seeing_adverse_percent_drl) (S.L.lights_ai_test_ctx_ext_on_for_being_seen_percent_drl)
@@ -1313,10 +1313,10 @@
                 l1 2 =
                 {if}
 '                   // Standstill and head fog lights
-                    (L.L.lights_ai_test_ctx_standstill_and_front_fog_lights_percent_without_drl) 1 +
-                        (S.L.lights_ai_test_ctx_standstill_and_front_fog_lights_percent_without_drl)
-                    (L.L.lights_ai_test_ctx_standstill_and_front_fog_lights_percent) 1 +
-                        (S.L.lights_ai_test_ctx_standstill_and_front_fog_lights_percent)
+                    (L.L.lights_ai_test_ctx_standstill_and_head_fog_lights_percent_without_drl) 1 +
+                        (S.L.lights_ai_test_ctx_standstill_and_head_fog_lights_percent_without_drl)
+                    (L.L.lights_ai_test_ctx_standstill_and_head_fog_lights_percent) 1 +
+                        (S.L.lights_ai_test_ctx_standstill_and_head_fog_lights_percent)
                 {else}
                     l1 3 =
                     {if}
@@ -1337,10 +1337,10 @@
                             l1 5 =
                             {if}
 '                               // Headlights and head fog lights
-                                (L.L.lights_ai_test_ctx_headlights_and_front_fog_lights_percent_without_drl) 1 +
-                                    (S.L.lights_ai_test_ctx_headlights_and_front_fog_lights_percent_without_drl)
-                                (L.L.lights_ai_test_ctx_headlights_and_front_fog_lights_percent) 1 +
-                                    (S.L.lights_ai_test_ctx_headlights_and_front_fog_lights_percent)
+                                (L.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent_without_drl) 1 +
+                                    (S.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent_without_drl)
+                                (L.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent) 1 +
+                                    (S.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent)
                             {else}
 '                               // Headlights and head and tail fog lights
 '                               // Note: Placeholder -- this preference is currently unattainable, profile-wise.
@@ -1399,7 +1399,7 @@
         {if}
             0 (S.L.lights_ai_ai_engine)
             (M.L.lights_ai_profile_apply)
-            (L.L.lights_ai_ext_lighting_env_perception_target) -1 =
+            (L.L.lights_ai_ext_lighting_env_perception_target) -5 =
             {if}
                 (L.L.lights_ai_test_ctx_ext_off_when_engine_off_percent_without_drl) 1 +
                     (S.L.lights_ai_test_ctx_ext_off_when_engine_off_percent_without_drl)
@@ -1504,10 +1504,10 @@
                 l1 2 =
                 {if}
 '                   // Standstill and head fog lights
-                    (L.L.lights_ai_test_ctx_standstill_and_front_fog_lights_percent_drl) 1 +
-                        (S.L.lights_ai_test_ctx_standstill_and_front_fog_lights_percent_drl)
-                    (L.L.lights_ai_test_ctx_standstill_and_front_fog_lights_percent) 1 +
-                        (S.L.lights_ai_test_ctx_standstill_and_front_fog_lights_percent)
+                    (L.L.lights_ai_test_ctx_standstill_and_head_fog_lights_percent_drl) 1 +
+                        (S.L.lights_ai_test_ctx_standstill_and_head_fog_lights_percent_drl)
+                    (L.L.lights_ai_test_ctx_standstill_and_head_fog_lights_percent) 1 +
+                        (S.L.lights_ai_test_ctx_standstill_and_head_fog_lights_percent)
                 {else}
                     l1 3 =
                     {if}
@@ -1528,10 +1528,10 @@
                             l1 5 =
                             {if}
 '                               // Headlights and head fog lights
-                                (L.L.lights_ai_test_ctx_headlights_and_front_fog_lights_percent_drl) 1 +
-                                    (S.L.lights_ai_test_ctx_headlights_and_front_fog_lights_percent_drl)
-                                (L.L.lights_ai_test_ctx_headlights_and_front_fog_lights_percent) 1 +
-                                    (S.L.lights_ai_test_ctx_headlights_and_front_fog_lights_percent)
+                                (L.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent_drl) 1 +
+                                    (S.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent_drl)
+                                (L.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent) 1 +
+                                    (S.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent)
                             {else}
 '                               // Headlights and head and tail fog lights
 '                               // Note: Placeholder -- this preference is currently unattainable, profile-wise.
@@ -1590,7 +1590,7 @@
         {if}
             0 (S.L.lights_ai_ai_engine)
             (M.L.lights_ai_profile_apply)
-            (L.L.lights_ai_ext_lighting_env_perception_target) -1 =
+            (L.L.lights_ai_ext_lighting_env_perception_target) -5 =
             {if}
                 (L.L.lights_ai_test_ctx_ext_off_when_engine_off_percent_drl) 1 +
                     (S.L.lights_ai_test_ctx_ext_off_when_engine_off_percent_drl)
@@ -2107,12 +2107,12 @@
         (L.L.lights_ai_test_ctx_standstill_percent_drl) l0 / (S.L.lights_ai_test_ctx_standstill_percent_drl)
         (L.L.lights_ai_test_ctx_standstill_percent) l1 / (S.L.lights_ai_test_ctx_standstill_percent)
 
-        (L.L.lights_ai_test_ctx_standstill_and_front_fog_lights_percent_without_drl) l0 /
-            (S.L.lights_ai_test_ctx_standstill_and_front_fog_lights_percent_without_drl)
-        (L.L.lights_ai_test_ctx_standstill_and_front_fog_lights_percent_drl) l0 /
-            (S.L.lights_ai_test_ctx_standstill_and_front_fog_lights_percent_drl)
-        (L.L.lights_ai_test_ctx_standstill_and_front_fog_lights_percent) l1 /
-            (S.L.lights_ai_test_ctx_standstill_and_front_fog_lights_percent)
+        (L.L.lights_ai_test_ctx_standstill_and_head_fog_lights_percent_without_drl) l0 /
+            (S.L.lights_ai_test_ctx_standstill_and_head_fog_lights_percent_without_drl)
+        (L.L.lights_ai_test_ctx_standstill_and_head_fog_lights_percent_drl) l0 /
+            (S.L.lights_ai_test_ctx_standstill_and_head_fog_lights_percent_drl)
+        (L.L.lights_ai_test_ctx_standstill_and_head_fog_lights_percent) l1 /
+            (S.L.lights_ai_test_ctx_standstill_and_head_fog_lights_percent)
 
         (L.L.lights_ai_test_ctx_standstill_and_full_fog_lights_percent_without_drl) l0 /
             (S.L.lights_ai_test_ctx_standstill_and_full_fog_lights_percent_without_drl)
@@ -2125,12 +2125,12 @@
         (L.L.lights_ai_test_ctx_headlights_percent_drl) l0 / (S.L.lights_ai_test_ctx_headlights_percent_drl)
         (L.L.lights_ai_test_ctx_headlights_percent) l1 / (S.L.lights_ai_test_ctx_headlights_percent)
 
-        (L.L.lights_ai_test_ctx_headlights_and_front_fog_lights_percent_without_drl) l0 /
-            (S.L.lights_ai_test_ctx_headlights_and_front_fog_lights_percent_without_drl)
-        (L.L.lights_ai_test_ctx_headlights_and_front_fog_lights_percent_drl) l0 /
-            (S.L.lights_ai_test_ctx_headlights_and_front_fog_lights_percent_drl)
-        (L.L.lights_ai_test_ctx_headlights_and_front_fog_lights_percent) l1 /
-            (S.L.lights_ai_test_ctx_headlights_and_front_fog_lights_percent)
+        (L.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent_without_drl) l0 /
+            (S.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent_without_drl)
+        (L.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent_drl) l0 /
+            (S.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent_drl)
+        (L.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent) l1 /
+            (S.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent)
 
         (L.L.lights_ai_test_ctx_headlights_and_full_fog_lights_percent_without_drl) l0 /
             (S.L.lights_ai_test_ctx_headlights_and_full_fog_lights_percent_without_drl)
@@ -2884,8 +2884,8 @@
     {if}
         (L.L.lights_ai_test_status) !
         {if}
-            (L.L.lights_cti_has_head_fog_lights) (S.L.lights_ai_head_fog_lights_installed)
-            (L.L.lights_cti_has_drl) (S.L.lights_ai_drl_installed)
+            (L.L.lights_cfg_effective_has_head_fog_lights) (S.L.lights_ai_head_fog_lights_installed)
+            (L.L.lights_cfg_effective_has_drl) (S.L.lights_ai_drl_installed)
 '           // XXX: Nasty circular initialization dependency between ai_pre_cockpit, lights_ai, and cockpit. See
 '           //      explanation in ai_pre_cockpit:frame.
             (L.L.ai_pre_cockpit_initialized) 5 >=
@@ -2902,12 +2902,42 @@
     {else}
         (L.L.lights_ai_initialized) 1 =
         {if}
-            0 (S.L.lights_ai_ext_lighting_on_timer) (S.L.lights_ai_int_lighting_darker_or_on_timer) (S.L.lights_ai_ext_lighting_off_timer)
-                (S.L.lights_ai_int_lighting_brighter_or_off_timer)
             1 10000 random (M.V.NrSpecRandom) 30 * + (S.L.lights_ai_ext_lighting_darkness_tolerance)
             1 10000 random (M.V.NrSpecRandom) 30 * + (S.L.lights_ai_int_lighting_darkness_tolerance)
             300 10000 random (M.V.NrSpecRandom) 300 * + (S.L.lights_ai_ext_lighting_brightness_tolerance)
             300 10000 random (M.V.NrSpecRandom) 300 * + (S.L.lights_ai_int_lighting_brightness_tolerance)
+
+            0 (S.L.lights_ai_arrived_at_prolonged_stop) (S.L.lights_ai_prolonged_stop_fast_headlight_deactivation)
+
+            (L.L.ai_pre_cockpit_initial_spawn_as_ai_vehicle) 1 = (L.L.lights_ai_test_status) ||
+            {if}
+                0 (S.L.lights_ai_ext_lighting_on_timer) (S.L.lights_ai_int_lighting_darker_or_on_timer) (S.L.lights_ai_ext_lighting_off_timer)
+                    (S.L.lights_ai_int_lighting_brighter_or_off_timer)
+            {else}
+                (L.L.cp_light_sw) s0
+                {if}
+                    l0 2 =
+                    {if}
+                        4
+                    {else}
+                        1
+                    {endif}
+                    (L.L.cp_fog_light_sw) +
+                {else}
+                    0
+                {endif}
+                (S.L.lights_ai_ext_lighting)
+                (L.L.cp_passenger_light_sw) (S.L.lights_ai_int_lighting)
+
+                -5 (S.L.lights_ai_ext_lighting_env_perception)
+                -1 (S.L.lights_ai_int_lighting_env_perception)
+
+                1 10000 random (M.V.NrSpecRandom) 4 * + (S.L.lights_ai_ext_lighting_on_timer)
+                1 10000 random (M.V.NrSpecRandom) 4 * + (S.L.lights_ai_int_lighting_darker_or_on_timer)
+                1 10000 random (M.V.NrSpecRandom) 4 * + (S.L.lights_ai_ext_lighting_off_timer)
+                1 10000 random (M.V.NrSpecRandom) 4 * + (S.L.lights_ai_int_lighting_brighter_or_off_timer)
+            {endif}
+
             2 (S.L.lights_ai_initialized)
         {else}
             (L.L.lights_ai_initialized) !
@@ -3153,25 +3183,34 @@
                 (L.L.lights_ai_precip_type) 2 = l5 -1 = (L.L.lights_ai_env_wetness) l5 <= || && || &&
                 l1 91 = ! &&
             {if}
-                -1 (S.L.lights_ai_ext_lighting_env_perception_target)
+                -5 (S.L.lights_ai_ext_lighting_env_perception_target)
                 0 (S.L.lights_ai_ext_lighting_target)
             {else}
-                (L.L.ai_pre_cockpit_engine_target) (L.L.ai_pre_cockpit_transmission_target) ! &&
+                (L.L.ai_pre_cockpit_transmission_target) ! (L.L.lights_ai_test_status) ! &&
                 {if}
-                    -1 (S.L.lights_ai_ext_lighting_env_perception_target)
-                    (L.L.lights_ai_ext_lighting_env_perception) 4 =
+                    (L.L.ai_pre_cockpit_engine_target) (L.L.lights_ai_ext_lighting_env_perception) s0 0 < l0 -5 > && ||
                     {if}
-                        2
-                    {else}
-                        1
+                        -5 (L.L.lights_ai_ext_lighting_env_perception_target) + (S.L.lights_ai_ext_lighting_env_perception_target) -1 =
+                            (L.L.lights_ai_ext_lighting_target) 6 = &&
+                        {if}
+                            3
+                        {else}
+                            1 (L.L.lights_ai_ext_lighting_target) min
+                        {endif}
+                        (S.L.lights_ai_ext_lighting_target)
                     {endif}
-                    (L.L.lights_ai_ext_lighting) min (S.L.lights_ai_ext_lighting_target)
                 {endif}
             {endif}
 
-            (L.L.lights_ai_arrived_at_prolonged_stop) ! (L.L.lights_ai_ext_lighting_env_perception_target) (L.L.lights_ai_ext_lighting_env_perception) < &&
+            (L.L.lights_ai_arrived_at_prolonged_stop) ! (L.L.ai_pre_cockpit_engine_target) (L.L.lights_ai_ext_lighting) 4 >= &&
+                (L.L.lights_ai_prolonged_stop_fast_headlight_deactivation) ! && s0 || (L.L.lights_ai_ext_lighting_env_perception_target)
+                (L.L.lights_ai_ext_lighting_env_perception) < &&
             {if}
-                (L.L.lights_ai_ext_lighting_off_timer) 10000 random 10000 / 15 * min (S.L.lights_ai_ext_lighting_off_timer)
+                (L.L.lights_ai_ext_lighting_off_timer) 0.3 10000 random 10000 / 15 * + min (S.L.lights_ai_ext_lighting_off_timer)
+                l0
+                {if}
+                    1 (S.L.lights_ai_prolonged_stop_fast_headlight_deactivation)
+                {endif}
             {endif}
 
             (L.L.lights_ai_int_lighting_off_when_engine_off_min_sun_alt) s0 91 = !
@@ -3189,7 +3228,7 @@
                             (L.L.lights_ai_env_brightness) l1 < l1 -1 = ! && ||
                             (L.L.lights_ai_int_lighting_off_when_engine_off_env_override_if_no_passengers_on_board) (L.L.humans_count) && &&
                         {if}
-                            (L.L.lights_ai_int_lighting_darker_or_on_timer) 10000 random 10000 / 15 * min (S.L.lights_ai_int_lighting_darker_or_on_timer)
+                            (L.L.lights_ai_int_lighting_darker_or_on_timer) 0.3 10000 random 10000 / 15 * + min (S.L.lights_ai_int_lighting_darker_or_on_timer)
                         {endif}
                     {endif}
                 {endif}
@@ -3197,14 +3236,14 @@
 
             (L.L.lights_ai_arrived_at_prolonged_stop) ! (L.L.lights_ai_int_lighting_env_perception) && (L.L.lights_ai_int_lighting_env_perception_target) ! &&
             {if}
-                (L.L.lights_ai_int_lighting_brighter_or_off_timer) 10000 random 10000 / 15 * min (S.L.lights_ai_int_lighting_brighter_or_off_timer)
+                (L.L.lights_ai_int_lighting_brighter_or_off_timer) 0.3 10000 random 10000 / 15 * + min (S.L.lights_ai_int_lighting_brighter_or_off_timer)
             {endif}
 
             1 (S.L.lights_ai_arrived_at_prolonged_stop)
         {else}
             (L.L.lights_ai_ai_engine) (L.L.lights_ai_arrived_at_prolonged_stop) &&
             {if}
-                (L.L.lights_ai_ext_lighting_env_perception_target) (L.L.lights_ai_ext_lighting_env_perception) -1 = &&
+                (L.L.lights_ai_ext_lighting_env_perception_target) (L.L.lights_ai_ext_lighting_env_perception) 0 < &&
                 {if}
                     (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic)
                     {if}
@@ -3218,10 +3257,10 @@
                 (L.L.lights_ai_int_lighting_env_perception_target) (L.L.lights_ai_int_lighting_env_perception) -1 = &&
                     (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic) ! &&
                 {if}
-                    (L.L.lights_ai_int_lighting_darker_or_on_timer) 10000 random 10000 / 15 * min (S.L.lights_ai_int_lighting_darker_or_on_timer)
+                    (L.L.lights_ai_int_lighting_darker_or_on_timer) 0.3 10000 random 10000 / 15 * + min (S.L.lights_ai_int_lighting_darker_or_on_timer)
                 {endif}
 
-                0 (S.L.lights_ai_arrived_at_prolonged_stop)
+                0 (S.L.lights_ai_arrived_at_prolonged_stop) (S.L.lights_ai_prolonged_stop_fast_headlight_deactivation)
             {endif}
         {endif}
     {endif}
@@ -3256,7 +3295,7 @@
             {if}
                 -1 (S.L.lights_ai_int_lighting_env_perception_target)
                 0 (S.L.lights_ai_int_lighting_target)
-                (L.L.lights_ai_int_lighting_brighter_or_off_timer) 10000 random 10000 / 15 * min (S.L.lights_ai_int_lighting_brighter_or_off_timer)
+                (L.L.lights_ai_int_lighting_brighter_or_off_timer) 0.3 10000 random 10000 / 15 * + min (S.L.lights_ai_int_lighting_brighter_or_off_timer)
             {endif}
         {endif}
     {endif}
@@ -3280,7 +3319,8 @@
             (L.L.lights_ai_ext_lighting_target) (S.L.lights_ai_ext_lighting)
             1 10000 random 10000 / 30 * + (S.L.lights_ai_ext_lighting_darkness_tolerance) (S.L.lights_ai_ext_lighting_on_timer)
             300 10000 random 10000 / 300 * + (S.L.lights_ai_ext_lighting_brightness_tolerance)
-            (L.L.lights_ai_int_lighting_darker_or_on_timer) (L.L.lights_ai_int_lighting_darkness_tolerance) < (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic) ! &&
+            (L.L.lights_ai_int_lighting_darker_or_on_timer) (L.L.lights_ai_int_lighting_darkness_tolerance) <
+                (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic) ! &&
             {if}
                 (L.L.lights_ai_int_lighting_darker_or_on_timer) 0.3 10000 random 10000 / 2 * + min (S.L.lights_ai_int_lighting_darker_or_on_timer)
             {endif}
@@ -3299,7 +3339,8 @@
                 (L.L.lights_ai_ext_lighting_target) (S.L.lights_ai_ext_lighting)
                 1 10000 random 10000 / 30 * + (S.L.lights_ai_ext_lighting_darkness_tolerance)
                 300 10000 random 10000 / 300 * + (S.L.lights_ai_ext_lighting_brightness_tolerance) (S.L.lights_ai_ext_lighting_off_timer)
-                (L.L.lights_ai_int_lighting_brighter_or_off_timer) (L.L.lights_ai_int_lighting_brightness_tolerance) <
+                (L.L.lights_ai_int_lighting_brighter_or_off_timer) s0 (L.L.lights_ai_int_lighting_brightness_tolerance) s1 <
+                    (L.L.lights_ai_prolonged_stop_fast_headlight_deactivation) ! l0 l1 2 / < || &&
                 {if}
                     (L.L.lights_ai_int_lighting_brighter_or_off_timer) 0.3 10000 random 10000 / 2 * + min (S.L.lights_ai_int_lighting_brighter_or_off_timer)
                 {endif}
@@ -3315,7 +3356,9 @@
     {if}
         l1 1 = ! l2 &&
         {if}
-            (L.L.lights_ai_int_lighting_darker_or_on_timer) s0 (L.L.ai_pre_cockpit_passenger_window_adjustment_phase) ! (L.L.lights_ai_int_lighting_env_perception) -1 = ! (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic) ! || (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic) -1 = (L.L.ai_pre_cockpit_stop_phase) 3 >= && || && (L.L.lights_ai_test_status) || &&
+            (L.L.lights_ai_int_lighting_darker_or_on_timer) s0 (L.L.ai_pre_cockpit_passenger_window_adjustment_phase) !
+                (L.L.lights_ai_int_lighting_env_perception) -1 = ! (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic) ! ||
+                (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic) -1 = (L.L.ai_pre_cockpit_stop_phase) 3 >= && || && (L.L.lights_ai_test_status) || &&
             {if}
                 l0 (L.L.ai_pre_cockpit_ai_timegap) - 0 max (S.L.lights_ai_int_lighting_darker_or_on_timer) s0
             {endif}

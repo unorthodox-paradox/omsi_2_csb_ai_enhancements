@@ -1,4 +1,12 @@
 [const]
+wiper_cfg_default_wipers_require_full_elec
+1
+
+[const]
+wiper_cfg_no_cti_override_wipers_require_full_elec
+0
+
+[const]
 rain_wiper_eff
 1
 

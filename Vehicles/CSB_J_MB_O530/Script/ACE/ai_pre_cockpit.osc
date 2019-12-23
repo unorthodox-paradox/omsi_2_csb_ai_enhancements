@@ -10,7 +10,7 @@
 ' OMSI version                                    : 2.2.032 ~ 2.3.004
 ' CSB modification version                        : 1.40
 ' Supported CSB vehicles                          : ETP 3, ETP 11
-' ACE modification version                        : 1.5.2
+' ACE modification version                        : 1.5.3
 '
 '==============================================================================
 '
@@ -216,20 +216,25 @@
 '                           // door wings open manually, then close the valve if open, so that door is anew in a state
 '                           // that the ai_pre_cockpit_stop macro can subsequently handle as usual (via the cockpit
 '                           // door buttons).
-                            (L.L.door_01_nothahn_sw) d ! (L.L.door_0) 0.2 >= (L.L.door_0) 0.8 <= &&
-                                (L.L.doorSpeed_0) ! && (L.L.door_1) 0.2 >= (L.L.door_1) 0.8 <= &&
-                                (L.L.doorSpeed_1) ! && || && ||
+                            (L.L.door_01_nothahn) (L.L.door_0) 0.2 >= (L.L.door_0) 0.8 <= &&
+                                (L.L.door_1) 0.2 >= (L.L.door_1) 0.8 <= && || &&
                             {if}
-                                0 (S.L.door_01_nothahn_sw)
+                                (L.L.door_01_nothahn_sw)
+                                {if}
+                                    0 (S.L.door_01_nothahn_sw)
+                                {endif}
                                 (T.L.ev_nothahn01_zu)
                                 1 (S.L.door_0_soll) (S.L.door_1_soll)
                                     (S.L.ai_pre_cockpit_door_01_sw_target_init_override)
                             {endif}
-                            (L.L.door_23_nothahn_sw) d ! (L.L.door_2) 0.2 >= (L.L.door_2) 0.8 <= &&
-                                (L.L.doorSpeed_2) ! && (L.L.door_3) 0.2 >= (L.L.door_3) 0.8 <= &&
-                                (L.L.doorSpeed_3) ! && || && ||
+'                           // XXX: #18
+                            (L.L.door_23_nothahn) (L.L.door_2) 0.2 >= (L.L.door_2) 0.8 <= &&
+                                (L.L.door_3) 0.2 >= (L.L.door_3) 0.8 <= && || &&
                             {if}
-                                0 (S.L.door_23_nothahn_sw)
+                                (L.L.door_23_nothahn_sw)
+                                {if}
+                                    0 (S.L.door_23_nothahn_sw)
+                                {endif}
                                 (T.L.ev_nothahn23_zu)
                                 1 (S.L.door_2_soll) (S.L.door_3_soll)
                                     (S.L.ai_pre_cockpit_door_23_sw_target_init_override)
@@ -302,13 +307,6 @@
                                 0 (S.L.obd_info_mode) (S.L.obd_system_mode) (S.L.comp_button_qiut_mode)
                                 (T.L.ev_VDV_toggle_on)
                                 (T.L.ev_VDV_toggle_off)
-                            {endif}
-
-'                           // Stop brake override
-                            (L.L.cp_not_aus_sw)
-                            {if}
-                                0 (S.L.cp_not_aus_sw)
-                                (T.L.ev_VDV_off)
                             {endif}
 
 '                           // Dashboard angle adjustment
@@ -392,7 +390,7 @@
                                 (L.L.AI_Scheduled_AtStation) -1 = (L.L.AI_Scheduled_AtStation) !
                                 (L.L.ai_pre_cockpit_stop_phase) && || (L.L.velocity) 0.5 > && ||
                                 (L.L.velocity) (L.L.ai_pre_cockpit_stop_last_run_velocity) - abs 5 > ||
-                                (L.L.antrieb_getr_gangvorwahl) 4 = (L.L.antrieb_getr_aktugang) ! &&
+                                (L.L.antrieb_getr_gangvorwahl) 5 = (L.L.antrieb_getr_aktugang) ! &&
                                 (L.L.velocity) 0.5 > && ||
                             {if}
                                 4 (S.L.ai_pre_cockpit_stop_phase)
@@ -549,12 +547,21 @@
                 (T.L.ev_bremse_feststell_ein)
             {endif}
 '           // Disengage gear
-            (L.L.cockpit_gang3) (L.L.cockpit_gangR) ||
+            (L.L.cockpit_gang1) (L.L.cockpit_gang2) || (L.L.cockpit_gang3) || (L.L.cockpit_gangD) ||
+                (L.L.cockpit_gangR) ||
+            {if}
+                (L.L.cp_cfg_effective_has_engaging_neutral_transmission_mode_selector)
+                {if}
+                    0.7 (S.L.cockpit_gangN)
+                    (T.L.ev_gangwahltaster)
+                {endif}
+                0 (S.L.cockpit_gang1) (S.L.cockpit_gang2) (S.L.cockpit_gang3) (S.L.cockpit_gangD) (S.L.cockpit_gangR)
+                (T.L.ev_gangwahltaster_N)
+            {endif}
+            (L.L.antrieb_getr_gangvorwahl) 1 = !
             {if}
                 1 (S.L.antrieb_getr_gangvorwahl)
-                0 (S.L.cockpit_gang3) (S.L.cockpit_gangR)
-                (T.L.ev_gangwahltaster_N)
-                (L.S.GetTime) (C.L.antrieb_gangwahlzeit) 0.1 + - (S.L.antrieb_getr_gangwahlzeitpunkt)
+                0 (S.L.antrieb_getr_initial_shift_delay_timer)
             {endif}
 '           // Rotate ignition key back to position 1 / primary electrics on / "ACC" if at a greater position
             (L.L.key_mode) 3 >=
@@ -2040,7 +2047,8 @@
     (L.L.humans_count) 20 > s3
     (L.L.cp_passenger_window_1_l) s4
 
-    (L.L.ai_pre_cockpit_passenger_group_1_l_env_perception_wet) ! (L.L.cp_cti_has_openable_passenger_windows) &&
+    (L.L.ai_pre_cockpit_passenger_group_1_l_env_perception_wet) !
+        (L.L.cp_cfg_effective_has_openable_passenger_windows) &&
     {if}
         (L.L.ai_pre_cockpit_passenger_group_1_l_env_perception_chilly)
             (L.L.ai_pre_cockpit_passenger_group_1_l_env_perception_nighttime) ! &&
@@ -2163,7 +2171,8 @@
         {endif}
     {endif}
     l0 (S.L.ai_pre_cockpit_passenger_group_1_l_window_target) (L.L.cp_passenger_window_1_l) = !
-        (L.L.cp_cti_has_openable_passenger_windows) && (L.L.ai_pre_cockpit_passenger_group_1_l_window_target) 1 =
+        (L.L.cp_cfg_effective_has_openable_passenger_windows) &&
+        (L.L.ai_pre_cockpit_passenger_group_1_l_window_target) 1 =
         (L.L.cp_passenger_window_1_l_locked) ! && (L.L.ai_pre_cockpit_passenger_group_1_l_window_target) ! || &&
     {if}
         (L.L.ai_pre_cockpit_passenger_group_1_l_window_timer) -1 =
@@ -2415,7 +2424,8 @@
     (L.L.humans_count) 20 > s3
     (L.L.cp_passenger_window_1_r) s4
 
-    (L.L.ai_pre_cockpit_passenger_group_1_r_env_perception_wet) ! (L.L.cp_cti_has_openable_passenger_windows) &&
+    (L.L.ai_pre_cockpit_passenger_group_1_r_env_perception_wet) !
+        (L.L.cp_cfg_effective_has_openable_passenger_windows) &&
     {if}
         (L.L.ai_pre_cockpit_passenger_group_1_r_env_perception_chilly)
             (L.L.ai_pre_cockpit_passenger_group_1_r_env_perception_nighttime) ! &&
@@ -2538,7 +2548,8 @@
         {endif}
     {endif}
     l0 (S.L.ai_pre_cockpit_passenger_group_1_r_window_target) (L.L.cp_passenger_window_1_r) = !
-        (L.L.cp_cti_has_openable_passenger_windows) && (L.L.ai_pre_cockpit_passenger_group_1_r_window_target) 1 =
+        (L.L.cp_cfg_effective_has_openable_passenger_windows) &&
+        (L.L.ai_pre_cockpit_passenger_group_1_r_window_target) 1 =
         (L.L.cp_passenger_window_1_r_locked) ! && (L.L.ai_pre_cockpit_passenger_group_1_r_window_target) ! || &&
     {if}
         (L.L.ai_pre_cockpit_passenger_group_1_r_window_timer) -1 =
@@ -2799,7 +2810,8 @@
     (L.L.humans_count) 20 > s3
     (L.L.cp_passenger_window_2_l) s4
 
-    (L.L.ai_pre_cockpit_passenger_group_2_l_env_perception_wet) ! (L.L.cp_cti_has_openable_passenger_windows) &&
+    (L.L.ai_pre_cockpit_passenger_group_2_l_env_perception_wet) !
+        (L.L.cp_cfg_effective_has_openable_passenger_windows) &&
     {if}
         (L.L.ai_pre_cockpit_passenger_group_2_l_env_perception_chilly)
             (L.L.ai_pre_cockpit_passenger_group_2_l_env_perception_nighttime) ! &&
@@ -2922,7 +2934,8 @@
         {endif}
     {endif}
     l0 (S.L.ai_pre_cockpit_passenger_group_2_l_window_target) (L.L.cp_passenger_window_2_l) = !
-        (L.L.cp_cti_has_openable_passenger_windows) && (L.L.ai_pre_cockpit_passenger_group_2_l_window_target) 1 =
+        (L.L.cp_cfg_effective_has_openable_passenger_windows) &&
+        (L.L.ai_pre_cockpit_passenger_group_2_l_window_target) 1 =
         (L.L.cp_passenger_window_2_l_locked) ! && (L.L.ai_pre_cockpit_passenger_group_2_l_window_target) ! || &&
     {if}
         (L.L.ai_pre_cockpit_passenger_group_2_l_window_timer) -1 =
@@ -3183,7 +3196,8 @@
     (L.L.humans_count) 20 > s3
     (L.L.cp_passenger_window_2_r) s4
 
-    (L.L.ai_pre_cockpit_passenger_group_2_r_env_perception_wet) ! (L.L.cp_cti_has_openable_passenger_windows) &&
+    (L.L.ai_pre_cockpit_passenger_group_2_r_env_perception_wet) !
+        (L.L.cp_cfg_effective_has_openable_passenger_windows) &&
     {if}
         (L.L.ai_pre_cockpit_passenger_group_2_r_env_perception_chilly)
             (L.L.ai_pre_cockpit_passenger_group_2_r_env_perception_nighttime) ! &&
@@ -3306,7 +3320,8 @@
         {endif}
     {endif}
     l0 (S.L.ai_pre_cockpit_passenger_group_2_r_window_target) (L.L.cp_passenger_window_2_r) = !
-        (L.L.cp_cti_has_openable_passenger_windows) && (L.L.ai_pre_cockpit_passenger_group_2_r_window_target) 1 =
+        (L.L.cp_cfg_effective_has_openable_passenger_windows) &&
+        (L.L.ai_pre_cockpit_passenger_group_2_r_window_target) 1 =
         (L.L.cp_passenger_window_2_r_locked) ! && (L.L.ai_pre_cockpit_passenger_group_2_r_window_target) ! || &&
     {if}
         (L.L.ai_pre_cockpit_passenger_group_2_r_window_timer) -1 =
@@ -3352,7 +3367,7 @@
 '  //   attempt boarding via the front door by default, i.e., unless rear door opened while front closed.
 '  // - [entry] registrations come without {withbutton}.
 '  // - The front door may or may not be coupled to the stop brake, depending on the value of
-'  //   door_cti_front_door_decoupled_from_stop_brake. The rear door is always coupled to the stop brake.
+'  //   door_cfg_effective_front_door_decoupled_from_stop_brake. The rear door is always coupled to the stop brake.
 '  // - Doors can be opened when absolute velocity < tueroeffnung constant. There is no constraint, velocity-wise,
 '  //   with regards to door closure.
 
@@ -3837,7 +3852,8 @@
 '       //   - the vehicle has been stopped sufficiently long (driver's foot tired from keeping brake pedal pushed).
         (L.L.ai_pre_cockpit_stop_phase) 3 < (L.L.velocity) (C.L.Door_Bremse_Halte_MaxKMH) < && (L.L.bremse_halte) ! &&
             (L.L.ai_pre_cockpit_door_23_sw_target) 1 = ! && (L.L.ai_pre_cockpit_door_01_sw_target) 1 =
-            (L.L.doorTarget_0) || (L.L.doorTarget_1) || (L.L.door_cti_front_door_decoupled_from_stop_brake) &&
+            (L.L.doorTarget_0) || (L.L.doorTarget_1) ||
+            (L.L.door_cfg_effective_front_door_decoupled_from_stop_brake) &&
             (L.L.ai_pre_cockpit_stop_unconditional_stop_brake_engagement_delay) s0 -1 = !
             (L.L.ai_pre_cockpit_stop_arrival_timer) l0 > && || &&
         {if}
@@ -3986,6 +4002,7 @@
 '           // Edge cases - immediate closure:
 '           // - If stop phase anomaly detected.
 '           // - If user had triggered emergency opening valve prior to takeover.
+'           // XXX: #18
             (L.L.ai_pre_cockpit_stop_phase) 3 = (L.L.engine_revs_since_start) 100 >
                 (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic) 1 = (L.L.engine_on) && || &&
                 (L.L.ai_pre_cockpit_engine_target) && (L.L.ai_pre_cockpit_passenger_window_adjustment_phase) ! &&
@@ -4018,6 +4035,7 @@
         {endif}
 
 '       // Drag rear door ramp closed if it had been dragged open by user prior to AI takeover.
+'       // XXX: #18
         (L.L.pandus_pos) 0.2 > (L.L.door_2) 0.9 > && (L.L.door_3) 0.9 > &&
         {if}
             1 (S.L.pandus_dragged)
@@ -4151,7 +4169,7 @@
                     (L.L.doorTarget_23_delayed) ! (L.L.ai_pre_cockpit_door_23_sw_target) -1 =
                     (L.L.ai_pre_cockpit_door_23_sw_timer) -1 = ! && || && (L.L.engine_on) &&
                     (L.L.engine_revs_since_start) 100 > (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic) 1 = || &&
-                    (L.L.ai_pre_cockpit_engine_target) && (L.L.antrieb_getr_gangvorwahl) 4 = &&
+                    (L.L.ai_pre_cockpit_engine_target) && (L.L.antrieb_getr_gangvorwahl) 5 = &&
                     (L.L.ai_pre_cockpit_transmission_target) && (L.L.bremse_feststell) ! &&
                     (L.L.ai_pre_cockpit_handbrake_target) ! &&
                     (L.L.ai_pre_cockpit_main_sun_blind_adjustment_timer) -1 =
@@ -4224,7 +4242,7 @@
 '       //      succeeds more often than it fails and that is why it has been introduced, contrasted to the alternative
 '       //      of instantly releasing the stop brake when asked by the game to move again, which, while indeed more
 '       //      "fault-tolerant", would also deprive the behavior of much-needed realism, since an actual human does
-'       //      needs a second or two to react.
+'       //      need a second or two to react.
 
 '       // 0 -> 1 (cycling prevention transition): Stop brake can only be reengaged after having throttled at least a
 '       // bit since the last standstill where it had been engaged.
@@ -4540,7 +4558,7 @@
 '                       //   passengers on board, constituting a safety risk.
                         10000 random 10000 / l0 (L.L.ai_pre_cockpit_stop_prolonging_heuristic)
                             (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic) 1 =
-                            (L.L.door_cti_front_door_decoupled_from_stop_brake) ! * +
+                            (L.L.door_cfg_effective_front_door_decoupled_from_stop_brake) ! * +
                             (L.L.ai_pre_cockpit_passengers_seated_close_to_front_door) +
                             (L.L.ai_pre_cockpit_passengers_relocating_close_to_front_door) +
                             (L.L.ai_pre_cockpit_passengers_standing) + (L.L.humans_count)
@@ -4566,7 +4584,7 @@
 '                           // - the front door being coupled to stop brake.
                             (L.L.ai_pre_cockpit_env_perception) s2 400 < l2 600 >= ||
                                 (L.L.ai_pre_cockpit_env_perception_wet) || 10000 random 10000 / 0.75 < ||
-                                (L.L.door_cti_front_door_decoupled_from_stop_brake) ! ||
+                                (L.L.door_cfg_effective_front_door_decoupled_from_stop_brake) ! ||
                                 (L.L.lights_ai_env_brightness) 0.75 < (L.L.ai_pre_cockpit_env_perception_nighttime) ||
                                 (L.L.cp_light_sw) && 10000 random 10000 / 0.85 < && ||
                             {if}
@@ -4816,7 +4834,7 @@
 '   // departed.
 '   // * With the exception of the two starred criteria, which, unfortunately, cannot be safely evaluated by vehicles
 '   //   _not_ within the user's focus (OMSI fails to correctly communicate to scripts seat allocation in this case).
-    (L.L.door_cti_front_door_decoupled_from_stop_brake)
+    (L.L.door_cfg_effective_front_door_decoupled_from_stop_brake)
     {if}
         (L.L.ai_pre_cockpit_env_perception_wet) ! (L.L.ai_pre_cockpit_env_perception) s1 400 >= && l1 600 < &&
             (L.L.ai_pre_cockpit_door_pc_factor) 0.65 < && (L.L.humans_count)
@@ -5037,7 +5055,7 @@
     (L.L.cp_taster_klima) (S.L.ai_pre_cockpit_passenger_ac_activation_sw_target)
     (L.L.cp_heizluefter_sw) (S.L.ai_pre_cockpit_cabin_heater_activation_sw_target)
     (L.L.engine_on) (S.L.ai_pre_cockpit_engine_target)
-    (L.L.antrieb_getr_gangvorwahl) 4 = (S.L.ai_pre_cockpit_transmission_target)
+    (L.L.antrieb_getr_gangvorwahl) 5 = (S.L.ai_pre_cockpit_transmission_target)
     (L.L.bremse_feststell) (S.L.ai_pre_cockpit_handbrake_target)
     (L.L.cockpit_wischer_drehschalter_mode) (S.L.ai_pre_cockpit_wiper_sw_target)
     (L.L.lights_sw_blinker) (S.L.ai_pre_cockpit_indicator_sw_target)
@@ -5082,7 +5100,7 @@
 '   //   1. "front wing locked": 70%
 '   //   2. "rear wing locked": 30% (remainder)
 '   // XXX: #21
-    (L.L.cp_cti_has_door_wing_lock_switch)
+    (L.L.cp_cfg_effective_has_door_wing_lock_switch)
     {if}
         (L.L.ai_pre_cockpit_door_lock_usage_scope)
         {if}
@@ -5338,7 +5356,7 @@
 '           // Otherwise wait for ai_pre_cockpit_engine_transmission_handbrake macro to rotate ignition key to a
 '           // position allowing driver window operation.
             (L.L.ai_pre_cockpit_driver_window_sw_timer) 0 > (L.L.cp_key_rot) 0.4 >=
-                (L.L.cp_cti_driver_window_requires_full_elec) ! || &&
+                (L.L.cp_cfg_effective_driver_window_requires_full_elec) ! || &&
             {if}
                 (L.L.ai_pre_cockpit_driver_window_sw_timer) (L.L.ai_pre_cockpit_ai_timegap) - 0 max
                     (S.L.ai_pre_cockpit_driver_window_sw_timer)
@@ -5642,7 +5660,7 @@
 '   //      - P-7: P-6 and 20%
 '   //   8. < default / any other >
 '   //      - P-8: 0%
-    (L.L.cp_cti_has_hatch_switch)
+    (L.L.cp_cfg_effective_has_hatch_switch)
     {if}
         (L.L.ai_pre_cockpit_initialized) 5 < (L.L.ai_pre_cockpit_env_perception_changed) ||
         {if}
@@ -5698,7 +5716,7 @@
 '           // position allowing hatch operation.
             (L.L.ai_pre_cockpit_hatch_sw_timer) -1 =
                 (L.L.ai_pre_cockpit_passenger_window_adjustment_phase) ! && (L.L.cp_key_rot) 0.4 >=
-                (L.L.cp_cti_hatches_require_full_elec) ! || &&
+                (L.L.cp_cfg_effective_hatches_require_full_elec) ! || &&
             {if}
                 5 10000 random 10000 / 10 * + (S.L.ai_pre_cockpit_hatch_sw_timer)
             {endif}
@@ -6152,7 +6170,8 @@
     {if}
 '       // Instant adjustments during initialization (edge cases):
 '       // - Activate electrics if off.
-'       // - If transmission mode "D", and engine not running, or "R", and engine running, switch mode to "N".
+'       // - If transmission mode "D", and engine not running, or transmission mode neither "N" nor "D" (and engine
+'       //   running), immediately switch mode to "N".
         (L.L.key_mode) 2 <
         {if}
             (L.L.key_mode) !
@@ -6164,23 +6183,48 @@
             0.2 (S.L.cp_key_rot)
             1 (S.L.cp_key_pull) (S.L.vdv_on) (S.L.elec_busbar_main_sw)
         {endif}
-        (L.L.antrieb_getr_gangvorwahl) ! (L.L.antrieb_getr_gangvorwahl) 4 = (L.L.engine_on) ! && ||
+        (L.L.antrieb_getr_gangvorwahl) 5 = (L.L.engine_on) ! && s1 (L.L.antrieb_getr_gangvorwahl) 1 = !
+            (L.L.antrieb_getr_gangvorwahl) 5 = ! && ||
         {if}
-            (L.S.GetTime) (C.L.antrieb_gangwahlzeit) 0.1 + - (S.L.antrieb_getr_gangwahlzeitpunkt)
             1 (S.L.antrieb_getr_gangvorwahl)
-            (L.L.cockpit_gang3) (L.L.cockpit_gangR) ||
-            {if}
-                0 (S.L.cockpit_gang3) (S.L.cockpit_gangR)
-                (T.L.ev_gangwahltaster_N)
-            {endif}
+            0 (S.L.antrieb_getr_initial_shift_delay_timer)
         {endif}
+        (L.L.cockpit_gang1) (L.L.cockpit_gang2) || (L.L.cockpit_gang3) || (L.L.cockpit_gangD) l1 && s1 ||
+            (L.L.cockpit_gangR) ||
+        {if}
+            (L.L.cp_cfg_effective_has_engaging_neutral_transmission_mode_selector)
+            {if}
+                0.7 (S.L.cockpit_gangN)
+                (T.L.ev_gangwahltaster)
+            {endif}
+            0 (S.L.cockpit_gang1) (S.L.cockpit_gang2) (S.L.cockpit_gang3) (S.L.cockpit_gangR)
+            l1
+            {if}
+                0 (S.L.cockpit_gangD)
+            {endif}
+            (T.L.ev_gangwahltaster_N)
+        {endif}
+
+        900000 (S.L.bremse_p_tank01) (S.L.bremse_p_tank02) (S.L.bremse_p_tank03) (S.L.bremse_p_tank04)
+            (S.L.bremse_p_leitung01) (S.L.bremse_p_leitung02)
+        400000 (S.L.bremse_p_balg_0_R) (S.L.bremse_p_balg_0_L) (S.L.bremse_p_balg_1_R) (S.L.bremse_p_balg_1_L)
     {endif}
 
     (L.L.ai_pre_cockpit_stop_phase) s1 ! l1 3 >= || (L.L.ai_pre_cockpit_initialized) 5 <
         (L.L.ai_pre_cockpit_initial_spawn_as_ai_vehicle) 1 = && s2 || s3
     l1 ! l1 4 = || l2 || s4
 
-'   // ----- Engine adjustment scheduling -----
+'   // ----- A. Determine logical engine, transmission, and handbrake target states, based purely on OMSI stop context
+'   //       (arrival versus departure) and environmental perception. Disregard any physical/mechanical constraints and
+'   //       transient / edge cases* for now, to keep the ai_pre_cockpit_[engine|transmission|handbrake]_target
+'   //       variables as pure as possible, semantically, for other code to easily reuse. -----
+'   //       * Example physical constraint disregarded here: The engine cannot be ignited before the transmission mode
+'   //         is "N". Still, this doesn't change the fact that the engine is to be turned on.
+'   //       * Example transient case disregarded here: To adjust the driver window while the engine is not running,
+'   //         the AI may have to increase the electrics mode, by rotating the ignition key to a greater position.
+'   //         Still, this doesn't change the fact that the engine is to be turned off.
+
+'   // ----- Determine logical engine target -----
 
 '   // Turn engine off if:
 '   // - Currently at a scheduled stop; and
@@ -6194,7 +6238,7 @@
     {if}
         (L.L.ai_pre_cockpit_engine_target)
         {if}
-'           // Non-initialization / non-post-hibernation: Adjustment delayed by 7~20 sec
+'           // Non-initialization / non-post-hibernation: Delayed adjustment
             -1 (S.L.ai_pre_cockpit_engine_timer)
             0 (S.L.ai_pre_cockpit_engine_target)
         {endif}
@@ -6213,19 +6257,7 @@
 '                   // Initialization or post-hibernation: Instant adjustment
                     0
                 {else}
-'                   // Non-initialization / non-post-hibernation:
-'                   // There are two delays, one after which the ignition key is rotated from position 1 to
-'                   // position 2 (d1), and another one after which the ignition key is rotated from position 2 to
-'                   // position 3 (d2). These are set depending on context.
-'                   // - In the context of a regular (non-parking-maneuver-style) departure or due to perceived
-'                   //   temperature change:
-'                   //   - d1: 2~7 sec.
-'                   //   - s2:
-'                   //     - 0.15~1 sec, in 70% of all engine ignition cases.
-'                   //     - 3~10 sec, otherwise.
-'                   // - In the context of a parking-maneuver-style departure:
-'                   //   - d1: 1~3 sec.
-'                   //   - d2: 0.15~1 sec.
+'                   // Non-initialization / non-post-hibernation: Delayed adjustment
                     -1
                 {endif}
                 (S.L.ai_pre_cockpit_engine_timer)
@@ -6234,9 +6266,9 @@
         {endif}
     {endif}
 
-'   // ----- Transmission and handbrake adjustment scheduling -----
+'   // ----- Determine logical transmission and handbrake targets -----
 
-'   // Set transmission mode to "N" if currently "D" and:
+'   // Set transmission mode to "N", if currently "D", and:
 '   // - Currently at a scheduled stop; and
 '   // - OMSI instructs that the engine be switched off.
 '   // Under the same two conditions also engage handbrake if disengaged.
@@ -6245,25 +6277,21 @@
     {if}
         (L.L.ai_pre_cockpit_transmission_target)
         {if}
-'           // Non-initialization / non-post-hibernation: Adjustment delayed as follows:
-'           // - In the context of a regular departure: 1~5 sec
-'           // - In the context of a parking-maneuver-style departure: 0.3~3 sec
+'           // Non-initialization / non-post-hibernation: Delayed adjustment
             -1 (S.L.ai_pre_cockpit_transmission_timer)
         {endif}
         0 (S.L.ai_pre_cockpit_transmission_target)
         (L.L.ai_pre_cockpit_handbrake_target) !
         {if}
-'           // Non-initialization / non-post-hibernation: Adjustment delayed as follows:
-'           // - In the context of a regular departure: 10~20 sec
-'           // - In the context of a parking-maneuver-style departure: 2~8 sec
+'           // Non-initialization / non-post-hibernation: Delayed adjustment
             -1 (S.L.ai_pre_cockpit_handbrake_timer)
         {endif}
         1 (S.L.ai_pre_cockpit_handbrake_target)
     {else}
-'       // Otherwise set transmission mode to "D", if currently "N", and/or disengage handbrake, if currently engaged,
-'       // if:
+'       // Otherwise set transmission mode to "D", if currently "N", and:
 '       // - OMSI instructs that the engine be switched on; and
 '       // - not currently at a scheduled stop (to prevent stop overlapping effect).
+'       // Under the same two conditions also disengage handbrake if engaged.
         l3 (L.L.AI_Engine) 1 = &&
         {if}
             (L.L.ai_pre_cockpit_transmission_target) !
@@ -6273,7 +6301,7 @@
 '                   // Initialization or post-hibernation: Instant adjustment
                     0
                 {else}
-'                   // Non-initialization / non-post-hibernation: Adjustment delayed by 3~20 sec
+'                   // Non-initialization / non-post-hibernation: Delayed adjustment
                     -1
                 {endif}
                 (S.L.ai_pre_cockpit_transmission_timer)
@@ -6286,7 +6314,7 @@
 '                   // Initialization or post-hibernation: Instant adjustment
                     0
                 {else}
-'                   // Non-initialization / non-post-hibernation: Adjustment delayed by 2~15 sec
+'                   // Non-initialization / non-post-hibernation: Delayed adjustment
                     -1
                 {endif}
                 (S.L.ai_pre_cockpit_handbrake_timer)
@@ -6295,26 +6323,48 @@
         {endif}
     {endif}
 
-'   // ----- Engine adjustment -----
+'   // ----- B. Translate logical states of engine, transmission, and handbrake, established in (A), to physical
+'   //       adjustment sequences. Here, physical/mechanical constraints and transient / edge cases are accounted for
+'   //       as well. -----
 
-'   // Don't disable electrics (or turn them on again) if driver window and/or hatch adjustment has been scheduled, and
-'   // either or both are constrained by electrics (ignition key min position >= 1 vs >= 2).
+'   // The following variables are set in this section to communicate timing update requests to section (C):
+'   // - r13: The engine needs adjustment.
+'   // - r10: The engine is eligible for adjustment, and the decision to adjust it was taken _just now_, also taking
+'   //        into account any physical constraints. Depending on previously scheduled adjustments of the transmission
+'   //        and handbrake, this may indicate that re-scheduling / re-ordering is necessary.
+'   // - r14, r11: Equivalent for transmission.
+'   // - r12, r15: Equivalent for handbrake.
+    0 (S.L.r10) (S.L.r11) (S.L.r12) (S.L.r13) (S.L.r14) (S.L.r15)
+
+'   // ----- Request scheduling for, and carry out, physical engine adjustment, including intermediate adjustment of
+'   //       electrics. This also accounts for the case where, in spite of the intended state of the engine being off,
+'   //       the operational mode of electrics cannot yet be reduced, or has to be increased again, due to pending
+'   //       driver window and/or hatch adjustment, when in turn constrained by electrics (i.e. where ignition key
+'   //       position is required to be >= 2 for those functions to be operable). -----
+
+'   // Engine activation or temporary standalone electrics mode increase. Rotate the ignition key, if currently at
+'   // position 1 (reduced electrics) to position 2, and, if the goal is to ignite the engine, as a second step,
+'   // rotate it further to position 3 (ignition). Constraints: Physical transmission state must be "N", and passenger
+'   // windows must not currently be undergoing adjustment by driver.
     (L.L.ai_pre_cockpit_engine_target) (L.L.ai_pre_cockpit_driver_window_sw_timer) -1 = ! (L.L.cp_dummy_sw08) ||
-        (L.L.cp_cti_driver_window_requires_full_elec) && (L.L.ai_pre_cockpit_hatch_sw_timer) -1 = !
-        (L.L.cp_cti_hatches_require_full_elec) && || s5 ||
+        (L.L.cp_cfg_effective_driver_window_requires_full_elec) && (L.L.ai_pre_cockpit_hatch_sw_timer) -1 = !
+        (L.L.cp_cfg_effective_hatches_require_full_elec) && || s5 ||
     {if}
         (L.L.engine_on) !
         {if}
+            (L.L.key_mode) 2 =
+            {if}
+                1 (S.L.r13)
+            {else}
+                (L.L.key_mode) 3 = (L.L.ai_pre_cockpit_engine_target) &&
+                {if}
+                    2 (S.L.r13)
+                {endif}
+            {endif}
             (L.L.ai_pre_cockpit_engine_timer) -1 = (L.L.antrieb_getr_gangvorwahl) 1 = &&
                 (L.L.ai_pre_cockpit_passenger_window_adjustment_phase) ! &&
             {if}
-                (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic) 1 = l5 ||
-                {if}
-                    1 10000 random 10000 / 2 * +
-                {else}
-                    2 10000 random 10000 / 5 * +
-                {endif}
-                (S.L.ai_pre_cockpit_engine_timer)
+                1 (S.L.r10)
             {endif}
             (L.L.ai_pre_cockpit_engine_timer) 0 >
             {if}
@@ -6331,21 +6381,21 @@
                     (T.L.ev_ignition)
                     l4 ! (L.L.ai_pre_cockpit_engine_target) &&
                     {if}
-                        10000 random 10000 / 0.7 < (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic) 1 = ||
-                        {if}
-                            0.15 10000 random 10000 / 0.85 * +
-                        {else}
-                            3 10000 random 10000 / 7 * +
-                        {endif}
-                        (S.L.ai_pre_cockpit_engine_timer)
+                        -1 (S.L.ai_pre_cockpit_engine_timer)
+                        2 (S.L.r10)
                     {endif}
                 {endif}
-                (L.L.key_mode) 3 = (L.L.ai_pre_cockpit_engine_timer) ! && (L.L.ai_pre_cockpit_engine_target) &&
+                (L.L.key_mode) 3 = (L.L.ai_pre_cockpit_engine_timer) ! &&
                 {if}
-                    4 (S.L.key_mode)
-                    0.6 (S.L.cp_key_rot)
-                    1 (S.L.engine_starter) (S.L.engine_injection_on) (S.L.vdv_on)
-                    (T.L.ev_schluessel_dreh)
+                    (L.L.ai_pre_cockpit_engine_target)
+                    {if}
+                        4 (S.L.key_mode)
+                        0.6 (S.L.cp_key_rot)
+                        1 (S.L.engine_starter) (S.L.engine_injection_on) (S.L.vdv_on)
+                        (T.L.ev_schluessel_dreh)
+                    {else}
+                        -1 (S.L.ai_pre_cockpit_engine_timer)
+                    {endif}
                 {endif}
                 (L.L.key_mode) 4 =
                 {if}
@@ -6357,7 +6407,7 @@
                         400 (S.L.engine_n)
                         l2
                         {if}
-                            60 (S.L.engine_temperature)
+                            60 (L.L.engine_temperature) max (S.L.engine_temperature)
                             250 (S.L.engine_revs_since_start)
                         {endif}
                     {endif}
@@ -6375,17 +6425,34 @@
             -1 (S.L.ai_pre_cockpit_engine_timer)
         {endif}
     {else}
+'       // Engine deactivation or standalone electrics mode reduction following previous increase. "Allow" the ignition
+'       // key to reset from position 3 to position 2, and, as a second step, further reduce its position to 1.
+'       // Constraints: Driver window and/or hatch adjustment must not be pending, if constrained by electrics; also,
+'       // passenger windows must not currently be undergoing adjustment by driver.
+        (L.L.key_mode) 4 =
+        {if}
+            3 (S.L.key_mode)
+            0.4 (S.L.cp_key_rot)
+            0 (S.L.engine_starter)
+            (L.L.engine_on) !
+            {if}
+                0 (S.L.engine_injection_on)
+            {endif}
+            (T.L.ev_schluessel_dreh)
+            -1 (S.L.ai_pre_cockpit_engine_timer)
+        {endif}
         (L.L.key_mode) 3 =
         {if}
+            (L.L.engine_on) !
+            {if}
+                -1
+            {else}
+                -2
+            {endif}
+            (S.L.r13)
             (L.L.ai_pre_cockpit_engine_timer) -1 = (L.L.ai_pre_cockpit_passenger_window_adjustment_phase) ! &&
             {if}
-                (L.L.engine_on) !
-                {if}
-                    0.5 10000 random 10000 / 3.5 * +
-                {else}
-                    7 10000 random 10000 / 13 * +
-                {endif}
-                (S.L.ai_pre_cockpit_engine_timer)
+                (L.L.r13) (S.L.r10)
             {endif}
             (L.L.ai_pre_cockpit_engine_timer) 0 >
             {if}
@@ -6408,21 +6475,18 @@
         {endif}
     {endif}
 
-'   // ----- Transmission adjustment -----
+'   // ----- Request scheduling for, and carry out, physical transmission adjustment -----
 
+'   // Transmission "D" mode selection. Constraints: Engine must already be running, and passenger windows must not
+'   // currently be undergoing adjustment by driver.
     (L.L.ai_pre_cockpit_transmission_target) (L.L.engine_on) &&
     {if}
-        (L.L.antrieb_getr_gangvorwahl) 4 = !
+        (L.L.antrieb_getr_gangvorwahl) 5 = !
         {if}
+            1 (S.L.r14)
             (L.L.ai_pre_cockpit_transmission_timer) -1 = (L.L.ai_pre_cockpit_passenger_window_adjustment_phase) ! &&
             {if}
-                (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic) 1 =
-                {if}
-                    0.3 10000 random 10000 / 2.7 * +
-                {else}
-                    1 10000 random 10000 / 4 * +
-                {endif}
-                (S.L.ai_pre_cockpit_transmission_timer)
+                1 (S.L.r11)
             {endif}
             (L.L.ai_pre_cockpit_transmission_timer) 0 >
             {if}
@@ -6430,16 +6494,18 @@
             {endif}
             (L.L.ai_pre_cockpit_transmission_timer) !
             {if}
-                4 (S.L.antrieb_getr_gangvorwahl)
-                l4
-                {if}
-                    (L.S.GetTime) (C.L.antrieb_gangwahlzeit) 0.1 + -
-                {else}
-                    (L.S.GetTime)
-                {endif}
-                (S.L.antrieb_getr_gangwahlzeitpunkt)
-                0.7 (S.L.cockpit_gang3)
+                0.7 (S.L.cockpit_gangD)
                 (T.L.ev_gangwahltaster)
+                (L.L.cockpit_gangN)
+                {if}
+                    0 (S.L.cockpit_gangN)
+                    (T.L.ev_gangwahltaster_N)
+                {endif}
+                l4 (L.L.antrieb_getr_gangvorwahl) 5 = ! &&
+                {if}
+                    5 (S.L.antrieb_getr_gangvorwahl)
+                    0 (S.L.antrieb_getr_initial_shift_delay_timer)
+                {endif}
                 900000 (S.L.bremse_p_tank01) (S.L.bremse_p_tank02) (S.L.bremse_p_tank03) (S.L.bremse_p_tank04)
                     (S.L.bremse_p_leitung01) (S.L.bremse_p_leitung02)
                 400000 (S.L.bremse_p_balg_0_R) (S.L.bremse_p_balg_0_L) (S.L.bremse_p_balg_1_R) (S.L.bremse_p_balg_1_L)
@@ -6452,11 +6518,14 @@
             {endif}
         {endif}
     {else}
-        (L.L.antrieb_getr_gangvorwahl) 4 =
+'       // Transmission "N" mode selection. Constraint: Passenger windows must not currently be undergoing adjustment
+'       // by driver.
+        (L.L.antrieb_getr_gangvorwahl) 5 =
         {if}
+            -1 (S.L.r14)
             (L.L.ai_pre_cockpit_transmission_timer) -1 = (L.L.ai_pre_cockpit_passenger_window_adjustment_phase) ! &&
             {if}
-                3 10000 random 10000 / 17 * + (S.L.ai_pre_cockpit_transmission_timer)
+                -1 (S.L.r11)
             {endif}
             (L.L.ai_pre_cockpit_transmission_timer) 0 >
             {if}
@@ -6464,10 +6533,12 @@
             {endif}
             (L.L.ai_pre_cockpit_transmission_timer) !
             {if}
-                1 (S.L.antrieb_getr_gangvorwahl)
-                0 (S.L.cockpit_gang3)
-                (L.S.GetTime) (C.L.antrieb_gangwahlzeit) (C.L.antrieb_neutralwahlzeit) - -
-                    (S.L.antrieb_getr_gangwahlzeitpunkt)
+                (L.L.cp_cfg_effective_has_engaging_neutral_transmission_mode_selector)
+                {if}
+                    0.7 (S.L.cockpit_gangN)
+                    (T.L.ev_gangwahltaster)
+                {endif}
+                0 (S.L.cockpit_gangD)
                 (T.L.ev_gangwahltaster_N)
                 -1 (S.L.ai_pre_cockpit_transmission_timer)
             {endif}
@@ -6476,15 +6547,17 @@
         {endif}
     {endif}
 
-'   // ----- Handbrake adjustment -----
+'   // ----- Request scheduling for, and carry out, physical handbrake adjustment -----
 
+'   // Handbrake engagement. Constraint: Passenger windows must not currently be undergoing adjustment by driver.
     (L.L.ai_pre_cockpit_handbrake_target)
     {if}
         (L.L.bremse_feststell) !
         {if}
+            1 (S.L.r15)
             (L.L.ai_pre_cockpit_handbrake_timer) -1 = (L.L.ai_pre_cockpit_passenger_window_adjustment_phase) ! &&
             {if}
-                2 10000 random 10000 / 13 * + (S.L.ai_pre_cockpit_handbrake_timer)
+                1 (S.L.r12)
             {endif}
             (L.L.ai_pre_cockpit_handbrake_timer) 0 >
             {if}
@@ -6503,17 +6576,13 @@
             -1 (S.L.ai_pre_cockpit_handbrake_timer)
         {endif}
     {else}
+'       // Handbrake release. Constraint: Passenger windows must not currently be undergoing adjustment by driver.
         (L.L.bremse_feststell)
         {if}
+            -1 (S.L.r15)
             (L.L.ai_pre_cockpit_handbrake_timer) -1 = (L.L.ai_pre_cockpit_passenger_window_adjustment_phase) ! &&
             {if}
-                (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic) 1 =
-                {if}
-                    2 10000 random 10000 / 6 * +
-                {else}
-                    10 10000 random 10000 / 10 * +
-                {endif}
-                (S.L.ai_pre_cockpit_handbrake_timer)
+                -1 (S.L.r12)
             {endif}
             (L.L.ai_pre_cockpit_handbrake_timer) 0 >
             {if}
@@ -6527,6 +6596,284 @@
             {endif}
         {else}
             -1 (S.L.ai_pre_cockpit_handbrake_timer)
+        {endif}
+    {endif}
+
+'   // ----- C. Given the adjustments pending and the order in which they were scheduled (via r10~r15 set in (B)),
+'   //       "space out" the delays of the corresponding actions such that a) they do not overlap, and b) their order
+'   //       follows established common/best practices -- most of the time. Note that this part only applies during
+'   //       regular AI operation; during initialization, as well as post-hibernation, any adjustments needed are
+'   //       carried out simultaneously and without any delay (all timers set to 0 in (A)), thus overriding this part.
+'   //       -----
+
+    l4 !
+    {if}
+'       // ----- Ordering / timing of arrival sequence: Turning off the engine, disengaging gear, and engaging the
+'       //       handbrake. This sequence always takes precedence over its departure counterpart, to provide a further
+'       //       "hard anti-deadlocking" guarantee that the AI will never attempt to execute departure logic before
+'       //       having completed arrival logic; e.g., when the AI just switched off the engine, but has not yet had
+'       //       enough time to switch transmission mode to "N", and comes to the abrupt realization it has to depart
+'       //       again (typically in parking-maneuver-style departures), thus attempting to re-ignite the engine while
+'       //       still having a gear engaged -- naturally leading to a deadlock. -----
+
+'       // Initial sequence start delay (register-3):
+'       // - (2~5 * haste-factor) sec, if electrics scheduled for reduction after previous transient increase, or
+'       //   departure time already arrived.
+'       // - (3~15 * haste-factor) sec, otherwise.
+
+'       // Subsequent delays (register-5: min; register-6: variation):
+'       // - (2~5 * haste-factor) sec, if departure time has already arrived.
+'       // - (3~7 * haste-factor) sec, otherwise.
+
+'       // Random haste factor (register-4):
+'       // - 0.25~1, if departure time has already arrived.
+'       // - 0.5~1, otherwise.
+
+'       // Sequence order selection by probability:
+'       // - Handbrake -> transmission -> engine: 70%
+'       // - Handbrake -> engine -> transmission: 21%
+'       // - Transmission -> handbrake -> engine: 3.6%
+'       // - Transmission -> engine -> handbrake: 2.25%
+'       // - Engine -> handbrake -> transmission: 2.25%
+'       // - Engine -> transmission -> handbrake: 0.9%
+
+        (L.L.r10) 0 < (L.L.r11) 0 < || (L.L.r12) 0 > ||
+        {if}
+            (L.L.r13) 0 < (L.L.ai_pre_cockpit_engine_timer) 0 > && s0
+            (L.L.r14) 0 < (L.L.ai_pre_cockpit_transmission_timer) 0 > && s1
+            (L.L.r15) 0 > (L.L.ai_pre_cockpit_handbrake_timer) 0 > && s2
+
+            (L.L.ai_pre_cockpit_stop_phase) 0 = (L.L.ai_pre_cockpit_stop_phase) 3 = ||
+            {if}
+                0.25 10000 random 10000 / 0.75 * + s4
+                2 10000 random 10000 / 3 * + l4 * s3
+                2 s5
+                10000 random 10000 / 3 * s6
+            {else}
+                0.5 10000 random 10000 / 0.5 * + s4
+                (L.L.r10) -2 =
+                {if}
+                    2 10000 random 10000 / 3 * + l4 * s3
+                {else}
+                    3 10000 random 10000 / 12 * + l4 * s3
+                {endif}
+                3 s5
+                10000 random 10000 / 4 * s6
+            {endif}
+
+            10000 random 10000 / 0.7 <
+            {if}
+                (L.L.r12) l2 ||
+                {if}
+                    l3 (S.L.ai_pre_cockpit_handbrake_timer) l5 10000 random 10000 / l6 * + l4 * + s3
+                {endif}
+
+                (L.L.r11) l1 ||
+                {if}
+                    l3 (S.L.ai_pre_cockpit_transmission_timer) l5 10000 random 10000 / l6 * + l4 * + s3
+                {endif}
+
+                (L.L.r10) l0 ||
+                {if}
+                    l3 (S.L.ai_pre_cockpit_engine_timer)
+                {endif}
+            {else}
+                10000 random 10000 / 0.7 <
+                {if}
+                    (L.L.r12) l2 ||
+                    {if}
+                        l3 (S.L.ai_pre_cockpit_handbrake_timer) l5 10000 random 10000 / l6 * + l4 * + s3
+                    {endif}
+
+                    (L.L.r10) l0 ||
+                    {if}
+                        l3 (S.L.ai_pre_cockpit_engine_timer) l5 10000 random 10000 / l6 * + l4 * + s3
+                    {endif}
+
+                    (L.L.r11) l1 ||
+                    {if}
+                        l3 (S.L.ai_pre_cockpit_transmission_timer)
+                    {endif}
+                {else}
+                    10000 random 10000 / 0.4 <
+                    {if}
+                        (L.L.r11) l1 ||
+                        {if}
+                            l3 (S.L.ai_pre_cockpit_transmission_timer) l5 10000 random 10000 / l6 * + l4 * + s3
+                        {endif}
+
+                        (L.L.r12) l2 ||
+                        {if}
+                            l3 (S.L.ai_pre_cockpit_handbrake_timer) l5 10000 random 10000 / l6 * + l4 * + s3
+                        {endif}
+
+                        (L.L.r10) l0 ||
+                        {if}
+                            l3 (S.L.ai_pre_cockpit_engine_timer)
+                        {endif}
+                    {else}
+                        10000 random 10000 / 0.417 <
+                        {if}
+                            (L.L.r11) l1 ||
+                            {if}
+                                l3 (S.L.ai_pre_cockpit_transmission_timer) l5 10000 random 10000 / l6 * + l4 * + s3
+                            {endif}
+
+                            (L.L.r10) l0 ||
+                            {if}
+                                l3 (S.L.ai_pre_cockpit_engine_timer) l5 10000 random 10000 / l6 * + l4 * + s3
+                            {endif}
+
+                            (L.L.r12) l2 ||
+                            {if}
+                                l3 (S.L.ai_pre_cockpit_handbrake_timer)
+                            {endif}
+                        {else}
+                            10000 random 10000 / 0.714 <
+                            {if}
+                                (L.L.r10) l0 ||
+                                {if}
+                                    l3 (S.L.ai_pre_cockpit_engine_timer) l5 10000 random 10000 / l6 * + l4 * + s3
+                                {endif}
+
+                                (L.L.r12) l2 ||
+                                {if}
+                                    l3 (S.L.ai_pre_cockpit_handbrake_timer) l5 10000 random 10000 / l6 * + l4 * + s3
+                                {endif}
+
+                                (L.L.r11) l1 ||
+                                {if}
+                                    l3 (S.L.ai_pre_cockpit_transmission_timer)
+                                {endif}
+                            {else}
+                                (L.L.r10) l0 ||
+                                {if}
+                                    l3 (S.L.ai_pre_cockpit_engine_timer) l5 10000 random 10000 / l6 * + l4 * + s3
+                                {endif}
+
+                                (L.L.r11) l1 ||
+                                {if}
+                                    l3 (S.L.ai_pre_cockpit_transmission_timer) l5 10000 random 10000 / l6 * + l4 * + s3
+                                {endif}
+
+                                (L.L.r12) l2 ||
+                                {if}
+                                    l3 (S.L.ai_pre_cockpit_handbrake_timer)
+                                {endif}
+                            {endif}
+                        {endif}
+                    {endif}
+                {endif}
+            {endif}
+        {else}
+
+'       // ----- Ordering / timing of departure sequence: Turning on the engine, engaging gear, and disengaging the
+'       //       handbrake. -----
+
+'       // Initial sequence start delay (register-3):
+'       // - (0.5~2) sec, 90% of all times when ignition key already at position 2 and increase to position 3 is
+'       //   pending, and that has been scheduled to occur first in the sequence.
+'       // - (2~5 * haste-factor) sec, otherwise, in case of a parking-maneuver-style departure, or when ignition key
+'       //   already at position 2 and increase to position 3 is pending, or, with a probability of 80%, in any other
+'       //   case of "full" departure sequence, i.e., when the intent is not merely to transiently increase electrics.
+'       // - (3~15 * haste-factor) sec, otherwise.
+
+'       // Subsequent delays (register-5: min; register-6: variation):
+'       // - (2~5 * haste-factor) sec, in case of parking-maneuver-style departure.
+'       // - (3~7 * haste-factor) sec, otherwise.
+
+'       // Random haste factor (register-4):
+'       // - 0.25~1, in case of parking-maneuver-style departure.
+'       // - 0.5~1, otherwise.
+
+'       // Sequence order selection by probability:
+'       // - Engine -> transmission -> handbrake: 80%
+'       // - Engine -> handbrake -> transmission: 19.6%
+'       // - Handbrake -> engine -> transmission: 0.4%
+
+            (L.L.r10) 0 > (L.L.r11) 0 > || (L.L.r12) 0 < ||
+            {if}
+                (L.L.r13) 0 > (L.L.ai_pre_cockpit_engine_timer) 0 > && s0
+                (L.L.r14) 0 > (L.L.ai_pre_cockpit_transmission_timer) 0 > && s1
+                (L.L.r15) 0 < (L.L.ai_pre_cockpit_handbrake_timer) 0 > && s2
+
+                (L.L.ai_pre_cockpit_stop_parking_maneuver_heuristic) 1 =
+                {if}
+                    0.25 10000 random 10000 / 0.75 * + s4
+                    2 10000 random 10000 / 3 * + l4 * s3
+                    2 s5
+                    10000 random 10000 / 3 * s6
+                {else}
+                    0.5 10000 random 10000 / 0.5 * + s4
+                    (L.L.r10) 2 = (L.L.r11) 0 > 10000 random 10000 / 0.8 < && ||
+                    {if}
+                        2 10000 random 10000 / 3 * + l4 * s3
+                    {else}
+                        3 10000 random 10000 / 12 * + l4 * s3
+                    {endif}
+                    3 s5
+                    10000 random 10000 / 4 * s6
+                {endif}
+
+                10000 random 10000 / 0.8 <
+                {if}
+                    (L.L.r10) l0 ||
+                    {if}
+                        (L.L.r10) 2 = l0 (L.L.r13) 2 = && || 10000 random 10000 / 0.9 < &&
+                        {if}
+                            0.5 10000 random 10000 / 1.5 * + s3
+                        {endif}
+                        l3 (S.L.ai_pre_cockpit_engine_timer) l5 10000 random 10000 / l6 * + l4 * + s3
+                    {endif}
+
+                    (L.L.r11) l1 ||
+                    {if}
+                        l3 (S.L.ai_pre_cockpit_transmission_timer) l5 10000 random 10000 / l6 * + l4 * + s3
+                    {endif}
+
+                    (L.L.r12) l2 ||
+                    {if}
+                        l3 (S.L.ai_pre_cockpit_handbrake_timer)
+                    {endif}
+                {else}
+                    10000 random 10000 / 0.98 <
+                    {if}
+                        (L.L.r10) l0 ||
+                        {if}
+                            (L.L.r10) 2 = l0 (L.L.r13) 2 = && || 10000 random 10000 / 0.9 < &&
+                            {if}
+                                0.5 10000 random 10000 / 1.5 * + s3
+                            {endif}
+                            l3 (S.L.ai_pre_cockpit_engine_timer) l5 10000 random 10000 / l6 * + l4 * + s3
+                        {endif}
+
+                        (L.L.r12) l2 ||
+                        {if}
+                            l3 (S.L.ai_pre_cockpit_handbrake_timer) l5 10000 random 10000 / l6 * + l4 * + s3
+                        {endif}
+
+                        (L.L.r11) l1 ||
+                        {if}
+                            l3 (S.L.ai_pre_cockpit_transmission_timer)
+                        {endif}
+                    {else}
+                        (L.L.r12) l2 ||
+                        {if}
+                            l3 (S.L.ai_pre_cockpit_handbrake_timer) l5 10000 random 10000 / l6 * + l4 * + s3
+                        {endif}
+
+                        (L.L.r10) l0 ||
+                        {if}
+                            l3 (S.L.ai_pre_cockpit_engine_timer) l5 10000 random 10000 / l6 * + l4 * + s3
+                        {endif}
+
+                        (L.L.r11) l1 ||
+                        {if}
+                            l3 (S.L.ai_pre_cockpit_transmission_timer)
+                        {endif}
+                    {endif}
+                {endif}
+            {endif}
         {endif}
     {endif}
 {end}
@@ -6617,7 +6964,7 @@
                 (L.L.PrecipRate) 0 max (L.L.Rain_Window_Wiped_Wetness)
                     (L.L.ai_pre_cockpit_wiper_usage_overall_precipitation_tolerance) 0.99 min > && d !
                     (L.L.wiperpos_left) 0.15 > (L.L.wiperpos_right) 0.1 > || && (L.L.wiperrunning) ! && ||
-                    (L.L.cp_key_rot) 0.4 >= (L.L.wiper_cti_wipers_require_full_elec) ! || &&
+                    (L.L.cp_key_rot) 0.4 >= (L.L.wiper_cfg_effective_wipers_require_full_elec) ! || &&
                 {if}
                     l1 0 =
                     {if}
@@ -7011,7 +7358,7 @@
     (L.L.ai_pre_cockpit_initialized) 5 < (L.L.ai_pre_cockpit_env_perception_changed) ||
     {if}
         0 s0 s1 s2 s3
-        (L.L.ai_pre_cockpit_env_perception_wet) ! (L.L.cp_cti_has_openable_passenger_windows) &&
+        (L.L.ai_pre_cockpit_env_perception_wet) ! (L.L.cp_cfg_effective_has_openable_passenger_windows) &&
         {if}
             (L.L.ai_pre_cockpit_env_perception_chilly) (L.L.ai_pre_cockpit_env_perception_nighttime) ! &&
             {if}
@@ -7094,7 +7441,7 @@
         (L.L.ai_pre_cockpit_stop_phase) 4 = (L.L.ai_pre_cockpit_env_perception_changed) && ||
     {if}
 '       // Initialization (initial spawn) or post-hibernation: Instant adjustment
-        (L.L.cp_cti_has_openable_passenger_windows)
+        (L.L.cp_cfg_effective_has_openable_passenger_windows)
         {if}
             l0 (S.L.cp_passenger_window_1_l) ! l4 && (S.L.cp_passenger_window_1_l_locked)
             l1 (S.L.cp_passenger_window_1_r) ! l4 && (S.L.cp_passenger_window_1_r_locked)
@@ -7104,7 +7451,7 @@
         0 (S.L.ai_pre_cockpit_passenger_window_adjustment_phase)
         -1 (S.L.ai_pre_cockpit_passenger_window_adjustment_timer)
     {else}
-        (L.L.cp_cti_has_openable_passenger_windows)
+        (L.L.cp_cfg_effective_has_openable_passenger_windows)
         {if}
 '           // Non-initialization / non-post-hibernation: Delayed / realistic adjustment
 

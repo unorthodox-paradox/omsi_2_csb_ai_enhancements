@@ -26,120 +26,120 @@
 
 'Berechnung der Zeit, die benötigt wird, um die Schäden zu reparieren:
 
-	s0
+    s0
 
-	(L.L.elec_failure_general)     0 = ! 20 * l0 + s0
-	(L.L.engine_failure_general)   0 = ! 75 * l0 + s0
-	(L.L.antrieb_failure_general)  0 = ! 75 * l0 + s0
+    (L.L.elec_failure_general)     0 = ! 20 * l0 + s0
+    (L.L.engine_failure_general)   0 = ! 75 * l0 + s0
+    (L.L.antrieb_failure_general)  0 = ! 75 * l0 + s0
 
-	l0
+    l0
 {end}
 
 '------------------------------------------------------------------------------------------
 
 {macro:Collision_Frame}
-	(L.L.collision_initialized) !
-	{if}
-		1 (S.L.collision_initialized)
-	{else}
-		(L.L.collision_initialized) 1 =
-		{if}
-			(M.L.Collision_Malfunction_Reset)
-			2 (S.L.collision_initialized)
-		{else}
-			(L.L.AI) ! (L.L.wearlifespan) 1000000 < &&
-			{if}
-				(L.L.malfunction_minute_trigger_lastsecond) (L.S.Timegap) - (S.L.malfunction_minute_trigger_lastsecond) 0 <
-				{if}
-					(M.L.lights_malfunction_minute_trigger)
-					6 (S.L.malfunction_minute_trigger_lastsecond)
-				{endif}
-			{endif}
-		{endif}
-	{endif}
+    (L.L.collision_initialized) !
+    {if}
+        1 (S.L.collision_initialized)
+    {else}
+        (L.L.collision_initialized) 1 =
+        {if}
+            (M.L.Collision_Malfunction_Reset)
+            2 (S.L.collision_initialized)
+        {else}
+            (L.L.AI) ! (L.L.wearlifespan) 1000000 < &&
+            {if}
+                (L.L.malfunction_minute_trigger_lastsecond) (L.S.Timegap) - (S.L.malfunction_minute_trigger_lastsecond) 0 <
+                {if}
+                    (M.L.lights_malfunction_minute_trigger)
+                    6 (S.L.malfunction_minute_trigger_lastsecond)
+                {endif}
+            {endif}
+        {endif}
+    {endif}
 {end}
 
 '------------------------------------------------------------------------------------------
 
 {macro:Collision_Malfunction_Reset}
-	(L.L.collision_initialized) 1 = s0
+    (L.L.collision_initialized) 1 = s0
 
-	0 (S.L.collision_energy)
+    0 (S.L.collision_energy)
 
-	l0 (L.L.elec_failure_general) ||
-	{if}
-		0 (S.L.elec_failure_general)
-		(C.L.collision_energy_elec_threshold_max) (C.L.collision_energy_elec_threshold_min) -
-			random (C.L.collision_energy_elec_threshold_min) + (S.L.collision_energy_elec_threshold)
-	{endif}
+    l0 (L.L.elec_failure_general) ||
+    {if}
+        0 (S.L.elec_failure_general)
+        (C.L.collision_energy_elec_threshold_max) (C.L.collision_energy_elec_threshold_min) -
+            random (C.L.collision_energy_elec_threshold_min) + (S.L.collision_energy_elec_threshold)
+    {endif}
 
-	l0 (L.L.engine_failure_general) || (L.L.antrieb_failure_general) ||
-	{if}
-		0 (S.L.collision_energy_eng) (S.L.engine_failure_general) (S.L.antrieb_failure_general)
-		(C.L.collision_energy_eng_threshold_max) (C.L.collision_energy_eng_threshold_min) -
-			random (C.L.collision_energy_eng_threshold_min) + (S.L.collision_energy_eng_threshold)
-	{endif}
+    l0 (L.L.engine_failure_general) || (L.L.antrieb_failure_general) ||
+    {if}
+        0 (S.L.collision_energy_eng) (S.L.engine_failure_general) (S.L.antrieb_failure_general)
+        (C.L.collision_energy_eng_threshold_max) (C.L.collision_energy_eng_threshold_min) -
+            random (C.L.collision_energy_eng_threshold_min) + (S.L.collision_energy_eng_threshold)
+    {endif}
 
-	l0 (L.L.collision_energy_light) ||
-	{if}
-		0 (S.L.collision_energy_light)
-		l0
-		{if}
-			(C.L.collision_energy_light_threshold_max) (C.L.collision_energy_light_threshold_min) -
-				random (C.L.collision_energy_light_threshold_min) + (S.L.collision_energy_light_threshold)
-			(L.L.wearlifespan) 100 min
-		{else}
-			1
-		{endif}
-		s1
+    l0 (L.L.collision_energy_light) ||
+    {if}
+        0 (S.L.collision_energy_light)
+        l0
+        {if}
+            (C.L.collision_energy_light_threshold_max) (C.L.collision_energy_light_threshold_min) -
+                random (C.L.collision_energy_light_threshold_min) + (S.L.collision_energy_light_threshold)
+            (L.L.wearlifespan) 100 min
+        {else}
+            1
+        {endif}
+        s1
 
-		l0 (L.L.collision_energy_lights_stand_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_stand_l_threshold) {endif}
-		l0 (L.L.collision_energy_lights_stand_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_stand_r_threshold) {endif}
-		l0 (L.L.collision_energy_lights_abbl_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_abbl_l_threshold) {endif}
-		l0 (L.L.collision_energy_lights_abbl_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_abbl_r_threshold) {endif}
-		l0 (L.L.collision_energy_lights_fern_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_fern_l_threshold) {endif}
-		l0 (L.L.collision_energy_lights_fern_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_fern_r_threshold) {endif}
-		l0 (L.L.collision_energy_lights_drl_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_drl_l_threshold) {endif}
-		l0 (L.L.collision_energy_lights_drl_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_drl_r_threshold) {endif}
-		l0 (L.L.collision_energy_lights_nebelschw_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_nebelschw_l_threshold) {endif}
-		l0 (L.L.collision_energy_lights_nebelschw_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_nebelschw_r_threshold) {endif}
-		l0 (L.L.collision_energy_lights_blinker_h_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_blinker_h_l_threshold) {endif}
-		l0 (L.L.collision_energy_lights_blinker_h_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_blinker_h_r_threshold) {endif}
-		l0 (L.L.collision_energy_lights_blinker_s_l_1_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_blinker_s_l_1_threshold) {endif}
-		l0 (L.L.collision_energy_lights_blinker_s_r_1_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_blinker_s_r_1_threshold) {endif}
-		l0 (L.L.collision_energy_lights_blinker_t_l_m_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_blinker_t_l_m_threshold) {endif}
-		l0 (L.L.collision_energy_lights_blinker_t_r_m_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_blinker_t_r_m_threshold) {endif}
-		l0 (L.L.collision_energy_lights_blinker_t_l_t_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_blinker_t_l_t_threshold) {endif}
-		l0 (L.L.collision_energy_lights_blinker_t_r_t_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_blinker_t_r_t_threshold) {endif}
-		l0 (L.L.collision_energy_lights_brems_l_t_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_brems_l_t_threshold) {endif}
-		l0 (L.L.collision_energy_lights_brems_r_t_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_brems_r_t_threshold) {endif}
-		l0 (L.L.collision_energy_lights_brems_l_m_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_brems_l_m_threshold) {endif}
-		l0 (L.L.collision_energy_lights_brems_r_m_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_brems_r_m_threshold) {endif}
-		l0 (L.L.collision_energy_lights_rueckfahr_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_rueckfahr_l_threshold) {endif}
-		l0 (L.L.collision_energy_lights_rueckfahr_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_rueckfahr_r_threshold) {endif}
-		l0 (L.L.collision_energy_lights_nebelschluss_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_nebelschluss_l_threshold) {endif}
-		l0 (L.L.collision_energy_lights_nebelschluss_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_nebelschluss_r_threshold) {endif}
-		l0 (L.L.collision_energy_lights_position_h_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min	(S.L.collision_energy_lights_position_h_l_threshold) {endif}
-		l0 (L.L.collision_energy_lights_position_h_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min	(S.L.collision_energy_lights_position_h_r_threshold) {endif}
-		l0 (L.L.collision_energy_lights_position_s_l_1_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_l_1_threshold) {endif}
-		l0 (L.L.collision_energy_lights_position_s_r_1_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_r_1_threshold) {endif}
-		l0 (L.L.collision_energy_lights_position_s_l_2_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_l_2_threshold) {endif}
-		l0 (L.L.collision_energy_lights_position_s_r_2_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_r_2_threshold) {endif}
-		l0 (L.L.collision_energy_lights_position_s_l_3_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_l_3_threshold) {endif}
-		l0 (L.L.collision_energy_lights_position_s_r_3_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_r_3_threshold) {endif}
-		l0 (L.L.collision_energy_lights_position_s_l_4_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_l_4_threshold) {endif}
-		l0 (L.L.collision_energy_lights_position_s_r_4_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_r_4_threshold) {endif}
-		l0 (L.L.collision_energy_lights_position_s_l_5_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_l_5_threshold) {endif}
-		l0 (L.L.collision_energy_lights_position_s_r_5_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_r_5_threshold) {endif}
-		l0 (L.L.collision_energy_lights_position_t_l_t_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_t_l_t_threshold) {endif}
-		l0 (L.L.collision_energy_lights_position_t_r_t_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_t_r_t_threshold) {endif}
-		l0 (L.L.collision_energy_lights_position_t_l_m_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_t_l_m_threshold) {endif}
-		l0 (L.L.collision_energy_lights_position_t_r_m_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_t_r_m_threshold) {endif}
-		l0 (L.L.collision_energy_lights_position_t_l_b_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_t_l_b_threshold) {endif}
-		l0 (L.L.collision_energy_lights_position_t_r_b_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_t_r_b_threshold) {endif}
-		l0 (L.L.collision_energy_lights_kennz_hinten_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_kennz_hinten_l_threshold) {endif}
-		l0 (L.L.collision_energy_lights_kennz_hinten_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_kennz_hinten_r_threshold) {endif}
-	{endif}
+        l0 (L.L.collision_energy_lights_stand_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_stand_l_threshold) {endif}
+        l0 (L.L.collision_energy_lights_stand_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_stand_r_threshold) {endif}
+        l0 (L.L.collision_energy_lights_abbl_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_abbl_l_threshold) {endif}
+        l0 (L.L.collision_energy_lights_abbl_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_abbl_r_threshold) {endif}
+        l0 (L.L.collision_energy_lights_fern_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_fern_l_threshold) {endif}
+        l0 (L.L.collision_energy_lights_fern_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_fern_r_threshold) {endif}
+        l0 (L.L.collision_energy_lights_drl_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_drl_l_threshold) {endif}
+        l0 (L.L.collision_energy_lights_drl_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_drl_r_threshold) {endif}
+        l0 (L.L.collision_energy_lights_nebelschw_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_nebelschw_l_threshold) {endif}
+        l0 (L.L.collision_energy_lights_nebelschw_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_nebelschw_r_threshold) {endif}
+        l0 (L.L.collision_energy_lights_blinker_h_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_blinker_h_l_threshold) {endif}
+        l0 (L.L.collision_energy_lights_blinker_h_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_blinker_h_r_threshold) {endif}
+        l0 (L.L.collision_energy_lights_blinker_s_l_1_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_blinker_s_l_1_threshold) {endif}
+        l0 (L.L.collision_energy_lights_blinker_s_r_1_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_blinker_s_r_1_threshold) {endif}
+        l0 (L.L.collision_energy_lights_blinker_t_l_m_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_blinker_t_l_m_threshold) {endif}
+        l0 (L.L.collision_energy_lights_blinker_t_r_m_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_blinker_t_r_m_threshold) {endif}
+        l0 (L.L.collision_energy_lights_blinker_t_l_t_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_blinker_t_l_t_threshold) {endif}
+        l0 (L.L.collision_energy_lights_blinker_t_r_t_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_blinker_t_r_t_threshold) {endif}
+        l0 (L.L.collision_energy_lights_brems_l_t_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_brems_l_t_threshold) {endif}
+        l0 (L.L.collision_energy_lights_brems_r_t_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_brems_r_t_threshold) {endif}
+        l0 (L.L.collision_energy_lights_brems_l_m_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_brems_l_m_threshold) {endif}
+        l0 (L.L.collision_energy_lights_brems_r_m_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_brems_r_m_threshold) {endif}
+        l0 (L.L.collision_energy_lights_rueckfahr_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_rueckfahr_l_threshold) {endif}
+        l0 (L.L.collision_energy_lights_rueckfahr_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_rueckfahr_r_threshold) {endif}
+        l0 (L.L.collision_energy_lights_nebelschluss_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_nebelschluss_l_threshold) {endif}
+        l0 (L.L.collision_energy_lights_nebelschluss_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_nebelschluss_r_threshold) {endif}
+        l0 (L.L.collision_energy_lights_position_h_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min    (S.L.collision_energy_lights_position_h_l_threshold) {endif}
+        l0 (L.L.collision_energy_lights_position_h_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min    (S.L.collision_energy_lights_position_h_r_threshold) {endif}
+        l0 (L.L.collision_energy_lights_position_s_l_1_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_l_1_threshold) {endif}
+        l0 (L.L.collision_energy_lights_position_s_r_1_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_r_1_threshold) {endif}
+        l0 (L.L.collision_energy_lights_position_s_l_2_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_l_2_threshold) {endif}
+        l0 (L.L.collision_energy_lights_position_s_r_2_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_r_2_threshold) {endif}
+        l0 (L.L.collision_energy_lights_position_s_l_3_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_l_3_threshold) {endif}
+        l0 (L.L.collision_energy_lights_position_s_r_3_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_r_3_threshold) {endif}
+        l0 (L.L.collision_energy_lights_position_s_l_4_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_l_4_threshold) {endif}
+        l0 (L.L.collision_energy_lights_position_s_r_4_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_r_4_threshold) {endif}
+        l0 (L.L.collision_energy_lights_position_s_l_5_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_l_5_threshold) {endif}
+        l0 (L.L.collision_energy_lights_position_s_r_5_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_s_r_5_threshold) {endif}
+        l0 (L.L.collision_energy_lights_position_t_l_t_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_t_l_t_threshold) {endif}
+        l0 (L.L.collision_energy_lights_position_t_r_t_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_t_r_t_threshold) {endif}
+        l0 (L.L.collision_energy_lights_position_t_l_m_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_t_l_m_threshold) {endif}
+        l0 (L.L.collision_energy_lights_position_t_r_m_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_t_r_m_threshold) {endif}
+        l0 (L.L.collision_energy_lights_position_t_l_b_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_t_l_b_threshold) {endif}
+        l0 (L.L.collision_energy_lights_position_t_r_b_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_position_t_r_b_threshold) {endif}
+        l0 (L.L.collision_energy_lights_kennz_hinten_l_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_kennz_hinten_l_threshold) {endif}
+        l0 (L.L.collision_energy_lights_kennz_hinten_r_threshold) 1 = || {if} 10000 random (M.V.NrSpecRandom) 0.25 * l1 / 0.95 min (S.L.collision_energy_lights_kennz_hinten_r_threshold) {endif}
+    {endif}
 {end}
 
 {macro:Collision_Trigger}
@@ -147,245 +147,245 @@
 '-------------------------------
 'General Failure:
 
-	(L.L.collision_energy) (L.S.coll_energy) + (S.L.collision_energy)
+    (L.L.collision_energy) (L.S.coll_energy) + (S.L.collision_energy)
 
 ' - Elect.:
-	(L.L.collision_energy_elec_threshold) >
-	{if}
-		1 (S.L.elec_failure_general)
-	{endif}
+    (L.L.collision_energy_elec_threshold) >
+    {if}
+        1 (S.L.elec_failure_general)
+    {endif}
 
 '-------------------------------
 'Engine Failure:
 
-'	only if collision point is below z=1.1m and behind y=-4.7m!
+'   only if collision point is below z=1.1m and behind y=-4.7m!
 
-	(L.S.coll_pos_y) -4.70 <
-	(L.S.coll_pos_z) 1.10 < &&
-	{if}
-		(L.L.collision_energy_eng) (L.S.coll_energy) + (S.L.collision_energy_eng)
-		(L.L.collision_energy_eng_threshold) s0
+    (L.S.coll_pos_y) -4.70 <
+    (L.S.coll_pos_z) 1.10 < &&
+    {if}
+        (L.L.collision_energy_eng) (L.S.coll_energy) + (S.L.collision_energy_eng)
+        (L.L.collision_energy_eng_threshold) s0
 
-		0.6 * >
-		{if}
-			1 (S.L.antrieb_failure_general)
-			100000 (S.L.Gear_Error_dist)
-		{endif}
+        0.6 * >
+        {if}
+            1 (S.L.antrieb_failure_general)
+            100000 (S.L.Gear_Error_dist)
+        {endif}
 
-		l0 >
-		{if}
-			1 (S.L.engine_failure_general)
-			100000 (S.L.edc_Error_dist)
-		{endif}
-	{endif}
+        l0 >
+        {if}
+            1 (S.L.engine_failure_general)
+            100000 (S.L.edc_Error_dist)
+        {endif}
+    {endif}
 
 'Light Failure
 
-	0 (S.L.collision_shattered_glass_sound_vol) (S.L.r10)
+    0 (S.L.collision_shattered_glass_sound_vol) (S.L.r10)
 
-	(L.L.collision_energy_light_threshold) s0 (L.S.coll_energy) s1 <
-	{if}
-		l1 l0 / s0
-		0 s1 s2 s3 s5
-		10000 random 10000 / l0 10 / * s7
+    (L.L.collision_energy_light_threshold) s0 (L.S.coll_energy) s1 <
+    {if}
+        l1 l0 / s0
+        0 s1 s2 s3 s5
+        10000 random 10000 / l0 10 / * s7
 
-		(L.S.coll_pos_y) 5 >
-		{if}
-			(L.S.coll_pos_x) 0 < s1 10000 random 10000 / 0.5 l0 * * < s2 ||
-			{if}
-				l1 {if} l0 {else} l7 {endif} s3
+        (L.S.coll_pos_y) 5 >
+        {if}
+            (L.S.coll_pos_x) 0 < s1 10000 random 10000 / 0.5 l0 * * < s2 ||
+            {if}
+                l1 {if} l0 {else} l7 {endif} s3
 
-				(L.L.collision_energy_lights_blinker_h_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_h_l_threshold) 1 = {if} -1 (S.L.lights_blinker_h_l_bulb_lifetime) (L.L.r10) 0.3 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-				(L.L.collision_energy_lights_stand_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_stand_l_threshold) 1 = {if} -1 (S.L.lights_stand_l_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-				(L.L.collision_energy_lights_abbl_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_better) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_abbl_l_threshold) 1 = {if} -1 (S.L.lights_abbl_l_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-				(L.L.collision_energy_lights_fern_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_fern_l_threshold) 1 = {if} -1 (S.L.lights_fern_l_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-				(L.L.collision_energy_lights_position_h_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_best) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_h_l_threshold) 1 = {if} -1 (S.L.lights_position_h_l_bulb_lifetime) (L.L.r10) 0.1 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-				(L.L.lights_cti_has_drl) {if} (L.L.collision_energy_lights_drl_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_better) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_drl_l_threshold) 1 = {if} -1 (S.L.lights_drl_l_unit_lifetime) (L.L.r10) 0.2 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif} {endif}
-				(L.L.lights_cti_has_head_fog_lights) {if} (L.L.collision_energy_lights_nebelschw_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_nebelschw_l_threshold) 1 = {if} -1 (S.L.lights_nebelschw_l_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif} {endif}
-			{endif}
+                (L.L.collision_energy_lights_blinker_h_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_h_l_threshold) 1 = {if} -1 (S.L.lights_blinker_h_l_bulb_lifetime) (L.L.r10) 0.3 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+                (L.L.collision_energy_lights_stand_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_stand_l_threshold) 1 = {if} -1 (S.L.lights_stand_l_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+                (L.L.collision_energy_lights_abbl_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_better) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_abbl_l_threshold) 1 = {if} -1 (S.L.lights_abbl_l_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+                (L.L.collision_energy_lights_fern_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_fern_l_threshold) 1 = {if} -1 (S.L.lights_fern_l_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+                (L.L.collision_energy_lights_position_h_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_best) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_h_l_threshold) 1 = {if} -1 (S.L.lights_position_h_l_bulb_lifetime) (L.L.r10) 0.1 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+                (L.L.lights_cfg_effective_has_drl) {if} (L.L.collision_energy_lights_drl_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_better) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_drl_l_threshold) 1 = {if} -1 (S.L.lights_drl_l_unit_lifetime) (L.L.r10) 0.2 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif} {endif}
+                (L.L.lights_cfg_effective_has_head_fog_lights) {if} (L.L.collision_energy_lights_nebelschw_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_nebelschw_l_threshold) 1 = {if} -1 (S.L.lights_nebelschw_l_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif} {endif}
+            {endif}
 
-			l1 ! l2 ||
-			{if}
-				l1 {if} l7 {else} l0 {endif} s3
+            l1 ! l2 ||
+            {if}
+                l1 {if} l7 {else} l0 {endif} s3
 
-				(L.L.collision_energy_lights_blinker_h_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_h_r_threshold) 1 = {if} -1 (S.L.lights_blinker_h_r_bulb_lifetime) (L.L.r10) 0.3 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-				(L.L.collision_energy_lights_stand_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_stand_r_threshold) 1 = {if} -1 (S.L.lights_stand_r_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-				(L.L.collision_energy_lights_abbl_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_better) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_abbl_r_threshold) 1 = {if} -1 (S.L.lights_abbl_r_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-				(L.L.collision_energy_lights_fern_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_fern_r_threshold) 1 = {if} -1 (S.L.lights_fern_r_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-				(L.L.collision_energy_lights_position_h_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_best) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_h_r_threshold) 1 = {if} -1 (S.L.lights_position_h_r_bulb_lifetime) (L.L.r10) 0.1 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-				(L.L.lights_cti_has_drl) {if} (L.L.collision_energy_lights_drl_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_better) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_drl_r_threshold) 1 = {if} -1 (S.L.lights_drl_r_unit_lifetime) (L.L.r10) 0.2 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif} {endif}
-				(L.L.lights_cti_has_head_fog_lights) {if} (L.L.collision_energy_lights_nebelschw_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_nebelschw_r_threshold) 1 = {if} -1 (S.L.lights_nebelschw_r_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif} {endif}
-			{endif}
-		{else}
-			(L.S.coll_pos_y) 3.5 > (L.S.coll_pos_y) 4.5 < &&
-			{if}
-				(L.S.coll_pos_x) -1 <
-				{if}
-					(L.L.collision_energy_lights_blinker_s_l_1_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_s_l_1_threshold) 1 = {if} -1 (S.L.lights_blinker_s_l_1_bulb_lifetime) (L.L.r10) 0.2 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-					(L.L.collision_energy_lights_position_s_l_1_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_worst) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_1_threshold) 1 = {if} -1 (S.L.lights_position_s_l_1_bulb_lifetime) (L.L.r10) 0.1 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-				{else}
-					(L.S.coll_pos_x) 1 >
-					{if}
-						(L.L.collision_energy_lights_blinker_s_r_1_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_s_r_1_threshold) 1 = {if} -1 (S.L.lights_blinker_s_r_1_bulb_lifetime) (L.L.r10) 0.2 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-						(L.L.collision_energy_lights_position_s_r_1_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_worst) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_1_threshold) 1 = {if} -1 (S.L.lights_position_s_r_1_bulb_lifetime) (L.L.r10) 0.1 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-					{endif}
-				{endif}
-			{else}
-				(L.S.coll_pos_y) 0.5 > (L.S.coll_pos_y) 1.5 < &&
-				{if}
-					(L.S.coll_pos_x) -1 <
-					{if}
-						(L.L.collision_energy_lights_position_s_l_2_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_worst) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_2_threshold) 1 = {if} -1 (S.L.lights_position_s_l_2_bulb_lifetime) l5 1 + s5 {endif} {endif}
-					{else}
-						(L.S.coll_pos_x) 1 >
-						{if}
-							(L.L.collision_energy_lights_position_s_r_2_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_worst) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_2_threshold) 1 = {if} -1 (S.L.lights_position_s_r_2_bulb_lifetime) l5 1 + s5 {endif} {endif}
-						{endif}
-					{endif}
-				{else}
-					(L.S.coll_pos_y) -2.3 > (L.S.coll_pos_y) -1.3 < &&
-					{if}
-						(L.S.coll_pos_x) -1 <
-						{if}
-							(L.L.collision_energy_lights_position_s_l_3_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_worst) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_3_threshold) 1 = {if} -1 (S.L.lights_position_s_l_3_bulb_lifetime) l5 1 + s5 {endif} {endif}
-						{else}
-							(L.S.coll_pos_x) 1 >
-							{if}
-								(L.L.collision_energy_lights_position_s_r_3_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_worst) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_3_threshold) 1 = {if} -1 (S.L.lights_position_s_r_3_bulb_lifetime) l5 1 + s5 {endif} {endif}
-							{endif}
-						{endif}
-					{else}
-						(L.S.coll_pos_y) -3.8 > (L.S.coll_pos_y) -2.8 < &&
-						{if}
-							(L.S.coll_pos_x) -1 <
-							{if}
-								(L.L.collision_energy_lights_position_s_l_4_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_worst) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_4_threshold) 1 = {if} -1 (S.L.lights_position_s_l_4_bulb_lifetime) l5 1 + s5 {endif} {endif}
-							{else}
-								(L.S.coll_pos_x) 1 >
-								{if}
-									(L.L.collision_energy_lights_position_s_r_4_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_worst) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_4_threshold) 1 = {if} -1 (S.L.lights_position_s_r_4_bulb_lifetime) l5 1 + s5 {endif} {endif}
-								{endif}
-							{endif}
-						{else}
-							(L.S.coll_pos_y) -4.8 <
-							{if}
-								(L.S.coll_pos_x) 0 < s1 10000 random 10000 / 0.5 l0 * * < s2 ||
-								{if}
-									l1 {if} l0 {else} l7 {endif} s3
+                (L.L.collision_energy_lights_blinker_h_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_h_r_threshold) 1 = {if} -1 (S.L.lights_blinker_h_r_bulb_lifetime) (L.L.r10) 0.3 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+                (L.L.collision_energy_lights_stand_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_stand_r_threshold) 1 = {if} -1 (S.L.lights_stand_r_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+                (L.L.collision_energy_lights_abbl_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_better) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_abbl_r_threshold) 1 = {if} -1 (S.L.lights_abbl_r_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+                (L.L.collision_energy_lights_fern_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_fern_r_threshold) 1 = {if} -1 (S.L.lights_fern_r_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+                (L.L.collision_energy_lights_position_h_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_best) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_h_r_threshold) 1 = {if} -1 (S.L.lights_position_h_r_bulb_lifetime) (L.L.r10) 0.1 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+                (L.L.lights_cfg_effective_has_drl) {if} (L.L.collision_energy_lights_drl_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_better) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_drl_r_threshold) 1 = {if} -1 (S.L.lights_drl_r_unit_lifetime) (L.L.r10) 0.2 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif} {endif}
+                (L.L.lights_cfg_effective_has_head_fog_lights) {if} (L.L.collision_energy_lights_nebelschw_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_nebelschw_r_threshold) 1 = {if} -1 (S.L.lights_nebelschw_r_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif} {endif}
+            {endif}
+        {else}
+            (L.S.coll_pos_y) 3.5 > (L.S.coll_pos_y) 4.5 < &&
+            {if}
+                (L.S.coll_pos_x) -1 <
+                {if}
+                    (L.L.collision_energy_lights_blinker_s_l_1_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_s_l_1_threshold) 1 = {if} -1 (S.L.lights_blinker_s_l_1_bulb_lifetime) (L.L.r10) 0.2 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+                    (L.L.collision_energy_lights_position_s_l_1_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_worst) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_1_threshold) 1 = {if} -1 (S.L.lights_position_s_l_1_bulb_lifetime) (L.L.r10) 0.1 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+                {else}
+                    (L.S.coll_pos_x) 1 >
+                    {if}
+                        (L.L.collision_energy_lights_blinker_s_r_1_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_s_r_1_threshold) 1 = {if} -1 (S.L.lights_blinker_s_r_1_bulb_lifetime) (L.L.r10) 0.2 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+                        (L.L.collision_energy_lights_position_s_r_1_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_worst) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_1_threshold) 1 = {if} -1 (S.L.lights_position_s_r_1_bulb_lifetime) (L.L.r10) 0.1 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+                    {endif}
+                {endif}
+            {else}
+                (L.S.coll_pos_y) 0.5 > (L.S.coll_pos_y) 1.5 < &&
+                {if}
+                    (L.S.coll_pos_x) -1 <
+                    {if}
+                        (L.L.collision_energy_lights_position_s_l_2_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_worst) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_2_threshold) 1 = {if} -1 (S.L.lights_position_s_l_2_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                    {else}
+                        (L.S.coll_pos_x) 1 >
+                        {if}
+                            (L.L.collision_energy_lights_position_s_r_2_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_worst) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_2_threshold) 1 = {if} -1 (S.L.lights_position_s_r_2_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                        {endif}
+                    {endif}
+                {else}
+                    (L.S.coll_pos_y) -2.3 > (L.S.coll_pos_y) -1.3 < &&
+                    {if}
+                        (L.S.coll_pos_x) -1 <
+                        {if}
+                            (L.L.collision_energy_lights_position_s_l_3_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_worst) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_3_threshold) 1 = {if} -1 (S.L.lights_position_s_l_3_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                        {else}
+                            (L.S.coll_pos_x) 1 >
+                            {if}
+                                (L.L.collision_energy_lights_position_s_r_3_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_worst) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_3_threshold) 1 = {if} -1 (S.L.lights_position_s_r_3_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                            {endif}
+                        {endif}
+                    {else}
+                        (L.S.coll_pos_y) -3.8 > (L.S.coll_pos_y) -2.8 < &&
+                        {if}
+                            (L.S.coll_pos_x) -1 <
+                            {if}
+                                (L.L.collision_energy_lights_position_s_l_4_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_worst) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_4_threshold) 1 = {if} -1 (S.L.lights_position_s_l_4_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                            {else}
+                                (L.S.coll_pos_x) 1 >
+                                {if}
+                                    (L.L.collision_energy_lights_position_s_r_4_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_worst) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_4_threshold) 1 = {if} -1 (S.L.lights_position_s_r_4_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                {endif}
+                            {endif}
+                        {else}
+                            (L.S.coll_pos_y) -4.8 <
+                            {if}
+                                (L.S.coll_pos_x) 0 < s1 10000 random 10000 / 0.5 l0 * * < s2 ||
+                                {if}
+                                    l1 {if} l0 {else} l7 {endif} s3
 
-									(L.L.collision_energy_lights_brems_l_t_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_best) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_brems_l_t_threshold) 1 = {if} -1 (S.L.lights_brems_l_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									(L.L.collision_energy_lights_blinker_t_l_t_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_best) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_t_l_t_threshold) 1 = {if} -1 (S.L.lights_blinker_t_l_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									(L.L.collision_energy_lights_position_t_l_t_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_best) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_l_t_threshold) 1 = {if} -1 (S.L.lights_position_t_l_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									(L.L.collision_energy_lights_brems_l_m_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_brems_l_m_threshold) 1 = {if} -1 (S.L.lights_brems_l_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									(L.L.collision_energy_lights_blinker_t_l_m_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_t_l_m_threshold) 1 = {if} -1 (S.L.lights_blinker_t_l_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									(L.L.collision_energy_lights_position_t_l_m_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_l_m_threshold) 1 = {if} -1 (S.L.lights_position_t_l_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									(L.L.collision_energy_lights_nebelschluss_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_nebelschluss_l_threshold) 1 = {if} -1 (S.L.lights_nebelschluss_l_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									(L.L.collision_energy_lights_position_t_l_b_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_poor) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_l_b_threshold) 1 = {if} -1 (S.L.lights_position_t_l_b_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									(L.L.collision_energy_lights_kennz_hinten_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_poor) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_kennz_hinten_l_threshold) 1 = {if} -1 (S.L.lights_kennz_hinten_l_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									(L.L.lights_cti_has_second_reverse_and_tail_fog_light) {if} (L.L.collision_energy_lights_rueckfahr_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_rueckfahr_l_threshold) 1 = {if} -1 (S.L.lights_rueckfahr_l_bulb_lifetime) l5 1 + s5 {endif} {endif} {endif}
-									(L.S.coll_pos_x) -1 <
-									{if}
-										(L.L.collision_energy_lights_position_s_l_5_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_poor) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_5_threshold) 1 = {if} -1 (S.L.lights_position_s_l_5_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									{endif}
-								{endif}
+                                    (L.L.collision_energy_lights_brems_l_t_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_best) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_brems_l_t_threshold) 1 = {if} -1 (S.L.lights_brems_l_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    (L.L.collision_energy_lights_blinker_t_l_t_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_best) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_t_l_t_threshold) 1 = {if} -1 (S.L.lights_blinker_t_l_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    (L.L.collision_energy_lights_position_t_l_t_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_best) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_l_t_threshold) 1 = {if} -1 (S.L.lights_position_t_l_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    (L.L.collision_energy_lights_brems_l_m_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_brems_l_m_threshold) 1 = {if} -1 (S.L.lights_brems_l_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    (L.L.collision_energy_lights_blinker_t_l_m_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_t_l_m_threshold) 1 = {if} -1 (S.L.lights_blinker_t_l_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    (L.L.collision_energy_lights_position_t_l_m_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_l_m_threshold) 1 = {if} -1 (S.L.lights_position_t_l_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    (L.L.collision_energy_lights_nebelschluss_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_nebelschluss_l_threshold) 1 = {if} -1 (S.L.lights_nebelschluss_l_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    (L.L.collision_energy_lights_position_t_l_b_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_poor) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_l_b_threshold) 1 = {if} -1 (S.L.lights_position_t_l_b_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    (L.L.collision_energy_lights_kennz_hinten_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_poor) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_kennz_hinten_l_threshold) 1 = {if} -1 (S.L.lights_kennz_hinten_l_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    (L.L.lights_cfg_effective_has_second_reverse_and_tail_fog_light) {if} (L.L.collision_energy_lights_rueckfahr_l_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_rueckfahr_l_threshold) 1 = {if} -1 (S.L.lights_rueckfahr_l_bulb_lifetime) l5 1 + s5 {endif} {endif} {endif}
+                                    (L.S.coll_pos_x) -1 <
+                                    {if}
+                                        (L.L.collision_energy_lights_position_s_l_5_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_poor) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_5_threshold) 1 = {if} -1 (S.L.lights_position_s_l_5_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    {endif}
+                                {endif}
 
-								l1 ! l2 ||
-								{if}
-									l1 {if} l7 {else} l0 {endif} s3
+                                l1 ! l2 ||
+                                {if}
+                                    l1 {if} l7 {else} l0 {endif} s3
 
-									(L.L.collision_energy_lights_brems_r_t_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_best) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_brems_r_t_threshold) 1 = {if} -1 (S.L.lights_brems_r_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									(L.L.collision_energy_lights_blinker_t_r_t_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_best) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_t_r_t_threshold) 1 = {if} -1 (S.L.lights_blinker_t_r_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									(L.L.collision_energy_lights_position_t_r_t_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_best) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_r_t_threshold) 1 = {if} -1 (S.L.lights_position_t_r_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									(L.L.collision_energy_lights_brems_r_m_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_brems_r_m_threshold) 1 = {if} -1 (S.L.lights_brems_r_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									(L.L.collision_energy_lights_blinker_t_r_m_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_t_r_m_threshold) 1 = {if} -1 (S.L.lights_blinker_t_r_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									(L.L.collision_energy_lights_position_t_r_m_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_r_m_threshold) 1 = {if} -1 (S.L.lights_position_t_r_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									(L.L.collision_energy_lights_rueckfahr_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_rueckfahr_r_threshold) 1 = {if} -1 (S.L.lights_rueckfahr_r_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									(L.L.collision_energy_lights_position_t_r_b_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_poor) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_r_b_threshold) 1 = {if} -1 (S.L.lights_position_t_r_b_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									(L.L.collision_energy_lights_kennz_hinten_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_poor) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_kennz_hinten_r_threshold) 1 = {if} -1 (S.L.lights_kennz_hinten_r_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									(L.L.lights_cti_has_second_reverse_and_tail_fog_light)
-									{if}
-										(L.L.collision_energy_lights_nebelschluss_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_nebelschluss_r_threshold) 1 = {if} -1 (S.L.lights_nebelschluss_r_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									{endif}
-									(L.S.coll_pos_x) 1 >
-									{if}
-										(L.L.collision_energy_lights_position_s_r_5_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_poor) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_5_threshold) 1 = {if} -1 (S.L.lights_position_s_r_5_bulb_lifetime) l5 1 + s5 {endif} {endif}
-									{endif}
-								{endif}
-							{endif}
-						{endif}
-					{endif}
-				{endif}
-			{endif}
-		{endif}
+                                    (L.L.collision_energy_lights_brems_r_t_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_best) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_brems_r_t_threshold) 1 = {if} -1 (S.L.lights_brems_r_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    (L.L.collision_energy_lights_blinker_t_r_t_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_best) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_t_r_t_threshold) 1 = {if} -1 (S.L.lights_blinker_t_r_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    (L.L.collision_energy_lights_position_t_r_t_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_best) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_r_t_threshold) 1 = {if} -1 (S.L.lights_position_t_r_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    (L.L.collision_energy_lights_brems_r_m_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_brems_r_m_threshold) 1 = {if} -1 (S.L.lights_brems_r_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    (L.L.collision_energy_lights_blinker_t_r_m_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_t_r_m_threshold) 1 = {if} -1 (S.L.lights_blinker_t_r_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    (L.L.collision_energy_lights_position_t_r_m_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_r_m_threshold) 1 = {if} -1 (S.L.lights_position_t_r_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    (L.L.collision_energy_lights_rueckfahr_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_rueckfahr_r_threshold) 1 = {if} -1 (S.L.lights_rueckfahr_r_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    (L.L.collision_energy_lights_position_t_r_b_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_poor) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_r_b_threshold) 1 = {if} -1 (S.L.lights_position_t_r_b_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    (L.L.collision_energy_lights_kennz_hinten_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_poor) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_kennz_hinten_r_threshold) 1 = {if} -1 (S.L.lights_kennz_hinten_r_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    (L.L.lights_cfg_effective_has_second_reverse_and_tail_fog_light)
+                                    {if}
+                                        (L.L.collision_energy_lights_nebelschluss_r_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_moderate) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_nebelschluss_r_threshold) 1 = {if} -1 (S.L.lights_nebelschluss_r_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    {endif}
+                                    (L.S.coll_pos_x) 1 >
+                                    {if}
+                                        (L.L.collision_energy_lights_position_s_r_5_threshold) s4 1 < {if} l4 (C.L.collision_light_source_resistance_factor_poor) l3 * 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_5_threshold) 1 = {if} -1 (S.L.lights_position_s_r_5_bulb_lifetime) l5 1 + s5 {endif} {endif}
+                                    {endif}
+                                {endif}
+                            {endif}
+                        {endif}
+                    {endif}
+                {endif}
+            {endif}
+        {endif}
 
-		l7 10 / s3
+        l7 10 / s3
 
-		(L.L.collision_energy_lights_blinker_h_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_h_l_threshold) 1 = {if} -1 (S.L.lights_blinker_h_l_bulb_lifetime) (L.L.r10) 0.3 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_blinker_h_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_h_r_threshold) 1 = {if} -1 (S.L.lights_blinker_h_r_bulb_lifetime) (L.L.r10) 0.3 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_stand_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_stand_l_threshold) 1 = {if} -1 (S.L.lights_stand_l_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_stand_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_stand_r_threshold) 1 = {if} -1 (S.L.lights_stand_r_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_abbl_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_abbl_l_threshold) 1 = {if} -1 (S.L.lights_abbl_l_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_abbl_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_abbl_r_threshold) 1 = {if} -1 (S.L.lights_abbl_r_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_fern_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_fern_l_threshold) 1 = {if} -1 (S.L.lights_fern_l_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_fern_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_fern_r_threshold) 1 = {if} -1 (S.L.lights_fern_r_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-		(L.L.lights_cti_has_drl)
-		{if}
-			(L.L.collision_energy_lights_drl_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_drl_l_threshold) 1 = {if} -1 (S.L.lights_drl_l_unit_lifetime) (L.L.r10) 0.2 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-			(L.L.collision_energy_lights_drl_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_drl_r_threshold) 1 = {if} -1 (S.L.lights_drl_r_unit_lifetime) (L.L.r10) 0.2 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-		{endif}
-		(L.L.lights_cti_has_head_fog_lights)
-		{if}
-			(L.L.collision_energy_lights_nebelschw_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_nebelschw_l_threshold) 1 = {if} -1 (S.L.lights_nebelschw_l_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-			(L.L.collision_energy_lights_nebelschw_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_nebelschw_r_threshold) 1 = {if} -1 (S.L.lights_nebelschw_r_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-		{endif}
-		(L.L.collision_energy_lights_position_h_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_h_l_threshold) 1 = {if} -1 (S.L.lights_position_h_l_bulb_lifetime) (L.L.r10) 0.1 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_position_h_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_h_r_threshold) 1 = {if} -1 (S.L.lights_position_h_r_bulb_lifetime) (L.L.r10) 0.1 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_blinker_h_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_h_l_threshold) 1 = {if} -1 (S.L.lights_blinker_h_l_bulb_lifetime) (L.L.r10) 0.3 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_blinker_h_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_h_r_threshold) 1 = {if} -1 (S.L.lights_blinker_h_r_bulb_lifetime) (L.L.r10) 0.3 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_stand_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_stand_l_threshold) 1 = {if} -1 (S.L.lights_stand_l_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_stand_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_stand_r_threshold) 1 = {if} -1 (S.L.lights_stand_r_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_abbl_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_abbl_l_threshold) 1 = {if} -1 (S.L.lights_abbl_l_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_abbl_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_abbl_r_threshold) 1 = {if} -1 (S.L.lights_abbl_r_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_fern_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_fern_l_threshold) 1 = {if} -1 (S.L.lights_fern_l_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_fern_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_fern_r_threshold) 1 = {if} -1 (S.L.lights_fern_r_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+        (L.L.lights_cfg_effective_has_drl)
+        {if}
+            (L.L.collision_energy_lights_drl_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_drl_l_threshold) 1 = {if} -1 (S.L.lights_drl_l_unit_lifetime) (L.L.r10) 0.2 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+            (L.L.collision_energy_lights_drl_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_drl_r_threshold) 1 = {if} -1 (S.L.lights_drl_r_unit_lifetime) (L.L.r10) 0.2 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+        {endif}
+        (L.L.lights_cfg_effective_has_head_fog_lights)
+        {if}
+            (L.L.collision_energy_lights_nebelschw_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_nebelschw_l_threshold) 1 = {if} -1 (S.L.lights_nebelschw_l_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+            (L.L.collision_energy_lights_nebelschw_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_nebelschw_r_threshold) 1 = {if} -1 (S.L.lights_nebelschw_r_bulb_lifetime) (L.L.r10) 0.5 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+        {endif}
+        (L.L.collision_energy_lights_position_h_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_h_l_threshold) 1 = {if} -1 (S.L.lights_position_h_l_bulb_lifetime) (L.L.r10) 0.1 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_position_h_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_h_r_threshold) 1 = {if} -1 (S.L.lights_position_h_r_bulb_lifetime) (L.L.r10) 0.1 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
 
-		(L.L.collision_energy_lights_blinker_s_l_1_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_s_l_1_threshold) 1 = {if} -1 (S.L.lights_blinker_s_l_1_bulb_lifetime) (L.L.r10) 0.2 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_position_s_l_1_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_1_threshold) 1 = {if} -1 (S.L.lights_position_s_l_1_bulb_lifetime) (L.L.r10) 0.1 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_blinker_s_r_1_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_s_r_1_threshold) 1 = {if} -1 (S.L.lights_blinker_s_r_1_bulb_lifetime) (L.L.r10) 0.2 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_position_s_r_1_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_1_threshold) 1 = {if} -1 (S.L.lights_position_s_r_1_bulb_lifetime) (L.L.r10) 0.1 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_blinker_s_l_1_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_s_l_1_threshold) 1 = {if} -1 (S.L.lights_blinker_s_l_1_bulb_lifetime) (L.L.r10) 0.2 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_position_s_l_1_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_1_threshold) 1 = {if} -1 (S.L.lights_position_s_l_1_bulb_lifetime) (L.L.r10) 0.1 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_blinker_s_r_1_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_s_r_1_threshold) 1 = {if} -1 (S.L.lights_blinker_s_r_1_bulb_lifetime) (L.L.r10) 0.2 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_position_s_r_1_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_1_threshold) 1 = {if} -1 (S.L.lights_position_s_r_1_bulb_lifetime) (L.L.r10) 0.1 + 1 min (S.L.r10) l5 1 + s5 {endif} {endif}
 
-		(L.L.collision_energy_lights_position_s_l_2_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_2_threshold) 1 = {if} -1 (S.L.lights_position_s_l_2_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_position_s_r_2_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_2_threshold) 1 = {if} -1 (S.L.lights_position_s_r_2_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_position_s_l_2_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_2_threshold) 1 = {if} -1 (S.L.lights_position_s_l_2_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_position_s_r_2_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_2_threshold) 1 = {if} -1 (S.L.lights_position_s_r_2_bulb_lifetime) l5 1 + s5 {endif} {endif}
 
-		(L.L.collision_energy_lights_position_s_l_3_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_3_threshold) 1 = {if} -1 (S.L.lights_position_s_l_3_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_position_s_r_3_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_3_threshold) 1 = {if} -1 (S.L.lights_position_s_r_3_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_position_s_l_3_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_3_threshold) 1 = {if} -1 (S.L.lights_position_s_l_3_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_position_s_r_3_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_3_threshold) 1 = {if} -1 (S.L.lights_position_s_r_3_bulb_lifetime) l5 1 + s5 {endif} {endif}
 
-		(L.L.collision_energy_lights_position_s_l_4_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_4_threshold) 1 = {if} -1 (S.L.lights_position_s_l_4_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_position_s_r_4_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_4_threshold) 1 = {if} -1 (S.L.lights_position_s_r_4_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_position_s_l_4_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_4_threshold) 1 = {if} -1 (S.L.lights_position_s_l_4_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_position_s_r_4_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_4_threshold) 1 = {if} -1 (S.L.lights_position_s_r_4_bulb_lifetime) l5 1 + s5 {endif} {endif}
 
-		(L.L.collision_energy_lights_brems_l_t_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_brems_l_t_threshold) 1 = {if} -1 (S.L.lights_brems_l_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_brems_r_t_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_brems_r_t_threshold) 1 = {if} -1 (S.L.lights_brems_r_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_blinker_t_l_t_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_t_l_t_threshold) 1 = {if} -1 (S.L.lights_blinker_t_l_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_blinker_t_r_t_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_t_r_t_threshold) 1 = {if} -1 (S.L.lights_blinker_t_r_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_position_t_l_t_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_l_t_threshold) 1 = {if} -1 (S.L.lights_position_t_l_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_position_t_r_t_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_r_t_threshold) 1 = {if} -1 (S.L.lights_position_t_r_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_brems_l_m_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_brems_l_m_threshold) 1 = {if} -1 (S.L.lights_brems_l_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_brems_r_m_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_brems_r_m_threshold) 1 = {if} -1 (S.L.lights_brems_r_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_blinker_t_l_m_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_t_l_m_threshold) 1 = {if} -1 (S.L.lights_blinker_t_l_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_blinker_t_r_m_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_t_r_m_threshold) 1 = {if} -1 (S.L.lights_blinker_t_r_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_position_t_l_m_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_l_m_threshold) 1 = {if} -1 (S.L.lights_position_t_l_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_position_t_r_m_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_r_m_threshold) 1 = {if} -1 (S.L.lights_position_t_r_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.lights_cti_has_second_reverse_and_tail_fog_light) {if} (L.L.collision_energy_lights_rueckfahr_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_rueckfahr_l_threshold) 1 = {if} -1 (S.L.lights_rueckfahr_l_bulb_lifetime) l5 1 + s5 {endif} {endif} {endif}
-		(L.L.collision_energy_lights_rueckfahr_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_rueckfahr_r_threshold) 1 = {if} -1 (S.L.lights_rueckfahr_r_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_nebelschluss_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_nebelschluss_l_threshold) 1 = {if} -1 (S.L.lights_nebelschluss_l_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.lights_cti_has_second_reverse_and_tail_fog_light) {if} (L.L.collision_energy_lights_nebelschluss_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_nebelschluss_r_threshold) 1 = {if} -1 (S.L.lights_nebelschluss_r_bulb_lifetime) l5 1 + s5 {endif} {endif} {endif}
-		(L.L.collision_energy_lights_position_s_l_5_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_5_threshold) 1 = {if} -1 (S.L.lights_position_s_l_5_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_position_s_r_5_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_5_threshold) 1 = {if} -1 (S.L.lights_position_s_r_5_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_position_t_l_b_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_l_b_threshold) 1 = {if} -1 (S.L.lights_position_t_l_b_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_position_t_r_b_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_r_b_threshold) 1 = {if} -1 (S.L.lights_position_t_r_b_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_kennz_hinten_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_kennz_hinten_l_threshold) 1 = {if} -1 (S.L.lights_kennz_hinten_l_bulb_lifetime) l5 1 + s5 {endif} {endif}
-		(L.L.collision_energy_lights_kennz_hinten_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_kennz_hinten_r_threshold) 1 = {if} -1 (S.L.lights_kennz_hinten_r_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_brems_l_t_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_brems_l_t_threshold) 1 = {if} -1 (S.L.lights_brems_l_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_brems_r_t_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_brems_r_t_threshold) 1 = {if} -1 (S.L.lights_brems_r_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_blinker_t_l_t_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_t_l_t_threshold) 1 = {if} -1 (S.L.lights_blinker_t_l_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_blinker_t_r_t_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_t_r_t_threshold) 1 = {if} -1 (S.L.lights_blinker_t_r_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_position_t_l_t_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_l_t_threshold) 1 = {if} -1 (S.L.lights_position_t_l_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_position_t_r_t_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_r_t_threshold) 1 = {if} -1 (S.L.lights_position_t_r_t_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_brems_l_m_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_brems_l_m_threshold) 1 = {if} -1 (S.L.lights_brems_l_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_brems_r_m_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_brems_r_m_threshold) 1 = {if} -1 (S.L.lights_brems_r_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_blinker_t_l_m_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_t_l_m_threshold) 1 = {if} -1 (S.L.lights_blinker_t_l_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_blinker_t_r_m_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_blinker_t_r_m_threshold) 1 = {if} -1 (S.L.lights_blinker_t_r_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_position_t_l_m_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_l_m_threshold) 1 = {if} -1 (S.L.lights_position_t_l_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_position_t_r_m_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_r_m_threshold) 1 = {if} -1 (S.L.lights_position_t_r_m_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.lights_cfg_effective_has_second_reverse_and_tail_fog_light) {if} (L.L.collision_energy_lights_rueckfahr_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_rueckfahr_l_threshold) 1 = {if} -1 (S.L.lights_rueckfahr_l_bulb_lifetime) l5 1 + s5 {endif} {endif} {endif}
+        (L.L.collision_energy_lights_rueckfahr_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_rueckfahr_r_threshold) 1 = {if} -1 (S.L.lights_rueckfahr_r_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_nebelschluss_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_nebelschluss_l_threshold) 1 = {if} -1 (S.L.lights_nebelschluss_l_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.lights_cfg_effective_has_second_reverse_and_tail_fog_light) {if} (L.L.collision_energy_lights_nebelschluss_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_nebelschluss_r_threshold) 1 = {if} -1 (S.L.lights_nebelschluss_r_bulb_lifetime) l5 1 + s5 {endif} {endif} {endif}
+        (L.L.collision_energy_lights_position_s_l_5_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_l_5_threshold) 1 = {if} -1 (S.L.lights_position_s_l_5_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_position_s_r_5_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_s_r_5_threshold) 1 = {if} -1 (S.L.lights_position_s_r_5_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_position_t_l_b_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_l_b_threshold) 1 = {if} -1 (S.L.lights_position_t_l_b_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_position_t_r_b_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_position_t_r_b_threshold) 1 = {if} -1 (S.L.lights_position_t_r_b_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_kennz_hinten_l_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_kennz_hinten_l_threshold) 1 = {if} -1 (S.L.lights_kennz_hinten_l_bulb_lifetime) l5 1 + s5 {endif} {endif}
+        (L.L.collision_energy_lights_kennz_hinten_r_threshold) s4 1 < {if} l4 l3 10000 random 10000 / * + 1 min (S.L.collision_energy_lights_kennz_hinten_r_threshold) 1 = {if} -1 (S.L.lights_kennz_hinten_r_bulb_lifetime) l5 1 + s5 {endif} {endif}
 
-		l5 0 >
-		{if}
-			1 (S.L.collision_energy_light)
-		{endif}
-	{endif}
+        l5 0 >
+        {if}
+            1 (S.L.collision_energy_light)
+        {endif}
+    {endif}
 
-	(L.L.r10) (S.L.collision_shattered_glass_sound_vol)
-	{if}
-		(T.L.ev_collision_glass_shattering)
-	{endif}
+    (L.L.r10) (S.L.collision_shattered_glass_sound_vol)
+    {if}
+        (T.L.ev_collision_glass_shattering)
+    {endif}
 {end}

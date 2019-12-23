@@ -333,8 +333,22 @@
 '----------------------
 
 {macro:ticketprinter_init}
-	-1 (S.L.ticketprinter_ticket_preselection) (S.L.ticketprinter_ticket_selection)
-	"" (S.$.ticketprinter_display)
+    (L.L.ticketprinter_initialized_once) !
+    {if}
+        -1 (S.L.ticketprinter_ticket_preselection) (S.L.ticketprinter_ticket_selection)
+        "" (S.$.ticketprinter_display)
+
+        (M.L.ticketprinter_cfg_reset_overrides)
+        (M.L.ticketprinter_cfg_apply_defaults)
+    {endif}
+
+    0 (S.L.ticketprinter_initialized)
+{end}
+
+{macro:ticketprinter_cfg_reset_overrides}
+{end}
+
+{macro:ticketprinter_cfg_apply_defaults}
 {end}
 
 '----------------------
@@ -342,6 +356,20 @@
 '----------------------
 
 {macro:ticketprinter_frame}
+    (L.L.ticketprinter_initialized) !
+    {if}
+        1 (S.L.ticketprinter_initialized)
+    {else}
+        (L.L.ticketprinter_initialized) 1 =
+        {if}
+            (L.L.ticketprinter_initialized_once) !
+            {if}
+                1 (S.L.ticketprinter_initialized_once)
+            {endif}
+            2 (S.L.ticketprinter_initialized)
+        {endif}
+        (M.L.ticketprinter_cfg_apply_overrides)
+    {endif}
 
 'Automatisches Wechseln zwischen ITCS & Verkauf:
 (L.L.door_0) 0.1 >
@@ -442,7 +470,7 @@
 
 (L.L.ticketprinter_druckt) (L.L.GivenTicket) 0 >= || (S.L.ticketprinter_ticket_visible)
 
-
 {end}
 
-
+{macro:ticketprinter_cfg_apply_overrides}
+{end}

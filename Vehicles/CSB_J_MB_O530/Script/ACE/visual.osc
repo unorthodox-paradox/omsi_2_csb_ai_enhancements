@@ -1,0 +1,60 @@
+{macro:visual_init}
+    (L.L.visual_initialized_once) !
+    {if}
+        1 (S.L.visual_perm_anim)
+
+        (M.L.visual_cfg_reset_overrides)
+        (M.L.visual_cfg_apply_defaults)
+    {endif}
+
+    0 (S.L.visual_initialized)
+{end}
+
+{macro:visual_cfg_reset_overrides}
+    -1 (S.L.visual_cfg_cti_has_static_registration_identifiers)
+
+        (S.L.visual_cfg_on_demand_has_static_registration_identifiers)
+{end}
+
+{macro:visual_cfg_apply_defaults}
+    (C.L.visual_cfg_default_has_static_registration_identifiers) s0 0 = l0 1 = ||
+    {if}
+        l0
+    {else}
+        0
+    {endif}
+    (S.L.visual_cfg_effective_has_static_registration_identifiers)
+{end}
+
+{macro:visual_frame}
+    (L.L.visual_initialized) !
+    {if}
+        1 (S.L.visual_initialized)
+    {else}
+        (L.L.visual_initialized) 1 =
+        {if}
+            (L.L.visual_initialized_once) !
+            {if}
+                1 (S.L.visual_initialized_once)
+            {endif}
+            2 (S.L.visual_initialized)
+        {endif}
+        (M.L.visual_cfg_apply_overrides)
+    {endif}
+{end}
+
+{macro:visual_cfg_apply_overrides}
+    (C.L.global_cfg_no_cti_overrides) 1 = ! s0
+
+    (L.L.visual_cfg_on_demand_has_static_registration_identifiers) s1 0 = l1 1 = || !
+    {if}
+        (L.L.visual_cfg_cti_has_static_registration_identifiers) s1 0 = l1 1 = || l0 && (C.L.visual_cfg_no_cti_override_has_static_registration_identifiers) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.visual_cfg_effective_has_static_registration_identifiers)
+    {endif}
+{end}

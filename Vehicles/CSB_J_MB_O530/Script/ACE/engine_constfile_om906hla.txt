@@ -3,14 +3,18 @@ engine_J
 4
 
 [newcurve]
-max_speed
+engine_v_max
 
 [pnt]
-84
+82
 1
 
 [pnt]
-85
+87
+0.1
+
+[pnt]
+100
 0
 
 [const]
@@ -48,7 +52,6 @@ engine_n_coldM
 2500
 -350
 
-
 [const]
 engine_oelvis_M_nulldeg
 -20
@@ -70,7 +73,6 @@ engine_RPM_ign_warm
 [const]
 engine_RPM_ign_time2warm
 4
-
 
 [const]
 engine_starterM
@@ -131,7 +133,6 @@ engine_M_maxThrottle
 2200
 900
 
-
 [newcurve]
 engine_M_minThrottle
 
@@ -158,6 +159,10 @@ engine_M_minThrottle
 [pnt]
 2200
 -300
+
+[pnt]
+5000
+-400
 
 [newcurve]
 engine_efficiency_rpm
@@ -207,8 +212,6 @@ Heizwert Diesel: 11.8 kWh/kg mit Dichte 0.845 kg/l verrechnet
 engine_tank_capacity
 240
 
-
-
 [const]
 luefterthermostat_opn
 90
@@ -240,7 +243,6 @@ kuehlwassersmoke
 115
 100
 
-
 [const]
 engine_Qrate_engine_factor
 1.2
@@ -269,7 +271,6 @@ engine_cvm_engine
 engine_cvm_envir
 10000
 
-
 [newcurve]
 engine_turbo_RPM_factor
 
@@ -292,7 +293,6 @@ engine_turbo_RPM_factor
 [pnt]
 2000
 1
-
 
 [newcurve]
 engine_turbo_throttle_factor

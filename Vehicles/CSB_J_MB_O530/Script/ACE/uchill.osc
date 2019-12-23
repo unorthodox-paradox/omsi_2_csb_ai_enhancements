@@ -36,30 +36,79 @@
 ' Init
 '-----------------------------------------------------------------------------------------------------------------------
 {macro:uchill_init}
-    (L.S.Weather_Temperature) (S.L.Cabinair_Temp) (S.L.driver_ac_t) (S.L.passenger_ac_t) (S.L.cabin_heater_t)
-    (L.S.Weather_AbsHum) (S.L.Cabinair_absHum)
+    (L.L.uchill_initialized_once) !
+    {if}
+        (L.S.Weather_Temperature) (S.L.Cabinair_Temp) (S.L.driver_ac_t) (S.L.passenger_ac_t) (S.L.cabin_heater_t)
+        (L.S.Weather_AbsHum) (S.L.Cabinair_absHum)
 
-    (M.L.uchill_integration__init)
+        (M.L.uchill_integration__init)
 ' one of those macros--normally the first--should at the very least set <uchill_integration__cabinair_V> needed below
-    (M.L.uchill_integration__acquire_static_vehicle_attributes)
-    (M.L.uchill_integration__acquire_dynamic_vehicle_attributes)
+        (M.L.uchill_integration__acquire_static_vehicle_attributes)
+        (M.L.uchill_integration__acquire_dynamic_vehicle_attributes)
 
 ' these are set to a high value initially, to avoid division by 0 (they are used as divisors--see sound macros--prior
 '  to actually having been set, during first frame execution)
-    (C.L.generic_high_value) (S.L.cabinair_Vrate_driver_ac_max) (S.L.cabinair_Vrate_passenger_ac_max)
-        (S.L.cabinair_Vrate_cabin_heater_max)
+        (C.L.generic_high_value) (S.L.cabinair_Vrate_driver_ac_max) (S.L.cabinair_Vrate_passenger_ac_max)
+            (S.L.cabinair_Vrate_cabin_heater_max)
 
 ' the following sub-products used by <ghe_impact> are constant, thus only calculated once
-    (C.L.ghe_time_max) s0 (C.L.cabinair_Qrate_env_factor) * (C.L.cabinair_cvm) /
-        (C.L.ghe_env_conduction_resistance_factor) * (S.L.ghe_env_conduction_resistance_const)
-    l0 (L.L.uchill_integration__cabinair_V) / s0 (C.L.ghe_env_convection_resistance_factor) *
-        (S.L.ghe_env_convection_resistance_const) l0 (C.L.ghe_ac_resistance_factor) *
-        (S.L.ghe_ac_resistance_const)
+        (C.L.ghe_time_max) s0 (C.L.cabinair_Qrate_env_factor) * (C.L.cabinair_cvm) /
+            (C.L.ghe_env_conduction_resistance_factor) * (S.L.ghe_env_conduction_resistance_const)
+        l0 (L.L.uchill_integration__cabinair_V) / s0 (C.L.ghe_env_convection_resistance_factor) *
+            (S.L.ghe_env_convection_resistance_const) l0 (C.L.ghe_ac_resistance_factor) *
+            (S.L.ghe_ac_resistance_const)
+
+        (M.L.uchill_cfg_reset_overrides)
+        (M.L.uchill_cfg_apply_defaults)
+    {endif}
+
+    0 (S.L.uchill_initialized)
+{end}
+
+{macro:uchill_cfg_reset_overrides}
+    -1 (S.L.uchill_cfg_cti_driver_ac_maintenance_mode_requires_full_elec)
+        (S.L.uchill_cfg_cti_passenger_ac_maintenance_mode_requires_full_elec)
+
+        (S.L.uchill_cfg_on_demand_driver_ac_maintenance_mode_requires_full_elec)
+        (S.L.uchill_cfg_on_demand_passenger_ac_maintenance_mode_requires_full_elec)
+{end}
+
+{macro:uchill_cfg_apply_defaults}
+    (C.L.uchill_cfg_default_driver_ac_maintenance_mode_requires_full_elec) s0 0 = l0 1 = ||
+    {if}
+        l0
+    {else}
+        1
+    {endif}
+    (S.L.uchill_cfg_effective_driver_ac_maintenance_mode_requires_full_elec)
+
+    (C.L.uchill_cfg_default_passenger_ac_maintenance_mode_requires_full_elec) s0 0 = l0 1 = ||
+    {if}
+        l0
+    {else}
+        1
+    {endif}
+    (S.L.uchill_cfg_effective_passenger_ac_maintenance_mode_requires_full_elec)
 {end}
 
 ' Frame
 '-----------------------------------------------------------------------------------------------------------------------
 {macro:uchill_frame}
+    (L.L.uchill_initialized) !
+    {if}
+        1 (S.L.uchill_initialized)
+    {else}
+        (L.L.uchill_initialized) 1 =
+        {if}
+            (L.L.uchill_initialized_once) !
+            {if}
+                1 (S.L.uchill_initialized_once)
+            {endif}
+            2 (S.L.uchill_initialized)
+        {endif}
+        (M.L.uchill_cfg_apply_overrides)
+    {endif}
+
 ' portable retrieval of vehicle state
     (M.L.uchill_integration__acquire_dynamic_vehicle_attributes)
     (M.L.uchill_integration__acquire_vehicle_state)
@@ -77,8 +126,38 @@
 '     <uchill_frame> delegates
 '----------------------------------
 
-' Remnant of the original script. My (i.e., u.p.'s) changes have been, for the most part, moved into separate macros,
-' which are called by this one.
+{macro:uchill_cfg_apply_overrides}
+    (C.L.global_cfg_no_cti_overrides) 1 = ! s0
+
+    (L.L.uchill_cfg_on_demand_driver_ac_maintenance_mode_requires_full_elec) s1 0 = l1 1 = || !
+    {if}
+        (L.L.uchill_cfg_cti_driver_ac_maintenance_mode_requires_full_elec) s1 0 = l1 1 = || l0 &&
+            (C.L.uchill_cfg_no_cti_override_driver_ac_maintenance_mode_requires_full_elec) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.uchill_cfg_effective_driver_ac_maintenance_mode_requires_full_elec)
+    {endif}
+
+    (L.L.uchill_cfg_on_demand_passenger_ac_maintenance_mode_requires_full_elec) s1 0 = l1 1 = || !
+    {if}
+        (L.L.uchill_cfg_cti_passenger_ac_maintenance_mode_requires_full_elec) s1 0 = l1 1 = || l0 &&
+            (C.L.uchill_cfg_no_cti_override_passenger_ac_maintenance_mode_requires_full_elec) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.uchill_cfg_effective_passenger_ac_maintenance_mode_requires_full_elec)
+    {endif}
+{end}
+
+' Remnant of the original script. Changes have been, for the most part, moved into separate macros, which are called by
+' this one.
 '-----------------------------------------------------------------------------------------------------------------------
 {macro:cabinair_frame}
     (L.L.Cabinair_Temp) s3
@@ -452,8 +531,8 @@
 {macro:actualize_driver_ac_sound}
 ' <r4> = <uchill_integration__electrics_on>
 ' we check for electrics, since we don't want to hear the fan when they're off (the v-rate might, even then, be non-null)
-    l4 2 = l4 1 = (L.L.uchill_cti_driver_ac_maintenance_mode_requires_full_elec) ! && || (L.L.cabinair_Vrate_driver_ac) s0 &&
-        (L.L.uchill_integration__cp_driver_ac_fan) &&
+    l4 2 = l4 1 = (L.L.uchill_cfg_effective_driver_ac_maintenance_mode_requires_full_elec) ! && ||
+        (L.L.cabinair_Vrate_driver_ac) s0 && (L.L.uchill_integration__cp_driver_ac_fan) &&
     {if}
         l0 (L.L.cabinair_Vrate_driver_ac_max) /
     {else}
@@ -1235,7 +1314,7 @@
             (C.L.driver_ac_effectiveness) (S.L.r10)
         {endif}
 ' <r4> = <uchill_integration__electrics_on>
-        l4 2 = l4 1 = (L.L.uchill_cti_driver_ac_maintenance_mode_requires_full_elec) ! && ||
+        l4 2 = l4 1 = (L.L.uchill_cfg_effective_driver_ac_maintenance_mode_requires_full_elec) ! && ||
         {if}
 ' <r5> = <uchill_integration__engine_running>
             l5 !
@@ -1276,7 +1355,7 @@
 ' fresh-air mode
         l7 (L.L.velocity) 20 / abs (C.L.cabinair_openable_surface_convection_minkmh) +
             (C.L.cabinair_openable_surface_convection_effectiveness) * 3.6 / * s7 (S.L.r8)
-        l4 2 = l4 1 = (L.L.uchill_cti_driver_ac_maintenance_mode_requires_full_elec) ! && ||
+        l4 2 = l4 1 = (L.L.uchill_cfg_effective_driver_ac_maintenance_mode_requires_full_elec) ! && ||
         {if}
             l5 !
             {if}
@@ -1400,7 +1479,8 @@
     (S.L.passenger_ac_fan_factor)
 
 ' <r4> = <uchill_integration__electrics_on>
-    (L.L.uchill_integration__passenger_ac_installed) l4 2 = l4 1 = (L.L.uchill_cti_passenger_ac_maintenance_mode_requires_full_elec) ! && || &&
+    (L.L.uchill_integration__passenger_ac_installed) l4 2 = l4 1 =
+        (L.L.uchill_cfg_effective_passenger_ac_maintenance_mode_requires_full_elec) ! && || &&
     {if}
         (L.L.passenger_ac_running) s2 0 >
         {if}

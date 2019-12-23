@@ -1,3 +1,6 @@
+bremse_initialized
+bremse_initialized_once
+
 kneel_allowed
 kneel_old_F_pressure
 kneel_old_B_pressure

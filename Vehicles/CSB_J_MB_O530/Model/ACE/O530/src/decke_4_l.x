@@ -52,7 +52,7 @@ Frame Root {
             0.000000;
            0.000000; 0.000000; 0.000000;;
            0.000000; 0.000000; 0.000000;;
-          TextureFilename {"up\02_whole_speaker_tail.jpg";}
+          TextureFilename {"ACE\02_whole_speaker_tail.png";}
         }
       } // End of Decke2b_002 material list
     } // End of Decke2b_002 mesh

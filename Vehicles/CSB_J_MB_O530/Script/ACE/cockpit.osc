@@ -76,371 +76,108 @@
     {endif}
 {end}
 
-{trigger:automatic_R}
-    (L.L.AI) !
+{trigger:automatic_1}
+    (L.L.AI) ! (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors) &&
     {if}
-        (C.L.cockpit_gangwahltaster_alt)
+        (L.L.cockpit_gang2) 1 < (L.L.cockpit_gang3) 1 < && (L.L.cockpit_gangD) 1 < && (L.L.cockpit_gangN) 1 < && (L.L.cockpit_gangR) ! &&
         {if}
-            (L.L.cockpit_gang2) (L.L.cockpit_gang3) ||
+            (L.L.cockpit_gang1) !
             {if}
-                (L.L.antrieb_getr_gangvorwahl) 1 <= !
+                (T.L.ev_gangwahltaster)
+                (L.L.cockpit_gang2) (L.L.cockpit_gang3) || (L.L.cockpit_gangD) || (L.L.cockpit_gangN) ||
                 {if}
-                    (L.S.getTime) (C.L.antrieb_gangwahlzeit) (C.L.antrieb_neutralwahlzeit) - - (S.L.antrieb_getr_gangwahlzeitpunkt)
-                {endif}
-                1 (S.L.antrieb_getr_gangvorwahl)
-            {endif}
-            (L.L.cockpit_gangR_toggle) ! (S.L.cockpit_gangR_toggle)
-            (L.L.cockpit_gangR) !
-            {if}
-                1 (S.L.cockpit_gang_r-frei)
-            {endif}
-            (L.L.cockpit_gangR_toggle) (L.L.cockpit_gang2_toggle) ! (L.L.cockpit_gang3_toggle) ! && &&
-            {if}
-                (L.S.getTime) (S.L.antrieb_getr_gangwahlzeitpunkt)
-                (L.L.cockpit_brake) 0.1 >
-                {if}
-                    0 (S.L.antrieb_getr_gangvorwahl)
+                    (T.L.ev_gangwahltaster_N)
+                    0 (S.L.cockpit_gang2) (S.L.cockpit_gang3) (S.L.cockpit_gangD) (S.L.cockpit_gangN)
                 {endif}
             {endif}
-            (L.L.cockpit_gangR) 1 = !
-            {if}
-                (L.L.cockpit_gangR_toggle)
-                {if}
-                    (T.L.ev_gangwahltaster_old_on)
-                {else}
-                    (T.L.ev_gangwahltaster_old_off)
-                {endif}
-            {endif}
-            1 (S.L.cockpit_gangR)
-        {else}
-            (L.L.antrieb_getr_gangvorwahl) 1 <=
-            (L.L.cockpit_gang3) 0 = &&
-            {if}
-                (L.L.antrieb_getr_gangvorwahl) 0 = !
-                {if}
-                    (T.L.ev_gangwahltaster)
-                    (L.S.getTime) (S.L.antrieb_getr_gangwahlzeitpunkt)
-                {endif}
-
-                (L.L.cockpit_brake) 0.1 >
-                {if}
-                    0 (S.L.antrieb_getr_gangvorwahl)
-                {endif}
-
-                1 (S.L.cockpit_gangR)
-            {endif}
+            1 (S.L.cockpit_gang1)
         {endif}
     {endif}
 {end}
 
-{trigger:automatic_R_off}
+{trigger:automatic_1_off}
     (L.L.AI) !
     {if}
-        (C.L.cockpit_gangwahltaster_alt)
+        (L.L.cockpit_gang1) 1 =
         {if}
-            (L.L.cockpit_gangR_toggle)
-            {if}
-                0.7 (S.L.cockpit_gangR)
-                0 (S.L.cockpit_gang_r-frei)
-            {else}
-                (L.L.cockpit_gang3_toggle) (L.L.cockpit_gang2_toggle) ! &&
-                {if}
-                    (L.S.getTime) (S.L.antrieb_getr_gangwahlzeitpunkt)
-                    4 (S.L.antrieb_getr_gangvorwahl)
-                {else}
-                    (L.L.cockpit_gang2_toggle)
-                    {if}
-                        (L.S.getTime) (S.L.antrieb_getr_gangwahlzeitpunkt)
-                        3 (S.L.antrieb_getr_gangvorwahl)
-                    {else}
-                        (L.S.getTime) (C.L.antrieb_gangwahlzeit) (C.L.antrieb_neutralwahlzeit) - - (S.L.antrieb_getr_gangwahlzeitpunkt)
-                        1 (S.L.antrieb_getr_gangvorwahl)
-                    {endif}
-                {endif}
-
-                0 (S.L.cockpit_gangR) 0 (S.L.cockpit_gang_r-frei)
-            {endif}
-        {else}
-            (L.L.cockpit_gangR) 1 =
-            {if}
-                0.7 (S.L.cockpit_gangR)
-            {endif}
+            0.7 (S.L.cockpit_gang1)
         {endif}
     {endif}
 {end}
 
-{trigger:automatic_R_mouse}
-    (L.L.AI) !
+{trigger:automatic_2}
+    (L.L.AI) ! (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors) &&
     {if}
-        (C.L.cockpit_gangwahltaster_alt)
+        (L.L.cockpit_gang1) 1 < (L.L.cockpit_gang3) 1 < && (L.L.cockpit_gangD) 1 < && (L.L.cockpit_gangN) 1 < && (L.L.cockpit_gangR) ! &&
         {if}
-            (L.L.cockpit_gang2) (L.L.cockpit_gang3) ||
+            (L.L.cockpit_gang2) !
             {if}
-                (L.L.antrieb_getr_gangvorwahl) 1 <= !
+                (T.L.ev_gangwahltaster)
+                (L.L.cockpit_gang1) (L.L.cockpit_gang3) || (L.L.cockpit_gangD) || (L.L.cockpit_gangN) ||
                 {if}
-                    (L.S.getTime) (C.L.antrieb_gangwahlzeit) (C.L.antrieb_neutralwahlzeit) - - (S.L.antrieb_getr_gangwahlzeitpunkt)
-                {endif}
-                1 (S.L.antrieb_getr_gangvorwahl)
-            {endif}
-            (L.L.cockpit_gangR_toggle) ! (S.L.cockpit_gangR_toggle)
-            (L.L.cockpit_gangR) 1 = !
-            {if}
-                (L.L.cockpit_gangR_toggle)
-                {if}
-                    (T.L.ev_gangwahltaster_old_on)
-                {else}
-                    (T.L.ev_gangwahltaster_old_off)
+                    (T.L.ev_gangwahltaster_N)
+                    0 (S.L.cockpit_gang1) (S.L.cockpit_gang3) (S.L.cockpit_gangD) (S.L.cockpit_gangN)
                 {endif}
             {endif}
-            1 (S.L.cockpit_gangR)
-        {else}
-            (L.L.antrieb_getr_gangvorwahl) 1 <=
-            {if}
-                (L.L.antrieb_getr_gangvorwahl) 0 = !
-                {if}
-                    (T.L.ev_gangwahltaster)
-                    (L.S.getTime) (S.L.antrieb_getr_gangwahlzeitpunkt)
-                {endif}
-                (L.L.cockpit_brake) 0.1 >
-                {if}
-                    0 (S.L.antrieb_getr_gangvorwahl)
-                {endif}
-
-                1 (S.L.cockpit_gangR)
-            {endif}
+            1 (S.L.cockpit_gang2)
         {endif}
     {endif}
 {end}
 
-{trigger:automatic_R_mouse_off}
+{trigger:automatic_2_off}
     (L.L.AI) !
     {if}
-        (C.L.cockpit_gangwahltaster_alt)
+        (L.L.cockpit_gang2) 1 =
         {if}
-            (L.L.cockpit_gangR_toggle)
+            0.7 (S.L.cockpit_gang2)
+        {endif}
+    {endif}
+{end}
+
+{trigger:automatic_3}
+    (L.L.AI) ! (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors) &&
+    {if}
+        (L.L.cockpit_gang1) 1 < (L.L.cockpit_gang2) 1 < && (L.L.cockpit_gangD) 1 < && (L.L.cockpit_gangN) 1 < && (L.L.cockpit_gangR) ! &&
+        {if}
+            (L.L.cockpit_gang3) !
             {if}
-                0.7 (S.L.cockpit_gangR)
-            {else}
-                (L.L.cockpit_gang3_toggle) (L.L.cockpit_gang2_toggle) ! &&
+                (T.L.ev_gangwahltaster)
+                (L.L.cockpit_gang1) (L.L.cockpit_gang2) || (L.L.cockpit_gangD) || (L.L.cockpit_gangN) ||
                 {if}
-                    (L.S.getTime) (S.L.antrieb_getr_gangwahlzeitpunkt)
-                    4 (S.L.antrieb_getr_gangvorwahl)
-                {else}
-                    (L.L.cockpit_gang2_toggle)
-                    {if}
-                        (L.S.getTime) (S.L.antrieb_getr_gangwahlzeitpunkt)
-                        3 (S.L.antrieb_getr_gangvorwahl)
-                    {else}
-
-                        (L.S.getTime) (C.L.antrieb_gangwahlzeit) (C.L.antrieb_neutralwahlzeit) - - (S.L.antrieb_getr_gangwahlzeitpunkt)
-                        1 (S.L.antrieb_getr_gangvorwahl)
-                    {endif}
-
+                    (T.L.ev_gangwahltaster_N)
+                    0 (S.L.cockpit_gang1) (S.L.cockpit_gang2) (S.L.cockpit_gangD) (S.L.cockpit_gangN)
                 {endif}
-                0 (S.L.cockpit_gangR)
             {endif}
-        {else}
-            (L.L.cockpit_gangR) 1 =
-            {if}
-                0.7 (S.L.cockpit_gangR)
-            {endif}
+            1 (S.L.cockpit_gang3)
         {endif}
     {endif}
 {end}
 
-{trigger:automatic_N}
+{trigger:automatic_3_off}
     (L.L.AI) !
     {if}
-        (C.L.cockpit_gangwahltaster_alt)
+        (L.L.cockpit_gang3) 1 =
         {if}
-            (L.L.cockpit_gangR_toggle) s1
-            {if}
-                1 (S.L.cockpit_gangR)
-            {endif}
-            (L.L.cockpit_gang2_toggle) s2
-            {if}
-                1 (S.L.cockpit_gang2)
-            {endif}
-            (L.L.cockpit_gang3_toggle) s3
-            {if}
-                1 (S.L.cockpit_gang3)
-            {endif}
-
-            l1 l2 l3 || ||
-            {if}
-                (T.L.ev_gangwahltaster_old_off)
-            {endif}
-        {else}
-            (L.L.cockpit_gangR) 0.5 >
-            (L.L.cockpit_gang3) 0.5 > ||
-            {if}
-                (T.L.ev_gangwahltaster_N)
-            {endif}
-            (L.L.antrieb_getr_gangvorwahl) 1 = !
-            {if}
-                (L.S.getTime) (C.L.antrieb_gangwahlzeit) (C.L.antrieb_neutralwahlzeit) -  - (S.L.antrieb_getr_gangwahlzeitpunkt)
-            {endif}
-            1 (S.L.antrieb_getr_gangvorwahl) (S.L.cockpit_gangN)
-            0 (S.L.cockpit_gangR) (S.L.cockpit_gang1) (S.L.cockpit_gang2) (S.L.cockpit_gang3)
+            0.7 (S.L.cockpit_gang3)
         {endif}
     {endif}
 {end}
-
-{trigger:automatic_N_off}
-    (L.L.AI) !
-    {if}
-        (C.L.cockpit_gangwahltaster_alt)
-        {if}
-            (L.S.getTime) (C.L.antrieb_gangwahlzeit) (C.L.antrieb_neutralwahlzeit) -  - (S.L.antrieb_getr_gangwahlzeitpunkt)
-            0 (S.L.cockpit_gangR) (S.L.cockpit_gang2) (S.L.cockpit_gang3) (S.L.cockpit_gangR_toggle) (S.L.cockpit_gang2_toggle) (S.L.cockpit_gang3_toggle)
-            1 (S.L.antrieb_getr_gangvorwahl)
-        {else}
-            0 (S.L.cockpit_gangN)
-        {endif}
-    {endif}
-{end}
-
-'{trigger:automatic_1}
-'    (L.L.antrieb_getr_gangvorwahl) 0 > (C.L.cockpit_gangwahltaster_alt) ! &&
-'    (C.L.cockpit_gear_D_only) ! &&
-'    {if}
-'        (L.L.antrieb_getr_gangvorwahl) 2 = !
-'        {if}
-'            (T.L.ev_gangwahltaster)
-'            (L.S.getTime) (S.L.antrieb_getr_gangwahlzeitpunkt)
-'        {endif}
-'        2 (S.L.antrieb_getr_gangvorwahl)
-'        1 (S.L.cockpit_gang1)
-'        0 (S.L.cockpit_gang2) (S.L.cockpit_gang3)
-'    {endif}
-'
-'{end}
-
-
-'{trigger:automatic_1_off}
-'    (L.L.cockpit_gang1) 1 =
-'    {if}
-'        0.7 (S.L.cockpit_gang1)
-'    {endif}
-'{end}
-
-
-'{trigger:automatic_2}
-'    (C.L.cockpit_gangwahltaster_alt)
-'    {if}
-'        (L.L.cockpit_gangR)
-'        {if}
-'            (L.L.antrieb_getr_gangvorwahl) 1 = !
-'                {if}
-'                    (L.S.getTime) (C.L.antrieb_gangwahlzeit) (C.L.antrieb_neutralwahlzeit) - - (S.L.antrieb_getr_gangwahlzeitpunkt)
-'                {endif}
-'            1 (S.L.antrieb_getr_gangvorwahl)
-'        {else}
-'            (L.L.antrieb_getr_gangvorwahl) 3 = !
-'            {if}
-'                (L.S.getTime) (S.L.antrieb_getr_gangwahlzeitpunkt)
-'            {endif}
-'            3 (S.L.antrieb_getr_gangvorwahl)
-'        {endif}
-'        (L.L.cockpit_gang2_toggle) ! (S.L.cockpit_gang2_toggle)
-'        (L.L.cockpit_gang2) 1 = !
-'        {if}
-'            (L.L.cockpit_gang2_toggle)
-'            {if}
-'                (T.L.ev_gangwahltaster_old_on)
-'            {else}
-'                (T.L.ev_gangwahltaster_old_off)
-'            {endif}
-'        {endif}
-'        1 (S.L.cockpit_gang2)
-'    {else}
-'        (L.L.antrieb_getr_gangvorwahl) 0 >
-'        (C.L.cockpit_gear_D_only) ! &&
-'        {if}
-'            (L.L.antrieb_getr_gangvorwahl) 3 = !
-'            {if}
-'                (T.L.ev_gangwahltaster)
-'                (L.S.getTime) (S.L.antrieb_getr_gangwahlzeitpunkt)
-'            {endif}
-'            3 (S.L.antrieb_getr_gangvorwahl)
-'            1 (S.L.cockpit_gang2)
-'            0 (S.L.cockpit_gang1) (S.L.cockpit_gang3)
-'        {endif}
-'    {endif}
-'{end}
-
-'{trigger:automatic_2_off}
-'    (C.L.cockpit_gangwahltaster_alt)
-'    {if}
-'        (L.L.cockpit_gang2_toggle)
-'        {if}
-'            0.7 (S.L.cockpit_gang2)
-'        {else}
-'            (L.L.cockpit_gang3_toggle) (L.L.cockpit_gangR_toggle) ! &&
-'            {if}
-'                (L.S.getTime) (S.L.antrieb_getr_gangwahlzeitpunkt)
-'                4 (S.L.antrieb_getr_gangvorwahl)
-'            {else}
-'                (L.S.getTime) (C.L.antrieb_gangwahlzeit) (C.L.antrieb_neutralwahlzeit) - - (S.L.antrieb_getr_gangwahlzeitpunkt)
-'                1 (S.L.antrieb_getr_gangvorwahl)
-'            {endif}
-'            0 (S.L.cockpit_gang2)
-'        {endif}
-'    {else}
-'        (L.L.cockpit_gang2) 1 =
-'        {if}
-'            0.7 (S.L.cockpit_gang2)
-'        {endif}
-'    {endif}
-'{end}
 
 {trigger:automatic_D}
     (L.L.AI) !
     {if}
-        (C.L.cockpit_gangwahltaster_alt)
+        (L.L.cockpit_gang1) 1 < (L.L.cockpit_gang2) 1 < && (L.L.cockpit_gang3) 1 < && (L.L.cockpit_gangN) 1 < && (L.L.cockpit_gangR) ! &&
         {if}
-            (L.L.cockpit_gangR)
+            (L.L.cockpit_gangD) !
             {if}
-
-                (L.S.getTime) (C.L.antrieb_gangwahlzeit) (C.L.antrieb_neutralwahlzeit) - - (S.L.antrieb_getr_gangwahlzeitpunkt)
-                1 (S.L.antrieb_getr_gangvorwahl)
-            {else}
-                (L.L.cockpit_gang2_toggle) !
+                (T.L.ev_gangwahltaster)
+                (L.L.cockpit_gang1) (L.L.cockpit_gang2) || (L.L.cockpit_gang3) || (L.L.cockpit_gangN) ||
                 {if}
-                    (L.S.getTime) (S.L.antrieb_getr_gangwahlzeitpunkt)
-                    (L.L.cockpit_brake) 0.1 >
-                    {if}
-                        4 (S.L.antrieb_getr_gangvorwahl)
-                    {endif}
+                    (T.L.ev_gangwahltaster_N)
+                    0 (S.L.cockpit_gang1) (S.L.cockpit_gang2) (S.L.cockpit_gang3) (S.L.cockpit_gangN)
                 {endif}
             {endif}
-            (L.L.cockpit_gang3_toggle) ! (S.L.cockpit_gang3_toggle)
-            (L.L.cockpit_gang3) 1 = !
-            {if}
-                (L.L.cockpit_gang3_toggle)
-                {if}
-                    (T.L.ev_gangwahltaster_old_on)
-                {else}
-                    (T.L.ev_gangwahltaster_old_off)
-                {endif}
-            {endif}
-            1 (S.L.cockpit_gang3)
-        {else}
-            (L.L.antrieb_getr_gangvorwahl) 0 >
-            (L.L.cockpit_gangR) 0 = &&
-            {if}
-                (L.L.antrieb_getr_gangvorwahl) 4 = !
-                {if}
-                    (T.L.ev_gangwahltaster)
-                    (L.S.getTime) (S.L.antrieb_getr_gangwahlzeitpunkt)
-                {endif}
-                (L.L.cockpit_brake) 0.1 >
-                {if}
-                    4 (S.L.antrieb_getr_gangvorwahl)
-                {endif}
-                1 (S.L.cockpit_gang3)
-                0 (S.L.cockpit_gang1) (S.L.cockpit_gang2)
-            {endif}
+            1 (S.L.cockpit_gangD)
         {endif}
     {endif}
 {end}
@@ -448,27 +185,70 @@
 {trigger:automatic_D_off}
     (L.L.AI) !
     {if}
-        (C.L.cockpit_gangwahltaster_alt)
+        (L.L.cockpit_gangD) 1 =
         {if}
-            (L.L.cockpit_gang3_toggle)
+            0.7 (S.L.cockpit_gangD)
+        {endif}
+    {endif}
+{end}
+
+{trigger:automatic_N}
+    (L.L.AI) !
+    {if}
+        (L.L.cockpit_gang1) 1 < (L.L.cockpit_gang2) 1 < && (L.L.cockpit_gang3) 1 < && (L.L.cockpit_gangD) 1 < && (L.L.cockpit_gangR) 1 < &&
+        {if}
+            (L.L.cockpit_gangN) !
             {if}
-                0.7 (S.L.cockpit_gang3)
-            {else}
-                (L.L.cockpit_gang2_toggle) (L.L.cockpit_gangR_toggle) ! &&
+                (L.L.cp_cfg_effective_has_engaging_neutral_transmission_mode_selector)
                 {if}
-                    (L.S.getTime) (S.L.antrieb_getr_gangwahlzeitpunkt)
-                    3 (S.L.antrieb_getr_gangvorwahl)
-                {else}
-                    (L.S.getTime) (C.L.antrieb_gangwahlzeit) (C.L.antrieb_neutralwahlzeit) - - (S.L.antrieb_getr_gangwahlzeitpunkt)
-                    1 (S.L.antrieb_getr_gangvorwahl)
+                    (T.L.ev_gangwahltaster)
                 {endif}
-                0 (S.L.cockpit_gang3)
+                (L.L.cockpit_gang1) (L.L.cockpit_gang2) || (L.L.cockpit_gang3) || (L.L.cockpit_gangD) || (L.L.cockpit_gangR) ||
+                {if}
+                    (T.L.ev_gangwahltaster_N)
+                    0 (S.L.cockpit_gang1) (S.L.cockpit_gang2) (S.L.cockpit_gang3) (S.L.cockpit_gangD) (S.L.cockpit_gangR)
+                {endif}
             {endif}
-        {else}
-            (L.L.cockpit_gang3) 1 =
+            1 (S.L.cockpit_gangN)
+        {endif}
+    {endif}
+{end}
+
+{trigger:automatic_N_off}
+    (L.L.AI) !
+    {if}
+        (L.L.cockpit_gangN) 1 =
+        {if}
+            (L.L.cp_cfg_effective_has_engaging_neutral_transmission_mode_selector) 0.7 * (S.L.cockpit_gangN)
+        {endif}
+    {endif}
+{end}
+
+{trigger:automatic_R}
+    (L.L.AI) !
+    {if}
+        (L.L.cockpit_gang1) ! (L.L.cockpit_gang2) ! && (L.L.cockpit_gang3) ! && (L.L.cockpit_gangD) ! && (L.L.cockpit_gangN) 1 < &&
+        {if}
+            (L.L.cockpit_gangR) !
             {if}
-                0.7 (S.L.cockpit_gang3)
+                (T.L.ev_gangwahltaster)
+                (L.L.cockpit_gangN)
+                {if}
+                    (T.L.ev_gangwahltaster_N)
+                    0 (S.L.cockpit_gangN)
+                {endif}
             {endif}
+            1 (S.L.cockpit_gangR)
+        {endif}
+    {endif}
+{end}
+
+{trigger:automatic_R_off}
+    (L.L.AI) !
+    {if}
+        (L.L.cockpit_gangR) 1 =
+        {if}
+            0.7 (S.L.cockpit_gangR)
         {endif}
     {endif}
 {end}
@@ -728,8 +508,16 @@
 {trigger:cp_not_aus_sw_toggle}
     (L.L.AI) !
     {if}
-        (L.L.cp_not_aus_sw) ! (S.L.cp_not_aus_sw) s1
-        (M.L.kippschaltersound)
+        1 (S.L.cp_not_aus_sw)
+        (T.L.ev_VDV_toggle_on)
+    {endif}
+{end}
+
+{trigger:cp_not_aus_sw_toggle_off}
+    (L.L.AI) !
+    {if}
+        0 (S.L.cp_not_aus_sw)
+        (T.L.ev_VDV_toggle_off)
     {endif}
 {end}
 
@@ -797,117 +585,6 @@
     {endif}
 {end}
 
-{trigger:cp_key_rot_drag}
-    (L.L.AI) !
-    {if}
-
-        (L.S.mouse_y) -30 / (L.L.cp_key_rot) + 0 max 1 min (S.L.cp_key_rot) s1
-
-        l1 0.2 <
-        {if}
-            0 (S.L.cp_key_rot_mode)
-            0 (S.L.elec_busbar_main_sw)
-        {else}
-            l1 0.8 <
-            {if}
-                1 (S.L.cp_key_rot_mode)
-                1 (S.L.elec_busbar_main_sw)
-                0 (S.L.engine_injection_on)
-            {else}
-                l1 0.9 <
-                {if}
-                    2 (S.L.cp_key_rot_mode)
-                {else}
-'                    3 (S.L.cp_key_rot_mode)
-
-                    (L.L.engine_on) !
-                    (L.L.antrieb_getr_gangwahl) 1 = &&
-                    (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
-                    {if}
-                        1 (S.L.engine_on) (S.L.engine_injection_on)
-                        (T.L.ev_enginestart)
-                        300 (S.L.engine_n)
-                        2 (S.L.cp_key_rot_mode)
-                    {endif}
-                {endif}
-            {endif}
-        {endif}
-    {endif}
-{end}
-
-{trigger:cp_key_rot_off}
-    (L.L.AI) !
-    {if}
-        (L.L.cp_key_rot_mode) 3 / (S.L.cp_key_rot)
-    {endif}
-{end}
-
-{trigger:cp_schluessel_mov_drag}
-    (L.L.AI) !
-    {if}
-
-'        Fallunterscheidung: Schlüssel in x- oder y-Richtung?
-'
-'        (L.S.mouse_y) abs (L.S.mouse_x) abs >=
-'        {if}
-'
-'            Zunächst Translation (Einstecken)
-'
-'            (L.S.mouse_y) 10 / (L.L.cp_schluessel_trans) + 0 max 1 min (S.L.cp_schluessel_trans) s0
-'
-'            Stufen:
-'            0: Schlüssel abgezogen
-'            1: Schlüssel eingesteckt
-'
-'            l0 0.5 <
-'            {if}
-'                0 (S.L.cp_schluessel_trans_mode) (S.L.elec_busbar_main_sw)
-'            {else}
-'                1 (S.L.cp_schluessel_trans_mode)
-'                1 (S.L.bremse_ABS_selftest)
-'
-'                Wenn beim Einstecken bereits der Stromkreis geschlossen werden soll, ohne Trennschalter:
-'
-'                (C.L.automatic_battery_switch)
-'                {if}
-'                    1 (S.L.elec_busbar_main_sw)
-'                {endif}
-'            {endif}
-'        {else}
-
-'            Sonst Rotation (Lichtschalter)
-
-            (L.S.mouse_x) -20 / (L.L.cp_schluessel_rot) + 0 max 1 min (S.L.cp_schluessel_rot) s1
-
-'            Stufen:
-'            0: Licht aus
-'            1: Standlicht
-'            2: Abblendlicht
-
-            l1 0.2 <
-            {if}
-                0 (S.L.cp_schluessel_rot_mode)
-            {else}
-                l1 0.8 <
-                {if}
-                    1 (S.L.cp_schluessel_rot_mode)
-                {else}
-                    2 (S.L.cp_schluessel_rot_mode)
-                {endif}
-            {endif}
-'        {endif}
-    {endif}
-{end}
-
-{trigger:cp_schluessel_mov_off}
-    (L.L.AI) !
-    {if}
-'       Einrasten auf den festen Positionen:
-        (L.L.cp_schluessel_trans_mode) (S.L.cp_schluessel_trans)
-        (L.L.cp_schluessel_rot_mode) 2 / (S.L.cp_schluessel_rot)
-    {endif}
-{end}
-
 {trigger:cp_lenkrad_toggle}
     (L.L.AI) !
     {if}
@@ -915,43 +592,49 @@
     {endif}
 {end}
 
-{trigger:kw_batterietrennschalter}
-    (L.L.AI) !
-    {if}
-        1 (S.L.cp_taster_batterietrennschalter)
-
-        (L.L.cp_schluessel_trans)
-        {if}
-            1 (S.L.elec_busbar_main_sw)
-        {endif}
-    {endif}
-{end}
-
-{trigger:kw_batterietrennschalter_off}
-    (L.L.AI) !
-    {if}
-        0 (S.L.cp_taster_batterietrennschalter)
-    {endif}
-{end}
-
 {trigger:cp_batterietrennschalter_toggle}
     (L.L.AI) !
     {if}
-        (L.L.elec_busbar_main_sw) ! (S.L.elec_busbar_main_sw)
-        (L.L.cp_batterietrennschalter_antirepeat) !
+'       Aufschlüsselung
+'       0 - Schlüssel ziehen
+'       1 - Schlüssel stecken / Elektrik aus
+'       2 - Elektrik ein / Motor aus
+'       3 - Zündung ein
+'       4 - Motor starten
+
+        (L.L.key_mode) 1 + 4 min (S.L.key_mode)
+
+        (L.L.key_mode) 1 =
         {if}
-            (L.L.elec_busbar_main_sw)
+            1 (S.L.cp_key_pull)
+            (T.L.ev_schluessel_steck)
+        {endif}
+        (L.L.key_mode) 2 =
+        {if}
+            1 (S.L.elec_busbar_main_sw) (S.L.bremse_ABS_selftest)
+            (T.L.ev_schluessel_dreh)
+            0.2 (S.L.cp_key_rot)
+        {endif}
+        (L.L.key_mode) 3 =
+        {if}
+            (T.L.ev_schluessel_dreh)
+            0.4 (S.L.cp_key_rot)
+            1 (S.L.vdv_on)
+            (T.L.ev_ignition)
+        {endif}
+        (L.L.key_mode) 4 =
+        {if}
+            (T.L.ev_schluessel_dreh)
+
+            (L.L.antrieb_getr_gangwahl) 1 = (L.L.engine_on) ! && (L.L.engine_starter_antirepeat) ! && (L.L.cockpit_gang1) ! && (L.L.cockpit_gang2) ! &&
+                (L.L.cockpit_gang3) ! && (L.L.cockpit_gangD) ! && (L.L.cockpit_gangR) ! && (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
             {if}
-                (T.L.ev_schluessel_steck)
-                1 (S.L.cp_schluessel_trans) (S.L.cp_taster_batterietrennschalter)
-                1 (S.L.bremse_ABS_selftest)
-                0.8 (S.L.cp_key_rot)
-            {else}
-                (T.L.ev_schluessel_steck)
-                0 (S.L.cp_schluessel_trans)
-                0 (S.L.cp_key_rot)
+                1 (S.L.engine_starter) (S.L.engine_injection_on)
+                (T.L.ev_engine_starter)
             {endif}
-            1 (S.L.cp_batterietrennschalter_antirepeat)
+            1 (S.L.engine_starter_antirepeat) (S.L.vdv_on)
+
+            0.6 (S.L.cp_key_rot)
         {endif}
     {endif}
 {end}
@@ -959,12 +642,63 @@
 {trigger:cp_batterietrennschalter_toggle_off}
     (L.L.AI) !
     {if}
-        0 (S.L.cp_batterietrennschalter_antirepeat) (S.L.cp_taster_batterietrennschalter)
+        (L.L.key_mode) 4 =
+        {if}
+            3 (S.L.key_mode)
+            (T.L.ev_schluessel_dreh)
+            0 (S.L.engine_starter_antirepeat) (S.L.engine_starter)
+            1 (S.L.engine_injection_on) (S.L.vdv_on)
+
+            0.4 (S.L.cp_key_rot)
+        {endif}
+    {endif}
+{end}
+
+{trigger:kw_m_enginestart}
+    (L.L.AI) !
+    {if}
+        (L.L.key_mode) 1 - 0 max (S.L.key_mode)
+
+        (L.L.key_mode) 0 =
+        {if}
+            (L.L.cp_key_pull)
+            {if}
+                (T.L.ev_schluessel_weg)
+                0 (S.L.cp_key_pull)
+            {endif}
+            0 (S.L.vdv_on)
+        {endif}
+        (L.L.key_mode) 1 =
+        {if}
+            0 (S.L.elec_busbar_main_sw) (S.L.vdv_on)
+            (T.L.ev_schluessel_dreh)
+            0 (S.L.cp_key_rot)
+        {endif}
+        (L.L.key_mode) 2 =
+        {if}
+            (T.L.ev_schluessel_dreh)
+
+            (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > (L.L.bremse_p_Tank04) 400000 > && (L.L.engine_on) &&
+                (L.L.engine_starter_antirepeat) ! &&
+            {if}
+                0 (S.L.engine_injection_on)
+                1 (S.L.engine_starter_antirepeat)
+                (T.L.ev_engineshutdown)
+            {endif}
+            0.2 (S.L.cp_key_rot)
+        {endif}
+    {endif}
+{end}
+
+{trigger:kw_m_enginestart_off}
+    (L.L.AI) !
+    {if}
+        0 (S.L.engine_starter_antirepeat)
     {endif}
 {end}
 
 {trigger:cp_passenger_window_1_l_lock}
-    (L.L.AI) ! (L.L.cp_passenger_window_1_l) ! && (L.L.cp_cti_has_openable_passenger_windows) &&
+    (L.L.AI) ! (L.L.cp_passenger_window_1_l) ! && (L.L.cp_cfg_effective_has_openable_passenger_windows) &&
     {if}
         (L.L.cp_passenger_window_1_l_locked) ! (S.L.cp_passenger_window_1_l_locked) s1
             (M.L.cp_passenger_window_lock_sound)
@@ -979,7 +713,7 @@
 {end}
 
 {trigger:cp_passenger_window_1_r_lock}
-    (L.L.AI) ! (L.L.cp_passenger_window_1_r) ! && (L.L.cp_cti_has_openable_passenger_windows) &&
+    (L.L.AI) ! (L.L.cp_passenger_window_1_r) ! && (L.L.cp_cfg_effective_has_openable_passenger_windows) &&
     {if}
         (L.L.cp_passenger_window_1_r_locked) ! (S.L.cp_passenger_window_1_r_locked) s1
             (M.L.cp_passenger_window_lock_sound)
@@ -994,7 +728,7 @@
 {end}
 
 {trigger:cp_passenger_window_2_l_lock}
-    (L.L.AI) ! (L.L.cp_passenger_window_2_l) ! && (L.L.cp_cti_has_openable_passenger_windows) &&
+    (L.L.AI) ! (L.L.cp_passenger_window_2_l) ! && (L.L.cp_cfg_effective_has_openable_passenger_windows) &&
     {if}
         (L.L.cp_passenger_window_2_l_locked) ! (S.L.cp_passenger_window_2_l_locked) s1
             (M.L.cp_passenger_window_lock_sound)
@@ -1009,7 +743,7 @@
 {end}
 
 {trigger:cp_passenger_window_2_r_lock}
-    (L.L.AI) ! (L.L.cp_passenger_window_2_r) ! && (L.L.cp_cti_has_openable_passenger_windows) &&
+    (L.L.AI) ! (L.L.cp_passenger_window_2_r) ! && (L.L.cp_cfg_effective_has_openable_passenger_windows) &&
     {if}
         (L.L.cp_passenger_window_2_r_locked) ! (S.L.cp_passenger_window_2_r_locked) s1
             (M.L.cp_passenger_window_lock_sound)
@@ -1024,7 +758,7 @@
 {end}
 
 {trigger:cp_hatch}
-    (L.L.AI) ! (L.L.cp_cti_has_hatch_switch) &&
+    (L.L.AI) ! (L.L.cp_cfg_effective_has_hatch_switch) &&
     {if}
         (L.L.cp_hatch_sw) ! (S.L.cp_hatch_sw) s1
         (M.L.kippschaltersound)
@@ -1414,7 +1148,7 @@
 {trigger:cp_tuersperre}
     (L.L.AI) !
     {if}
-        (L.L.cp_cti_has_door_wing_lock_switch)
+        (L.L.cp_cfg_effective_has_door_wing_lock_switch)
         {if}
             (L.L.cp_tuersperre_sw) 1 + (S.L.cp_tuersperre_sw)
             (L.L.cp_tuersperre_sw) 2 =
@@ -1528,7 +1262,7 @@
     {if}
         (L.L.cp_fog_light_sw) s0 0 =
         {if}
-            1 (L.L.lights_cti_has_head_fog_lights) 0 = +
+            1 (L.L.lights_cfg_effective_has_head_fog_lights) 0 = +
         {else}
             l0 1 =
             {if}
@@ -1550,7 +1284,7 @@
             {if}
                 0
             {else}
-                1 (L.L.lights_cti_has_head_fog_lights) 0 = -
+                1 (L.L.lights_cfg_effective_has_head_fog_lights) 0 = -
             {endif}
             (S.L.cp_fog_light_sw)
         {endif}
@@ -1715,9 +1449,10 @@
 '----------------------
 
 {macro:cockpit_init}
-    (L.L.cockpit_initialized) !
+    (L.L.cockpit_initialized_once) !
     {if}
-        0 (S.L.cockpit_hupe_volume)
+        1 (S.L.cockpit_gangwahl)
+
         1 (S.L.cp_lenkrad_visible) (S.L.bordcomputer_mode)
 
         (C.L.cockpit_zentralschmierung_dist) random (S.L.cp_zentralschmierung_nextkm)
@@ -1728,14 +1463,144 @@
 
         1 (S.L.disp_norm)
 
-        1 (S.L.ele_fenster)
-
         "umwelt3.png" (S.$.umweltplakette3)
         "umwelt4.png" (S.$.umweltplakette4)
+        "ACE\13_additional_transmission_mode_selectors.png" (S.$.cockpit_additional_transmission_mode_selector_texture)
+        "ACE\25_no_printer_and_cashdesk_shadows.png" (S.$.cockpit_no_printer_and_cashdesk_shadows_plastics_texture)
 
         -0.5 (S.L.cp_rollo_pos) (S.L.cp_rollo_lastpos) (S.L.cp_rollo_rastpos)
+
+        (M.L.cockpit_cfg_reset_overrides)
+        (M.L.cockpit_cfg_apply_defaults)
     {endif}
+
     0 (S.L.cockpit_initialized)
+{end}
+
+{macro:cockpit_cfg_reset_overrides}
+    -1 (S.L.cp_cfg_cti_has_additional_transmission_mode_selectors)
+        (S.L.cp_cfg_cti_has_engaging_neutral_transmission_mode_selector)
+        (S.L.cp_cfg_cti_transmission_mode_selector_blinking_mode_malfunction)
+        (S.L.cp_cfg_cti_transmission_mode_selector_blinking_mode_unsatisfied_constraint)
+        (S.L.cp_cfg_cti_transmission_mode_selector_blinking_interval_malfunction)
+        (S.L.cp_cfg_cti_transmission_mode_selector_blinking_interval_unsatisfied_constraint)
+        (S.L.cp_cfg_cti_has_door_wing_lock_switch)
+        (S.L.cp_cfg_cti_has_hatch_switch)
+        (S.L.cp_cfg_cti_has_openable_passenger_windows)
+        (S.L.cp_cfg_cti_has_blinking_hazard_indicator_switch)
+        (S.L.cp_cfg_cti_hatches_require_full_elec)
+        (S.L.cp_cfg_cti_driver_window_requires_full_elec)
+
+        (S.L.cp_cfg_on_demand_has_additional_transmission_mode_selectors)
+        (S.L.cp_cfg_on_demand_has_engaging_neutral_transmission_mode_selector)
+        (S.L.cp_cfg_on_demand_transmission_mode_selector_blinking_mode_malfunction)
+        (S.L.cp_cfg_on_demand_transmission_mode_selector_blinking_mode_unsatisfied_constraint)
+        (S.L.cp_cfg_on_demand_transmission_mode_selector_blinking_interval_malfunction)
+        (S.L.cp_cfg_on_demand_transmission_mode_selector_blinking_interval_unsatisfied_constraint)
+        (S.L.cp_cfg_on_demand_has_door_wing_lock_switch)
+        (S.L.cp_cfg_on_demand_has_hatch_switch)
+        (S.L.cp_cfg_on_demand_has_openable_passenger_windows)
+        (S.L.cp_cfg_on_demand_has_blinking_hazard_indicator_switch)
+        (S.L.cp_cfg_on_demand_hatches_require_full_elec)
+        (S.L.cp_cfg_on_demand_driver_window_requires_full_elec)
+{end}
+
+{macro:cockpit_cfg_apply_defaults}
+    (C.L.cp_cfg_default_has_additional_transmission_mode_selectors) s0 0 = l0 1 = ||
+    {if}
+        l0
+    {else}
+        0
+    {endif}
+    (S.L.cp_cfg_effective_has_additional_transmission_mode_selectors)
+
+    (C.L.cp_cfg_default_has_engaging_neutral_transmission_mode_selector) s0 0 = l0 1 = ||
+    {if}
+        l0
+    {else}
+        1
+    {endif}
+    (S.L.cp_cfg_effective_has_engaging_neutral_transmission_mode_selector)
+
+    (C.L.cp_cfg_default_transmission_mode_selector_blinking_mode_malfunction) trunc s0 0 >= l0 3 <= &&
+    {if}
+        l0
+    {else}
+        2
+    {endif}
+    (S.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_malfunction)
+
+    (C.L.cp_cfg_default_transmission_mode_selector_blinking_mode_unsatisfied_constraint) s0 0 = l0 1 = ||
+    {if}
+        l0
+    {else}
+        2
+    {endif}
+    (S.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_unsatisfied_constraint)
+
+    (C.L.cp_cfg_default_transmission_mode_selector_blinking_interval_malfunction) s0 0 > l0 5 <= &&
+    {if}
+        l0
+    {else}
+        0.25
+    {endif}
+    (S.L.cp_cfg_effective_transmission_mode_selector_blinking_interval_malfunction)
+
+    (C.L.cp_cfg_default_transmission_mode_selector_blinking_interval_unsatisfied_constraint) s0 0 > l0 5 <= &&
+    {if}
+        l0
+    {else}
+        0.5
+    {endif}
+    (S.L.cp_cfg_effective_transmission_mode_selector_blinking_interval_unsatisfied_constraint)
+
+    (C.L.cp_cfg_default_door_wing_lock_switch) s0 0 = l0 1 = ||
+    {if}
+        l0
+    {else}
+        1
+    {endif}
+    (S.L.cp_cfg_effective_has_door_wing_lock_switch)
+
+    (C.L.cp_cfg_default_has_hatch_switch) s0 0 = l0 1 = ||
+    {if}
+        l0
+    {else}
+        1
+    {endif}
+    (S.L.cp_cfg_effective_has_hatch_switch)
+
+    (C.L.cp_cfg_default_has_openable_passenger_windows) s0 0 = l0 1 = ||
+    {if}
+        l0
+    {else}
+        1
+    {endif}
+    (S.L.cp_cfg_effective_has_openable_passenger_windows)
+
+    (C.L.cp_cfg_default_has_blinking_hazard_indicator_switch) s0 0 = l0 1 = ||
+    {if}
+        l0
+    {else}
+        0
+    {endif}
+    (S.L.cp_cfg_effective_has_blinking_hazard_indicator_switch)
+
+    (C.L.cp_cfg_default_hatches_require_full_elec) s0 0 = l0 1 = ||
+    {if}
+        l0
+    {else}
+        1
+    {endif}
+    (S.L.cp_cfg_effective_hatches_require_full_elec)
+
+    (C.L.cp_cfg_default_driver_window_requires_full_elec) s0 0 = l0 1 = ||
+    {if}
+        l0
+    {else}
+        1
+    {endif}
+    (S.L.cp_cfg_effective_driver_window_requires_full_elec)
 {end}
 
 '----------------------
@@ -1746,48 +1611,20 @@
     {if}
         1 (S.L.cockpit_initialized)
     {else}
-        (L.L.cockpit_initialized) 1 >=
+        (L.L.cockpit_initialized) 1 =
         {if}
-            (L.L.cp_cti_has_openable_passenger_windows) !
+            (L.L.cockpit_initialized_once) !
             {if}
-                0 (S.L.cp_passenger_window_1_l) (S.L.cp_passenger_window_1_r) (S.L.cp_passenger_window_2_l)
-                    (S.L.cp_passenger_window_2_r)
-                1 (S.L.cp_passenger_window_1_l_locked) (S.L.cp_passenger_window_1_r_locked)
-                    (S.L.cp_passenger_window_2_l_locked) (S.L.cp_passenger_window_2_r_locked)
+                1 (S.L.cockpit_initialized_once)
             {endif}
-            (L.L.cockpit_initialized) 1 =
-            {if}
-                2 (S.L.cockpit_initialized)
-            {endif}
+            2 (S.L.cockpit_initialized)
         {endif}
+        (M.L.cockpit_cfg_apply_overrides)
     {endif}
 
-'Übertragen der Schalterstellungen:
-    (L.L.cp_retarder_sw) (S.L.antrieb_retarder_sw)
-    (L.L.cp_retarder_sw_direkt) (S.L.antrieb_retarder_sw_direkt)
-
-'    1: ZF EcoLife
-'    2: Voith D.5/6
-'    0: ZF Ecomat 4
-'    3: ZF Ecomat 2 / Voith D3
-    (L.L.gearbox_identifier) 1 =
-    {if}
-        "13_eco.jpg" (S.$.ecolife_texture)
-    {else}
-        (L.L.gearbox_identifier) 2 =
-        {if}
-            "13_d5.jpg" (S.$.ecolife_texture)
-        {else}
-            (L.L.gearbox_identifier) 0 =
-            {if}
-                "13.jpg" (S.$.ecolife_texture)
-            {else}
-                "13_e2.jpg" (S.$.ecolife_texture)
-            {endif}
-        {endif}
-    {endif}
-
-    (M.L.throttle_brake_frame)
+    (M.L.cockpit_transmission_frame)
+    (M.L.cockpit_throttle_brake_frame)
+    (M.L.cockpit_stop_brake_override_frame)
     (M.L.tacho_frame)
     (M.L.uhr_frame)
     (M.L.drehzahlmesser_frame)
@@ -1799,7 +1636,6 @@
     (M.L.oeldruck_frame)
     (M.L.tankuhr_frame)
     (M.L.cockpitlights_frame)
-    (M.L.schluessel_frame)
     (M.L.odometer_frame)
     (M.L.fahrertuer_frame)
     (M.L.rollo_frame)
@@ -1812,14 +1648,163 @@
     (M.L.Thermometer_frame)
     (M.L.pandus_frame)
     (M.L.fahrerfenster_frame)
-    (M.L.cp_door_wing_lock_frame)
-    (M.L.hatch_frame)
+    (M.L.cockpit_door_wing_lock_frame)
+    (M.L.cockpit_hatch_frame)
+    (M.L.cockpit_passenger_window_frame)
     (M.L.heizregler_fussraum_frame)
+{end}
+
+{macro:cockpit_cfg_apply_overrides}
+    (C.L.global_cfg_no_cti_overrides) 1 = ! s0
+
+    (L.L.cp_cfg_on_demand_has_additional_transmission_mode_selectors) s1 0 = l1 1 = || !
+    {if}
+        (L.L.cp_cfg_cti_has_additional_transmission_mode_selectors) s1 0 = l1 1 = || l0 && (C.L.cp_cfg_no_cti_override_has_additional_transmission_mode_selectors) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.cp_cfg_effective_has_additional_transmission_mode_selectors)
+    {endif}
+
+    (L.L.cp_cfg_on_demand_has_engaging_neutral_transmission_mode_selector) s1 0 = l1 1 = || !
+    {if}
+        (L.L.cp_cfg_cti_has_engaging_neutral_transmission_mode_selector) s1 0 = l1 1 = || l0 && (C.L.cp_cfg_no_cti_override_has_engaging_neutral_transmission_mode_selector) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.cp_cfg_effective_has_engaging_neutral_transmission_mode_selector)
+    {endif}
+
+    (L.L.cp_cfg_on_demand_transmission_mode_selector_blinking_mode_malfunction) trunc s1 0 >= l1 3 <= && !
+    {if}
+        (L.L.cp_cfg_cti_transmission_mode_selector_blinking_mode_malfunction) trunc s1 0 >= l1 3 <= && l0 && (C.L.cp_cfg_no_cti_override_transmission_mode_selector_blinking_mode_malfunction) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_malfunction)
+    {endif}
+
+    (L.L.cp_cfg_on_demand_transmission_mode_selector_blinking_mode_unsatisfied_constraint) s1 0 = l1 1 = || !
+    {if}
+        (L.L.cp_cfg_cti_transmission_mode_selector_blinking_mode_unsatisfied_constraint) s1 0 = l1 1 = || l0 && (C.L.cp_cfg_no_cti_override_transmission_mode_selector_blinking_mode_unsatisfied_constraint) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_unsatisfied_constraint)
+    {endif}
+
+    (L.L.cp_cfg_on_demand_transmission_mode_selector_blinking_interval_malfunction) s1 0 > l1 5 <= && !
+    {if}
+        (L.L.cp_cfg_cti_transmission_mode_selector_blinking_interval_malfunction) s1 0 > l1 5 <= && l0 && (C.L.cp_cfg_no_cti_override_transmission_mode_selector_blinking_interval_malfunction) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.cp_cfg_effective_transmission_mode_selector_blinking_interval_malfunction)
+    {endif}
+
+    (L.L.cp_cfg_on_demand_transmission_mode_selector_blinking_interval_unsatisfied_constraint) s1 0 > l1 5 <= && !
+    {if}
+        (L.L.cp_cfg_cti_transmission_mode_selector_blinking_interval_unsatisfied_constraint) s1 0 > l1 5 <= && l0 && (C.L.cp_cfg_no_cti_override_transmission_mode_selector_blinking_interval_unsatisfied_constraint) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.cp_cfg_effective_transmission_mode_selector_blinking_interval_unsatisfied_constraint)
+    {endif}
+
+    (L.L.cp_cfg_on_demand_has_door_wing_lock_switch) s1 0 = l1 1 = || !
+    {if}
+        (L.L.cp_cfg_cti_has_door_wing_lock_switch) s1 0 = l1 1 = || l0 && (C.L.cp_cfg_no_cti_override_has_door_wing_lock_switch) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.cp_cfg_effective_has_door_wing_lock_switch)
+    {endif}
+
+    (L.L.cp_cfg_on_demand_has_hatch_switch) s1 0 = l1 1 = || !
+    {if}
+        (L.L.cp_cfg_cti_has_hatch_switch) s1 0 = l1 1 = || l0 && (C.L.cp_cfg_no_cti_override_has_hatch_switch) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.cp_cfg_effective_has_hatch_switch)
+    {endif}
+
+    (L.L.cp_cfg_on_demand_has_openable_passenger_windows) s1 0 = l1 1 = || !
+    {if}
+        (L.L.cp_cfg_cti_has_openable_passenger_windows) s1 0 = l1 1 = || l0 && (C.L.cp_cfg_no_cti_override_has_openable_passenger_windows) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.cp_cfg_effective_has_openable_passenger_windows)
+    {endif}
+
+    (L.L.cp_cfg_on_demand_has_blinking_hazard_indicator_switch) s1 0 = l1 1 = || !
+    {if}
+        (L.L.cp_cfg_cti_has_blinking_hazard_indicator_switch) s1 0 = l1 1 = || l0 && (C.L.cp_cfg_no_cti_override_has_blinking_hazard_indicator_switch) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.cp_cfg_effective_has_blinking_hazard_indicator_switch)
+    {endif}
+
+    (L.L.cp_cfg_on_demand_hatches_require_full_elec) s1 0 = l1 1 = || !
+    {if}
+        (L.L.cp_cfg_cti_hatches_require_full_elec) s1 0 = l1 1 = || l0 && (C.L.cp_cfg_no_cti_override_hatches_require_full_elec) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.cp_cfg_effective_hatches_require_full_elec)
+    {endif}
+
+    (L.L.cp_cfg_on_demand_driver_window_requires_full_elec) s1 0 = l1 1 = || !
+    {if}
+        (L.L.cp_cfg_cti_driver_window_requires_full_elec) s1 0 = l1 1 = || l0 && (C.L.cp_cfg_no_cti_override_driver_window_requires_full_elec) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.cp_cfg_effective_driver_window_requires_full_elec)
+    {endif}
 {end}
 
 {macro:fahrerfenster_frame}
     (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > (L.L.cp_key_rot) 0.4 >=
-        (L.L.cp_cti_driver_window_requires_full_elec) ! || &&
+        (L.L.cp_cfg_effective_driver_window_requires_full_elec) ! || &&
     {if}
         (L.L.cp_dummy_sw08) -1 =
         {if}
@@ -1864,8 +1849,8 @@
     {endif}
 {end}
 
-{macro:cp_door_wing_lock_frame}
-    (L.L.cp_cti_has_door_wing_lock_switch) ! (L.L.cockpit_initialized) &&
+{macro:cockpit_door_wing_lock_frame}
+    (L.L.cp_cfg_effective_has_door_wing_lock_switch) ! (L.L.cockpit_initialized_once) &&
     {if}
         0 (S.L.cp_tuersperre_sw)
     {endif}
@@ -2099,135 +2084,119 @@
 {end}
 
 {macro:light_switches_frame}
-    (L.L.AI) (L.L.ai_pre_cockpit_initialized) 6 = &&
+    (L.L.lights_initialized_once)
     {if}
-        (L.L.lights_ai_ext_lighting) s0 0 =
+        (L.L.AI) (L.L.ai_pre_cockpit_initialized) 6 = &&
         {if}
-            0 (S.L.cp_light_sw) (S.L.cp_fog_light_sw)
-        {else}
-            l0 4 <
+            (L.L.lights_ai_ext_lighting) s0 0 =
             {if}
-                1
+                0 (S.L.cp_light_sw) (S.L.cp_fog_light_sw)
             {else}
-                2
-            {endif}
-            (S.L.cp_light_sw)
-            l0 1 = l0 4 = ||
-            {if}
-                0
-            {else}
-                l0 2 = l0 5 = ||
+                l0 4 <
                 {if}
-                    (L.L.lights_cti_has_head_fog_lights)
+                    1
                 {else}
                     2
                 {endif}
+                (S.L.cp_light_sw)
+                l0 1 = l0 4 = ||
+                {if}
+                    0
+                {else}
+                    l0 2 = l0 5 = ||
+                    {if}
+                        (L.L.lights_cfg_effective_has_head_fog_lights)
+                    {else}
+                        2
+                    {endif}
+                {endif}
+                (S.L.cp_fog_light_sw)
             {endif}
-            (S.L.cp_fog_light_sw)
+            (L.L.lights_ai_int_lighting) (S.L.cp_passenger_light_sw)
         {endif}
-        (L.L.lights_ai_int_lighting) (S.L.cp_passenger_light_sw)
-    {endif}
 
-    (L.L.cp_light_sw) 4 / s0 (L.L.VDV_ext_light_switch_anim_1) = !
-    {if}
-        l0 (S.L.VDV_ext_light_switch_anim_1)
-        (T.L.ev_licht_dreh)
-    {endif}
-
-    (L.L.cp_fog_light_sw) s0 0 =
-    {if}
-        0
-    {else}
-        l0 1 =
+        (L.L.cp_light_sw) 4 / s0 (L.L.VDV_ext_light_switch_anim_1) = !
         {if}
-            (L.L.lights_cti_has_head_fog_lights)
+            l0 (S.L.VDV_ext_light_switch_anim_1)
+            (T.L.ev_licht_dreh)
+        {endif}
+
+        (L.L.cp_fog_light_sw) s0 0 =
+        {if}
+            0
+        {else}
+            l0 1 =
             {if}
-                0.25
+                (L.L.lights_cfg_effective_has_head_fog_lights)
+                {if}
+                    0.25
+                {else}
+                    0.5
+                {endif}
             {else}
                 0.5
             {endif}
-        {else}
-            0.5
         {endif}
-    {endif}
-    s0 (L.L.VDV_ext_light_switch_anim_2) = !
-    {if}
-        l0 (S.L.VDV_ext_light_switch_anim_2)
-        (T.L.ev_licht_zieh)
-    {endif}
-
-    (L.L.cp_passenger_light_sw) s0 (L.L.VDV_int_light_switch_anim_1) (L.L.VDV_int_light_switch_anim_2) 2 * +
-        2 min s1 = !
-    {if}
-        l0 ! l0 l1 && s2 ||
+        s0 (L.L.VDV_ext_light_switch_anim_2) = !
         {if}
-            (T.L.ev_VDV_off)
+            l0 (S.L.VDV_ext_light_switch_anim_2)
+            (T.L.ev_licht_zieh)
         {endif}
 
-        l0 l1 ! && l2 ||
+        (L.L.cp_passenger_light_sw) s0 (L.L.VDV_int_light_switch_anim_1) (L.L.VDV_int_light_switch_anim_2) 2 * +
+            2 min s1 = !
         {if}
-            (T.L.ev_VDV_on)
+            l0 ! l0 l1 && s2 ||
+            {if}
+                (T.L.ev_VDV_off)
+            {endif}
+
+            l0 l1 ! && l2 ||
+            {if}
+                (T.L.ev_VDV_on)
+            {endif}
         {endif}
+        (L.L.cp_passenger_light_sw) 1 = (S.L.VDV_int_light_switch_anim_1)
+        (L.L.cp_passenger_light_sw) 2 = (S.L.VDV_int_light_switch_anim_2)
     {endif}
-    (L.L.cp_passenger_light_sw) 1 = (S.L.VDV_int_light_switch_anim_1)
-    (L.L.cp_passenger_light_sw) 2 = (S.L.VDV_int_light_switch_anim_2)
 {end}
 
 {macro:cockpitlights_frame}
 
     (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > s0
 
-'    Störungsmelder
-    (L.L.vdv_display_masterwarn)
-    (L.L.vdv_on) &&
-    (S.L.cockpit_light_masterfailure)
+'   Störungsmelder
+    (L.L.vdv_display_masterwarn) (L.L.vdv_on) && (S.L.cockpit_light_masterfailure)
 
-'    Türkontrolle
+'   Türkontrolle
     (L.L.door_kinderwagenwunsch) 1 =
     {if}
-        (L.L.kinderwagenwunsch_blinkgeber) (L.S.Timegap) + 2 min (S.L.kinderwagenwunsch_blinkgeber)
-        (L.L.kinderwagenwunsch_blinkgeber) 2 =
+        (L.L.kinderwagenwunsch_blinkgeber) (L.S.Timegap) + 2 min (S.L.kinderwagenwunsch_blinkgeber) 2 =
         {if}
             0 (S.L.kinderwagenwunsch_blinkgeber)
         {endif}
-        (L.L.kinderwagenwunsch_blinkgeber) 1 >
-        (L.L.vdv_on) &&
-        {if}
-            1 (S.L.cockpit_light_tuerkontrolle)
-        {else}
-            0 (S.L.cockpit_light_tuerkontrolle)
-        {endif}
+        (L.L.kinderwagenwunsch_blinkgeber) 1 > (L.L.vdv_on) && (S.L.cockpit_light_tuerkontrolle)
     {else}
-        0 (S.L.kinderwagenwunsch_blinkgeber)
-        0 (S.L.cockpit_light_tuerkontrolle)
+        0 (S.L.kinderwagenwunsch_blinkgeber) (S.L.cockpit_light_tuerkontrolle)
     {endif}
 
-'    Batterie
-    (L.L.elec_ladekontrolle) ! (L.L.vdv_on) &&
-    (S.L.cockpit_light_batterie)
+'   Batterie
+    (L.L.elec_ladekontrolle) ! (L.L.vdv_on) && (S.L.cockpit_light_batterie)
 
-    (L.L.bremse_halte)
-    (L.L.vdv_on) &&
-    (S.L.cockpit_light_bremse_knopf)
+    (L.L.bremse_halte) (L.L.vdv_on) && (S.L.cockpit_light_bremse_knopf)
 
-    (L.L.bremse_halte) !
-    (L.L.vdv_on) &&
-    (S.L.cockpit_light_bremse_halte)
+    (L.L.bremse_halte) ! (L.L.vdv_on) && (S.L.cockpit_light_bremse_halte)
 
-'    Kontrolle Feststellbremse
-    (L.L.bremse_p_Brzyl_FBA) 650000 <
-    (L.L.vdv_on) &&
-    (S.L.cockpit_light_feststellbremse)
+'   Kontrolle Feststellbremse
+    (L.L.bremse_p_Brzyl_FBA) 650000 < (L.L.vdv_on) && (S.L.cockpit_light_feststellbremse)
 
-'    Geschwindigkeitswarnung
-    (L.L.Velocity) 54 > (L.L.vdv_on) &&
-    (S.L.cockpit_light_speedwarning)
+'   Geschwindigkeitswarnung
+    (L.L.Velocity) 54 > (L.L.vdv_on) && (S.L.cockpit_light_speedwarning)
 
-'    Kinderwagenwunsch
-    (L.L.door_kinderwagenwunsch) (L.L.vdv_on) &&
-    (S.L.cockpit_light_kinderwagenwunsch)
+'   Kinderwagenwunsch
+    (L.L.door_kinderwagenwunsch) (L.L.vdv_on) && (S.L.cockpit_light_kinderwagenwunsch)
 
-'    Kippschalter-Beleuchtung
+'   Kippschalter-Beleuchtung
     (L.L.cp_retarder_sw_direkt) l0 && (S.L.cockpit_light_retarder_direkt)
 
     (L.L.cp_retarder_sw) l0 && (S.L.cockpit_light_retarder)
@@ -2236,11 +2205,239 @@
 
     (L.L.cp_ASR_off) l0 && (S.L.cockpit_light_ASR_off)
 
-    (L.L.antrieb_getr_gangwahl) 4 = l0 && (S.L.automatic_D_light)
+    0 s2 s3 s4 s5 s6 s7 (S.L.r8) (S.L.r9) (S.L.r10)
+    (L.L.cockpit_initialized_once) l0 &&
+    {if}
+        1 (S.L.r10)
+        (L.L.antrieb_getr_gangwahl) (S.L.r11)
 
-    (L.L.antrieb_getr_gangwahl) 1 = l0 && (S.L.automatic_N_light)
+        (L.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_malfunction)
+            (L.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_unsatisfied_constraint) ||
+        {if}
+            (L.L.antrieb_failure_general) (L.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_malfunction) s1 &&
+            {if}
+                l1 1 =
+                {if}
+                    -1 (S.L.r10)
+                {else}
+                    -1 s5 s6 s7 (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors) * s2 s3 s4
+                    l1 2 = (S.L.r8)
+                    -2 (S.L.r10)
+                {endif}
+                (L.L.cp_cfg_effective_transmission_mode_selector_blinking_interval_malfunction) (S.L.r9)
+            {else}
+                (L.L.antrieb_getr_gangwahl_cockpit_gangwahl_desync) (S.L.r12)
+                    (L.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_unsatisfied_constraint) s1 &&
+                {if}
+                    l1 1 = (L.L.r12) 3 < ||
+                    {if}
+                        l1 2 =
+                        {if}
+                            (L.L.antrieb_getr_gangwahl) s1 0 =
+                            {if}
+                                1 s7
+                            {else}
+                                l1 1 =
+                                {if}
+                                    1 s6
+                                {else}
+                                    l1 2 =
+                                    {if}
+                                        (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors)
+                                        {if}
+                                            1 s2
+                                        {endif}
+                                    {else}
+                                        l1 3 =
+                                        {if}
+                                            (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors)
+                                            {if}
+                                                1 s3
+                                            {endif}
+                                        {else}
+                                            l1 4 =
+                                            {if}
+                                                (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors)
+                                                {if}
+                                                    1 s4
+                                                {endif}
+                                            {else}
+                                                1 s5
+                                            {endif}
+                                        {endif}
+                                    {endif}
+                                {endif}
+                            {endif}
+                        {endif}
+                        (L.L.antrieb_getr_gangvorwahl) (S.L.r11)
+                    {else}
+                        (L.L.antrieb_getr_aktugang) s1 2 =
+                        {if}
+                            1 s3
+                        {else}
+                            l1 3 =
+                            {if}
+                                1 s4
+                            {else}
+                                1 s5
+                            {endif}
+                        {endif}
+                    {endif}
+                    (L.L.cp_cfg_effective_transmission_mode_selector_blinking_interval_unsatisfied_constraint) (S.L.r9)
+                    -1 (S.L.r10)
+                {endif}
+            {endif}
+        {endif}
 
-    (L.L.antrieb_getr_gangwahl) 0 = l0 && (S.L.automatic_R_light)
+        (L.L.r10)
+        {if}
+            (L.L.r10) -2 = !
+            {if}
+                (L.L.r11) s1 0 =
+                {if}
+                    (L.L.r10) s7
+                {else}
+                    l1 1 =
+                    {if}
+                        (L.L.antrieb_failure_general)
+                        {if}
+                            (L.L.r10)
+                        {else}
+                            1
+                        {endif}
+                        s6
+                    {else}
+                        l1 2 =
+                        {if}
+                            (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors)
+                            {if}
+                                (L.L.r10) s2
+                            {endif}
+                        {else}
+                            l1 3 =
+                            {if}
+                                (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors)
+                                {if}
+                                    (L.L.r10) s3
+                                {endif}
+                            {else}
+                                l1 4 =
+                                {if}
+                                    (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors)
+                                    {if}
+                                        (L.L.r10) s4
+                                    {endif}
+                                {else}
+                                    (L.L.r10) s5
+                                {endif}
+                            {endif}
+                        {endif}
+                    {endif}
+                {endif}
+            {endif}
+
+            (L.L.r10) 0 <
+            {if}
+                0 s1
+                l2 -1 =
+                {if}
+                    (L.L.cockpit_automatic_1_light) (S.L.r11)
+                    (L.L.cockpit_automatic_1_light_timer) (S.L.r12) -1 = (L.L.r8) &&
+                    {if}
+                        l1 0.75 + 1 max s1 (L.L.r9) * (S.L.r12)
+                    {endif}
+                    (M.L.cockpit_transmission_selector_blinking)
+                    (L.L.r11) s2
+                    (L.L.r12) (S.L.cockpit_automatic_1_light_timer)
+                {endif}
+                l3 -1 =
+                {if}
+                    (L.L.cockpit_automatic_2_light) (S.L.r11)
+                    (L.L.cockpit_automatic_2_light_timer) (S.L.r12) -1 = (L.L.r8) &&
+                    {if}
+                        l1 0.75 + 1 max s1 (L.L.r9) * (S.L.r12)
+                    {endif}
+                    (M.L.cockpit_transmission_selector_blinking)
+                    (L.L.r11) s3
+                    (L.L.r12) (S.L.cockpit_automatic_2_light_timer)
+                {endif}
+                l4 -1 =
+                {if}
+                    (L.L.cockpit_automatic_3_light) (S.L.r11)
+                    (L.L.cockpit_automatic_3_light_timer) (S.L.r12) -1 = (L.L.r8) &&
+                    {if}
+                        l1 0.75 + 1 max s1 (L.L.r9) * (S.L.r12)
+                    {endif}
+                    (M.L.cockpit_transmission_selector_blinking)
+                    (L.L.r11) s4
+                    (L.L.r12) (S.L.cockpit_automatic_3_light_timer)
+                {endif}
+                l5 -1 =
+                {if}
+                    (L.L.cockpit_automatic_D_light) (S.L.r11)
+                    (L.L.cockpit_automatic_D_light_timer) (S.L.r12) -1 = (L.L.r8) &&
+                    {if}
+                        l1 0.75 + 1 max s1 (L.L.r9) * (S.L.r12)
+                    {endif}
+                    (M.L.cockpit_transmission_selector_blinking)
+                    (L.L.r11) s5
+                    (L.L.r12) (S.L.cockpit_automatic_D_light_timer)
+                {endif}
+                l6 -1 =
+                {if}
+                    (L.L.cockpit_automatic_N_light) (S.L.r11)
+                    (L.L.cockpit_automatic_N_light_timer) (S.L.r12) -1 = (L.L.r8) &&
+                    {if}
+                        l1 0.75 + 1 max s1 (L.L.r9) * (S.L.r12)
+                    {endif}
+                    (M.L.cockpit_transmission_selector_blinking)
+                    (L.L.r11) s6
+                    (L.L.r12) (S.L.cockpit_automatic_N_light_timer)
+                {endif}
+                l7 -1 =
+                {if}
+                    (L.L.cockpit_automatic_R_light) (S.L.r11)
+                    (L.L.cockpit_automatic_R_light_timer) (S.L.r12) -1 = (L.L.r8) &&
+                    {if}
+                        l1 0.75 + 1 max s1 (L.L.r9) * (S.L.r12)
+                    {endif}
+                    (M.L.cockpit_transmission_selector_blinking)
+                    (L.L.r11) s7
+                    (L.L.r12) (S.L.cockpit_automatic_R_light_timer)
+                {endif}
+            {endif}
+        {endif}
+    {endif}
+
+    (L.L.r10) 0 >=
+    {if}
+        -1 (S.L.cockpit_automatic_1_light_timer) (S.L.cockpit_automatic_2_light_timer) (S.L.cockpit_automatic_3_light_timer)
+            (S.L.cockpit_automatic_D_light_timer) (S.L.cockpit_automatic_N_light_timer) (S.L.cockpit_automatic_R_light_timer)
+    {endif}
+
+    l2 (S.L.cockpit_automatic_1_light)
+    l3 (S.L.cockpit_automatic_2_light)
+    l4 (S.L.cockpit_automatic_3_light)
+    l5 (S.L.cockpit_automatic_D_light)
+    l6 (S.L.cockpit_automatic_N_light)
+    l7 (S.L.cockpit_automatic_R_light)
+{end}
+
+{macro:cockpit_transmission_selector_blinking}
+    (L.L.r12) -1 =
+    {if}
+        (L.L.r9) (S.L.r12)
+    {else}
+        (L.L.r12) (L.L.r9) <
+        {if}
+            (L.L.r12) (L.S.Timegap) + (L.L.r9) min (S.L.r12)
+        {endif}
+    {endif}
+    (L.L.r12) (L.L.r9) =
+    {if}
+        (L.L.r11) ! (S.L.r11)
+        0 (S.L.r12)
+    {endif}
 {end}
 
 {macro:oeldruck_frame}
@@ -2304,28 +2501,6 @@
     {else}
         (T.L.ev_klappfenster_cls)
     {endif}
-{end}
-
-{macro:schluessel_frame}
-    (L.L.cp_schluessel_trans_lastmode) (L.L.cp_schluessel_trans_mode) = !
-    {if}
-        (T.L.ev_schluessel_steck)
-    {endif}
-    (L.L.cp_schluessel_trans_mode) (S.L.cp_schluessel_trans_lastmode)
-
-
-    (L.L.cp_schluessel_rot_lastmode) (L.L.cp_schluessel_rot_mode) = !
-    {if}
-        (T.L.ev_schluessel_dreh)
-    {endif}
-    (L.L.cp_schluessel_rot_mode) (S.L.cp_schluessel_rot_lastmode)
-
-
-    (L.L.cp_key_rot_lastmode) (L.L.cp_key_rot_mode) = !
-    {if}
-        (T.L.ev_schluessel_dreh)
-    {endif}
-    (L.L.cp_key_rot_mode) (S.L.cp_key_rot_lastmode)
 {end}
 
 {macro:traegheit}
@@ -2539,8 +2714,8 @@
         0 (S.L.cp_rollo_retract) (S.L.cp_rollo_bommel)
     {endif}
 
-    (L.L.cp_rollo_pos) 0 > (S.L.cockpit_main_sun_blind_segment_3_visibility)
-    (L.L.cp_rollo_pos) 0.2 > (S.L.cockpit_main_sun_blind_segment_4_visibility)
+    (L.L.cp_rollo_pos) 0 > (S.L.cp_rollo_segment_3_visibility)
+    (L.L.cp_rollo_pos) 0.2 > (S.L.cp_rollo_segment_4_visibility)
 {end}
 
 {macro:rollo1_frame}
@@ -2855,18 +3030,39 @@
     {endif}
 {end}
 
-{macro:hatch_frame}
-    (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > (L.L.cp_key_rot) 0.4 >=
-        (L.L.cp_cti_hatches_require_full_elec) ! || &&
+{macro:cockpit_hatch_frame}
+    (L.L.cockpit_initialized_once)
     {if}
-        (L.L.cp_hatch_sw) s0 (L.L.cp_hatch_mode) = !
+        (L.L.cp_cfg_effective_has_hatch_switch) !
         {if}
-            l0 (S.L.cp_hatch_mode)
+            0 (S.L.cp_hatch_sw) (S.L.cp_hatch_mode)
+        {else}
+            (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > (L.L.cp_key_rot) 0.4 >=
+                (L.L.cp_cfg_effective_hatches_require_full_elec) ! || &&
             {if}
-                (T.L.ev_dach_auf)
-            {else}
-                (T.L.ev_dach_zu)
+                (L.L.cp_hatch_sw) s0 (L.L.cp_hatch_mode) = !
+                {if}
+                    l0 (S.L.cp_hatch_mode)
+                    {if}
+                        (T.L.ev_dach_auf)
+                    {else}
+                        (T.L.ev_dach_zu)
+                    {endif}
+                {endif}
             {endif}
+        {endif}
+    {endif}
+{end}
+
+{macro:cockpit_passenger_window_frame}
+    (L.L.cockpit_initialized_once)
+    {if}
+        (L.L.cp_cfg_effective_has_openable_passenger_windows) !
+        {if}
+            0 (S.L.cp_passenger_window_1_l) (S.L.cp_passenger_window_1_r) (S.L.cp_passenger_window_2_l)
+                (S.L.cp_passenger_window_2_r)
+            1 (S.L.cp_passenger_window_1_l_locked) (S.L.cp_passenger_window_1_r_locked)
+                (S.L.cp_passenger_window_2_l_locked) (S.L.cp_passenger_window_2_r_locked)
         {endif}
     {endif}
 {end}
@@ -2910,7 +3106,95 @@
     {endif}
 {end}
 
-{macro:throttle_brake_frame}
+{macro:cockpit_stop_brake_override_frame}
+    (L.L.cp_not_aus_sw) (L.L.cockpit_throttle) 0.1 > && (S.L.bremse_halte_override)
+{end}
+
+{macro:cockpit_transmission_frame}
+    (L.L.cockpit_initialized) 1 =
+    {if}
+'       1: ZF EcoLife
+'       2: Voith D.5/6
+'       0: ZF Ecomat 4
+'       3: ZF Ecomat 2 / Voith D3
+        (L.L.gearbox_identifier) s0 1 =
+        {if}
+            "13_eco.jpg"
+        {else}
+            l0 2 =
+            {if}
+                "13_d5.jpg"
+            {else}
+                l0 0 =
+                {if}
+                    "13.jpg"
+                {else}
+                    "13_e2.jpg"
+                {endif}
+            {endif}
+        {endif}
+        (S.$.ecolife_texture)
+    {endif}
+
+    (L.L.cp_retarder_sw) (S.L.antrieb_retarder_sw)
+    (L.L.cp_retarder_sw_direkt) (S.L.antrieb_retarder_sw_direkt)
+
+    (L.L.cockpit_initialized_once)
+    {if}
+        (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors) !
+        {if}
+            (L.L.cockpit_gang1) (L.L.cockpit_gang2) || (L.L.cockpit_gang3) ||
+            {if}
+                0 (S.L.cockpit_gang1) (S.L.cockpit_gang2) (S.L.cockpit_gang3)
+                0.7 (S.L.cockpit_gangD)
+            {endif}
+        {endif}
+
+        (L.L.cp_cfg_effective_has_engaging_neutral_transmission_mode_selector) !
+        {if}
+            (L.L.cockpit_gangN) d 1 < &&
+            {if}
+                0 (S.L.cockpit_gangN)
+            {endif}
+        {else}
+            (L.L.cockpit_gang1) ! (L.L.cockpit_gang2) ! && (L.L.cockpit_gang3) ! && (L.L.cockpit_gangD) ! &&
+                (L.L.cockpit_gangN) ! && (L.L.cockpit_gangR) ! &&
+            {if}
+                0.7 (S.L.cockpit_gangN)
+            {endif}
+        {endif}
+
+        (L.L.cockpit_gang1)
+        {if}
+            2
+        {else}
+            (L.L.cockpit_gang2)
+            {if}
+                3
+            {else}
+                (L.L.cockpit_gang3)
+                {if}
+                    4
+                {else}
+                    (L.L.cockpit_gangD)
+                    {if}
+                        5
+                    {else}
+                        (L.L.cockpit_gangR)
+                        {if}
+                            0
+                        {else}
+                            1
+                        {endif}
+                    {endif}
+                {endif}
+            {endif}
+        {endif}
+        (S.L.cockpit_gangwahl)
+    {endif}
+{end}
+
+{macro:cockpit_throttle_brake_frame}
     (L.L.AI)
     {if}
         (L.L.bremse_halte) (L.L.bremse_feststell) || s1
@@ -3026,7 +3310,7 @@
                 (L.L.brake)
             {endif}
         {endif}
-        (S.L.cockpit_brake) (C.L.max_bremskraft) * (S.L.Brakeforce)
+        (S.L.cockpit_brake)
 
         (L.L.cockpit_ai_throttle_override) s0 1 = l0 3 = ||
         {if}
@@ -3040,7 +3324,7 @@
             {endif}
         {endif}
         (L.L.cockpit_brake) ! (L.L.ai_pre_cockpit_master_failsafe) ! && (L.L.engine_on) &&
-            (L.L.antrieb_getr_gangwahl) 4 = && * (S.L.cockpit_throttle)
+            (L.L.antrieb_getr_gangwahl) 5 = && * (S.L.cockpit_throttle)
     {else}
         0 (S.L.cockpit_ai_brake_override) (S.L.cockpit_ai_throttle_override)
         -1 (S.L.cockpit_ai_brake_override_timer) (S.L.cockpit_ai_throttle_override_timer)

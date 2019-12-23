@@ -149,19 +149,33 @@
 {end}
 
 {macro:VDV_init}
-	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.EBS_Error_dist)
-	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.Retarder_Error_dist)
-	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.Gear_Error_dist)
-	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.ECAS_Error_dist)
-	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.EDC_Error_dist)
-	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.Battery_Error_dist)
-	(C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.Brakedisc_Error_dist)
-	(C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * random (S.L.Door_Error_Count)
-	(C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * random (S.L.Door2_Error_Count)
-	(C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * random (S.L.Door3_Error_Count)
-	1 (S.L.vdv_dim_mode)
-	1 (S.L.Fehleranzahl) (S.L.display_option)
-	0 (S.L.light_error_timer) (S.L.vdv_display_changeover_clamped) (S.L.button_up_clamp_timer) (S.L.obd_info_mode) (S.L.obd_system_mode)
+    (L.L.VDV_initialized_once) !
+    {if}
+        (C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.EBS_Error_dist)
+        (C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.Retarder_Error_dist)
+        (C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.Gear_Error_dist)
+        (C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.ECAS_Error_dist)
+        (C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.EDC_Error_dist)
+        (C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.Battery_Error_dist)
+        (C.L.Fehlertoleranz) (L.L.wearlifespan) * random (S.L.Brakedisc_Error_dist)
+        (C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * random (S.L.Door_Error_Count)
+        (C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * random (S.L.Door2_Error_Count)
+        (C.L.Tuerfehlertoleranz) (L.L.wearlifespan) * random (S.L.Door3_Error_Count)
+        1 (S.L.vdv_dim_mode)
+        1 (S.L.Fehleranzahl) (S.L.display_option)
+        0 (S.L.light_error_timer) (S.L.vdv_display_changeover_clamped) (S.L.button_up_clamp_timer) (S.L.obd_info_mode) (S.L.obd_system_mode)
+
+        (M.L.VDV_cfg_reset_overrides)
+        (M.L.VDV_cfg_apply_defaults)
+    {endif}
+
+    0 (S.L.VDV_initialized)
+{end}
+
+{macro:VDV_cfg_reset_overrides}
+{end}
+
+{macro:VDV_cfg_apply_defaults}
 {end}
 
 {macro:VDV_frame}
@@ -169,8 +183,23 @@
 
 '	###Debug End###
 
-	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > (S.L.vdv_sufficient_power_supply)
-	(L.L.elec_busbar_avail) 0 > (L.L.cp_light_sw) && (S.L.vdv_lighting)
+    (L.L.VDV_initialized) !
+    {if}
+        1 (S.L.VDV_initialized)
+    {else}
+        (L.L.VDV_initialized) 1 =
+        {if}
+            (L.L.VDV_initialized_once) !
+            {if}
+                1 (S.L.VDV_initialized_once)
+            {endif}
+            2 (S.L.VDV_initialized)
+        {endif}
+        (M.L.VDV_cfg_apply_overrides)
+    {endif}
+
+    (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > (S.L.vdv_sufficient_power_supply)
+    (L.L.elec_busbar_avail) 0 > (L.L.cp_light_sw) && (S.L.vdv_lighting)
 
 '	Texture Inverting
 	(L.L.vdv_lighting)
@@ -375,7 +404,7 @@
 
 		(L.L.vdv_display_startuptime) 5 >
 		{if}
-		
+
 '		(L.L.vdv_dim_mode) 1 =
 '		{if}
 '			0 (S.L.vdv_visible_dim)
@@ -1190,9 +1219,8 @@
 		(L.L.bremse_halte) 0 = &&
 		(L.L.bremse_feststell) 0 = &&
 		(L.L.antrieb_getr_gangwahl) 1 > &&
-      		(L.L.bremse_halte_sw) 0 = &&
-		(L.L.door_20h_sw) 0 = &&
-      		(L.L.kneel_timer) 0 = &&
+      	(L.L.bremse_halte_sw) 0 = &&
+      	(L.L.kneel_timer) 0 = &&
 		(L.L.vdv_display_mode) 1 > &&
 		(L.L.vdv_display_mode) 6 < &&
 		{if}
@@ -1208,8 +1236,7 @@
 		(L.L.bremse_feststell) ||
 		(L.L.antrieb_getr_gangwahl) 1 = ||
 '		(L.L.bremse_halte_sw) ||
-'		(L.L.door_20h_sw) ||
-      		(L.L.kneel_timer) 0 > ||
+      	(L.L.kneel_timer) 0 > ||
 		(L.L.vdv_display_mode) 1 = &&
 		{if}
 			0 (S.L.vdv_display_changeover)
@@ -1740,7 +1767,7 @@
 					(L.L.engine_tank_content) (F.L.tank_balken) trunc s0
 					"0" l0 $* (S.$.vdv_balken5)
 				{endif}
-			{else}	
+			{else}
 				0 (S.L.vdv_balken5) (S.L.vdv_balken5_n)
 			{endif}
 
@@ -1980,9 +2007,9 @@
 						{if}
 							(L.L.vdv_lighting)
 							{if}
-								"up\vdv_display_error_hsb_n.png" (S.$.vdv_background)
+								"ACE\vdv_display_error_hsb_n.png" (S.$.vdv_background)
 							{else}
-								"up\vdv_display_error_hsb.png" (S.$.vdv_background)
+								"ACE\vdv_display_error_hsb.png" (S.$.vdv_background)
 							{endif}
 						{else}
 							(L.L.Fehleranzahl) 1 + (S.L.Fehleranzahl)
@@ -2227,11 +2254,9 @@
 	{endif}
 
 '	Gearstart Warn Yellow
-	(L.L.antrieb_getr_gangwahl) 1 >
-	(L.L.key_mode) 4 = &&
-	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
-	(L.L.vdv_display_startuptime) 16 > &&
-	(L.L.vdv_display_masterwarn) ! &&
+	(L.L.antrieb_getr_gangwahl) 1 = ! (L.L.cockpit_gang1) || (L.L.cockpit_gang2) || (L.L.cockpit_gang3) || (L.L.cockpit_gangD) || (L.L.cockpit_gangR) ||
+		(L.L.key_mode) 4 = && (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > && (L.L.engine_on) ! && (L.L.vdv_display_startuptime) 16 > &&
+		(L.L.vdv_display_masterwarn) ! &&
 	{if}
 		1 (S.L.vdv_error_gearstart_active)
 		(L.L.gearstart_Signal) 1 + (S.L.gearstart_Signal)
@@ -2355,10 +2380,10 @@
 	(L.L.lights_abbl_r_bulb_lifetime) 0 <= ||
 	(L.L.lights_fern_l_bulb_lifetime) 0 <= ||
 	(L.L.lights_fern_r_bulb_lifetime) 0 <= ||
-	(L.L.lights_drl_l_unit_lifetime) 0 <= (L.L.lights_cti_has_drl) && ||
-	(L.L.lights_drl_r_unit_lifetime) 0 <= (L.L.lights_cti_has_drl) && ||
-	(L.L.lights_nebelschw_l_bulb_lifetime) 0 <= (L.L.lights_cti_has_head_fog_lights) && ||
-	(L.L.lights_nebelschw_r_bulb_lifetime) 0 <= (L.L.lights_cti_has_head_fog_lights) && ||
+	(L.L.lights_drl_l_unit_lifetime) 0 <= (L.L.lights_cfg_effective_has_drl) && ||
+	(L.L.lights_drl_r_unit_lifetime) 0 <= (L.L.lights_cfg_effective_has_drl) && ||
+	(L.L.lights_nebelschw_l_bulb_lifetime) 0 <= (L.L.lights_cfg_effective_has_head_fog_lights) && ||
+	(L.L.lights_nebelschw_r_bulb_lifetime) 0 <= (L.L.lights_cfg_effective_has_head_fog_lights) && ||
 	(L.L.lights_brems_l_t_bulb_lifetime) 0 <= ||
 	(L.L.lights_brems_r_t_bulb_lifetime) 0 <= ||
 	(L.L.lights_brems_l_m_bulb_lifetime) 0 <= ||
@@ -2373,10 +2398,10 @@
 	(L.L.lights_blinker_t_r_m_bulb_lifetime) 0 <= ||
 	(L.L.lights_blinker_t_r_t_bulb_lifetime) 0 <= ||
 	(L.L.lights_blinker_s_r_2_bulb_lifetime) 0 <= ||
-	(L.L.lights_rueckfahr_l_bulb_lifetime) 0 <= (L.L.lights_cti_has_second_reverse_and_tail_fog_light) && ||
+	(L.L.lights_rueckfahr_l_bulb_lifetime) 0 <= (L.L.lights_cfg_effective_has_second_reverse_and_tail_fog_light) && ||
 	(L.L.lights_rueckfahr_r_bulb_lifetime) 0 <= ||
 	(L.L.lights_nebelschluss_l_bulb_lifetime) 0 <= ||
-	(L.L.lights_nebelschluss_r_bulb_lifetime) 0 <= (L.L.lights_cti_has_second_reverse_and_tail_fog_light) && ||
+	(L.L.lights_nebelschluss_r_bulb_lifetime) 0 <= (L.L.lights_cfg_effective_has_second_reverse_and_tail_fog_light) && ||
 	(L.L.lights_position_h_l_bulb_lifetime) 0 <= ||
 	(L.L.lights_position_h_r_bulb_lifetime) 0 <= ||
 	(L.L.lights_position_s_l_1_bulb_lifetime) 0 <= ||
@@ -2551,7 +2576,7 @@
 	{endif}
 
 ' HSB overridden or faulty - not cancelable
-	(L.L.cp_not_aus_sw) (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > && (L.L.vdv_display_startuptime) 16 > &&
+	(L.L.bremse_halte_release_clearance) ! (L.L.bremse_halte) ! && (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > && (L.L.vdv_display_startuptime) 16 > &&
 	{if}
 		1 (S.L.vdv_error_hsb_active)
 		(L.L.vdv_hsb_signal) 1 + (S.L.vdv_hsb_signal) 1 =
@@ -2583,7 +2608,7 @@
 '	Kneeling signal
 
 (L.L.vdv_error_ECAS_active) !
-{if}	
+{if}
 	(L.L.doorTarget_0) 1 = (L.L.doorTarget_1) 1 = || (L.L.doorTarget_23) 1 = || (L.L.doorTarget_45) 1 = || (L.L.kneel_allowed) 1 = && (L.L.bremse_halte) 1 = &&
 	(L.L.doorTarget_0) 1 = (L.L.doorTarget_1) 1 = || (L.L.doorTarget_23) 1 = || (L.L.doorTarget_45) 1 = || (L.L.kneel_auto_set) 1 = && (L.L.bremse_halte) 1 = && ||
 	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
@@ -2713,4 +2738,7 @@
 
 '	cockpit.osc:engine_diagnostic provision, for proper syncing between VDV display wheelchair request icon and corresponding dashboard control light
 	(L.L.vdv_on) (L.L.engine_timer_start) 4.25 < (L.L.door_kinderwagenwunsch) (L.S.GetTime) 2 % 1 < && || && (S.L.cp_vdv_indic_9)
+{end}
+
+{macro:VDV_cfg_apply_overrides}
 {end}

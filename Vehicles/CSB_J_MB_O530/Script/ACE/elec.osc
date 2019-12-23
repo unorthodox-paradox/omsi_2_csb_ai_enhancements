@@ -27,17 +27,23 @@
 
 '--------------------------------------------------------------
 
-
-
 {macro:Elec_Init}
+    (L.L.elec_initialized_once) !
+    {if}
 'At the beginning, battery has enough voltage:
-	1.0 (S.L.elec_battery_load)
+        1.0 (S.L.elec_battery_load)
 'Zufällig verteilt nach y = 1/x²
-'	1 1000 random 1000 / sqrt sqrt / 1 - (S.L.elec_battery_age)
+        1 1000 random 1000 / sqrt sqrt / 1 - (S.L.elec_battery_age)
 'Zufällig verteilen auf Basis der Wartung:
-	1 1000 random 1000 / sqrt sqrt / 1 -
-	1 (L.L.wearlifespan) / sqrt *
-	(S.L.elec_battery_age)
+        1 1000 random 1000 / sqrt sqrt / 1 -
+        1 (L.L.wearlifespan) / sqrt *
+            (S.L.elec_battery_age)
+
+        (M.L.elec_cfg_reset_overrides)
+        (M.L.elec_cfg_apply_defaults)
+    {endif}
+
+    0 (S.L.elec_initialized)
 {end}
 
 '===========================================
@@ -87,14 +93,32 @@
 		1 (S.L.engine_on)
 
 	{endif}
+{end}
 
+{macro:elec_cfg_reset_overrides}
+{end}
 
+{macro:elec_cfg_apply_defaults}
 {end}
 
 '===========================================
 'Frame:
 
 {macro:Elec_Frame}
+    (L.L.elec_initialized) !
+    {if}
+        1 (S.L.elec_initialized)
+    {else}
+        (L.L.elec_initialized) 1 =
+        {if}
+            (L.L.elec_initialized_once) !
+            {if}
+                1 (S.L.elec_initialized_once)
+            {endif}
+            2 (S.L.elec_initialized)
+        {endif}
+        (M.L.elec_cfg_apply_overrides)
+    {endif}
 
 'Generator liefert Spannung proportional zur Drehzahl, der Regler deckelt aber auf die entsprechende Maximalspannung:
 
@@ -187,3 +211,5 @@
 
 {end}
 
+{macro:elec_cfg_apply_overrides}
+{end}

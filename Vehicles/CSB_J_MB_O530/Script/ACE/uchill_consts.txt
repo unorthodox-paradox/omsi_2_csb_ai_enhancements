@@ -1,4 +1,20 @@
 [const]
+uchill_cfg_default_driver_ac_maintenance_mode_requires_full_elec
+1
+
+[const]
+uchill_cfg_default_passenger_ac_maintenance_mode_requires_full_elec
+1
+
+[const]
+uchill_cfg_no_cti_override_driver_ac_maintenance_mode_requires_full_elec
+0
+
+[const]
+uchill_cfg_no_cti_override_passenger_ac_maintenance_mode_requires_full_elec
+0
+
+[const]
 debug_var_group
 0
 

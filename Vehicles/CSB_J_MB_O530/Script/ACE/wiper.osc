@@ -14,189 +14,243 @@
 '- dirt
 
 'Revision History:
-'- Marcel Kuhnt		20.03.2009	Last Change
-'- Marcel Kuhnt		13.06.2009	Added Switch-Vars
-'- Marcel Kuhnt		13.06.2009	Added Wiper/Washer Function
-'- Marcel Kuhnt		21.06.2009	Added AI-Activation
-'- Rüdiger Hülsmann	14.05.2010	Added wiperpos_2xspeed for sinusdial movement during half a period
+'- Marcel Kuhnt        20.03.2009    Last Change
+'- Marcel Kuhnt        13.06.2009    Added Switch-Vars
+'- Marcel Kuhnt        13.06.2009    Added Wiper/Washer Function
+'- Marcel Kuhnt        21.06.2009    Added AI-Activation
+'- Rüdiger Hülsmann    14.05.2010    Added wiperpos_2xspeed for sinusdial movement during half a period
 
 '--------------------------------------------------------------
 
 {macro:wiper_init}
-	0 (S.L.wiperrun)
+    (L.L.wiper_initialized_once) !
+    {if}
+        (M.L.wiper_cfg_reset_overrides)
+        (M.L.wiper_cfg_apply_defaults)
+    {endif}
+
+    0 (S.L.wiper_initialized)
+{end}
+
+{macro:wiper_cfg_reset_overrides}
+    -1 (S.L.wiper_cfg_cti_wipers_require_full_elec)
+
+        (S.L.wiper_cfg_on_demand_wipers_require_full_elec)
+{end}
+
+{macro:wiper_cfg_apply_defaults}
+    (C.L.wiper_cfg_default_wipers_require_full_elec) s0 0 = l0 1 = ||
+    {if}
+        l0
+    {else}
+        1
+    {endif}
+    (S.L.wiper_cfg_effective_wipers_require_full_elec)
 {end}
 
 {macro:wiper_frame}
-	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > (L.L.cp_key_rot) 0.4 >= (L.L.wiper_cti_wipers_require_full_elec) ! || &&
-	{if}
-		(L.L.wiperrunning)
-		{if}
-			(L.L.wiperpos_delay) !
-			{if}
-				(L.L.wiperrun) (L.S.Timegap) (L.L.wiper_speed) * + (S.L.wiperrun)
-			{endif}
-			(L.L.wiper_left_trigger)
-			{if}
-				(L.L.wiperrun_l) (L.S.Timegap) (L.L.wiper_speed) * + (S.L.wiperrun_l)
-			{endif}
-		{endif}
+    (L.L.wiper_initialized) !
+    {if}
+        1 (S.L.wiper_initialized)
+    {else}
+        (L.L.wiper_initialized) 1 =
+        {if}
+            (L.L.wiper_initialized_once) !
+            {if}
+                1 (S.L.wiper_initialized_once)
+            {endif}
+            2 (S.L.wiper_initialized)
+        {endif}
+        (M.L.wiper_cfg_apply_overrides)
+    {endif}
 
-		(L.L.wiperrun) 2 pi * >
-		{if}
-			0 (S.L.wiperrun) (S.L.wiperrunning) (S.L.wiper_power_loss)
-		{endif}
+    (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > (L.L.cp_key_rot) 0.4 >=
+        (L.L.wiper_cfg_effective_wipers_require_full_elec) ! || &&
+    {if}
+        (L.L.wiperrunning)
+        {if}
+            (L.L.wiperpos_delay) !
+            {if}
+                (L.L.wiperrun) (L.S.Timegap) (L.L.wiper_speed) * + (S.L.wiperrun)
+            {endif}
+            (L.L.wiper_left_trigger)
+            {if}
+                (L.L.wiperrun_l) (L.S.Timegap) (L.L.wiper_speed) * + (S.L.wiperrun_l)
+            {endif}
+        {endif}
 
-		(L.L.wiperrun_l) 2 pi * >
-		{if}
-			0 (S.L.wiperrun_l) (S.L.wiper_left_trigger)
-		{endif}
+        (L.L.wiperrun) 2 pi * >
+        {if}
+            0 (S.L.wiperrun) (S.L.wiperrunning) (S.L.wiper_power_loss)
+        {endif}
 
-		(L.L.wiperrunning) ! (L.L.wiper_einaus_sw) (L.L.wiper_wascher_sw) || &&
-		{if}
-			1 (S.L.wiperrunning)
-			(T.L.wiper_start)
-			(L.L.Rain_Window_Wiped_Wetness) 0 =
-			{if}
-				(T.L.wiper_start_dry)
-			{endif}
-		{endif}
+        (L.L.wiperrun_l) 2 pi * >
+        {if}
+            0 (S.L.wiperrun_l) (S.L.wiper_left_trigger)
+        {endif}
 
-		(L.L.wiper_wascher_sw)
-		{if}
-			(L.L.wiper_wash) !
-			{if}
-				(T.L.wiper_wash_start)
-			{endif}
-			1 (S.L.wiper_wash)
-			(L.L.wiper_wash_texpos) 3 (L.S.Timegap) * - (S.L.wiper_wash_texpos)
-		{else}
-			0 (S.L.wiper_wash)
-		{endif}
+        (L.L.wiperrunning) ! (L.L.wiper_einaus_sw) (L.L.wiper_wascher_sw) || &&
+        {if}
+            1 (S.L.wiperrunning)
+            (T.L.wiper_start)
+            (L.L.Rain_Window_Wiped_Wetness) 0 =
+            {if}
+                (T.L.wiper_start_dry)
+            {endif}
+        {endif}
 
-'		Wischer Intervall
-		(L.L.wiper_intervall_sw) (L.L.wiper_intervall_on) ! && (L.L.wiper_intervall_time) (C.L.wiper_intervall) > ||
-		{if}
-			(L.L.wiperrunning) !
-			{if}
-				(T.L.wiper_start)
-				(L.L.Rain_Window_Wiped_Wetness) 0 =
-				{if}
-					(T.L.wiper_start_dry)
-				{endif}
-			{endif}
-			1 (S.L.wiperrunning) (S.L.wiper_intervall_on)
-			(L.S.GetTime) (S.L.wiper_intervall_starttime)
-		{endif}
-	{else}
-		0 (S.L.wiperrunning) (S.L.wiper_intervall_on) (S.L.wiper_left_trigger) (S.L.wiper_wash)
-		(L.L.wiper_intervall_sw) ! (L.L.wiper_einaus_sw) ! && (L.L.wiper_schnell_sw) ! &&
-		{if}
-			(L.L.wiperrun_l) pi >
-			{if}
-				2 pi * (L.L.wiperrun) - (S.L.wiperrun)
-				2 pi * (L.L.wiperrun_l) - (S.L.wiperrun_l)
-				1 (S.L.wiper_power_loss)
-			{endif}
-		{endif}
-	{endif}
+        (L.L.wiper_wascher_sw)
+        {if}
+            (L.L.wiper_wash) !
+            {if}
+                (T.L.wiper_wash_start)
+            {endif}
+            1 (S.L.wiper_wash)
+            (L.L.wiper_wash_texpos) 3 (L.S.Timegap) * - (S.L.wiper_wash_texpos)
+        {else}
+            0 (S.L.wiper_wash)
+        {endif}
 
-	(L.L.wiperrun) 1.5 pi * + sin 1 + 2 / (S.L.wiperpos) (S.L.Rain_Wiper_Pos) (S.L.Dirt_Wiper_Pos)
-	(L.L.wiperrun_l) 1.5 pi * + sin 1 + 2 / (S.L.wiperpos_l)
+'       Wischer Intervall
+        (L.L.wiper_intervall_sw) (L.L.wiper_intervall_on) ! && (L.L.wiper_intervall_time) (C.L.wiper_intervall) > ||
+        {if}
+            (L.L.wiperrunning) !
+            {if}
+                (T.L.wiper_start)
+                (L.L.Rain_Window_Wiped_Wetness) 0 =
+                {if}
+                    (T.L.wiper_start_dry)
+                {endif}
+            {endif}
+            1 (S.L.wiperrunning) (S.L.wiper_intervall_on)
+            (L.S.GetTime) (S.L.wiper_intervall_starttime)
+        {endif}
+    {else}
+        0 (S.L.wiperrunning) (S.L.wiper_intervall_on) (S.L.wiper_left_trigger) (S.L.wiper_wash)
+        (L.L.wiper_intervall_sw) ! (L.L.wiper_einaus_sw) ! && (L.L.wiper_schnell_sw) ! &&
+        {if}
+            (L.L.wiperrun_l) pi >
+            {if}
+                2 pi * (L.L.wiperrun) - (S.L.wiperrun)
+                2 pi * (L.L.wiperrun_l) - (S.L.wiperrun_l)
+                1 (S.L.wiper_power_loss)
+            {endif}
+        {endif}
+    {endif}
 
-	(L.L.wiperpos) 0.05 > (L.L.wiperrunning) &&
-	{if}
-		1 (S.L.wiper_left_trigger)
-	{endif}
+    (L.L.wiperrun) 1.5 pi * + sin 1 + 2 / (S.L.wiperpos) (S.L.Rain_Wiper_Pos) (S.L.Dirt_Wiper_Pos)
+    (L.L.wiperrun_l) 1.5 pi * + sin 1 + 2 / (S.L.wiperpos_l)
 
-	(L.L.wiperrun) 1 pi * >
-	(L.L.wiperrun) 1.05 pi * < &&
-	(L.L.wiperrun_l) 1 pi * < &&
-	{if}
-		1 (S.L.wiperpos_delay)
-	{endif}
+    (L.L.wiperpos) 0.05 > (L.L.wiperrunning) &&
+    {if}
+        1 (S.L.wiper_left_trigger)
+    {endif}
 
-	(L.L.wiperrun_l) 1.05 pi * >
-	{if}
-		0 (S.L.wiperpos_delay)
-	{endif}
+    (L.L.wiperrun) 1 pi * >
+    (L.L.wiperrun) 1.05 pi * < &&
+    (L.L.wiperrun_l) 1 pi * < &&
+    {if}
+        1 (S.L.wiperpos_delay)
+    {endif}
 
-	(L.L.wiperrun) 2 * 1.5 pi * + sin 1 + 2 / (S.L.wiperpos_2xspeed)
+    (L.L.wiperrun_l) 1.05 pi * >
+    {if}
+        0 (S.L.wiperpos_delay)
+    {endif}
 
-	(L.L.wiperrun) 1 pi * > (L.L.wiper_power_loss) ||
-	{if}
-		(L.L.wiperpos) (F.L.wiperpos_pos_inv) (S.L.wiperpos_right)
-		(L.L.wiperpos_l) (F.L.wiperpos_pos_inv) (S.L.wiperpos_left)
-	{else}
-		(L.L.wiperpos) (F.L.wiperpos_pos) (S.L.wiperpos_right)
-		(L.L.wiperpos_l) (F.L.wiperpos_pos) (S.L.wiperpos_left)
-	{endif}
+    (L.L.wiperrun) 2 * 1.5 pi * + sin 1 + 2 / (S.L.wiperpos_2xspeed)
 
-'	Wischer schnell
+    (L.L.wiperrun) 1 pi * > (L.L.wiper_power_loss) ||
+    {if}
+        (L.L.wiperpos) (F.L.wiperpos_pos_inv) (S.L.wiperpos_right)
+        (L.L.wiperpos_l) (F.L.wiperpos_pos_inv) (S.L.wiperpos_left)
+    {else}
+        (L.L.wiperpos) (F.L.wiperpos_pos) (S.L.wiperpos_right)
+        (L.L.wiperpos_l) (F.L.wiperpos_pos) (S.L.wiperpos_left)
+    {endif}
 
-	(L.L.wiper_schnell_sw) (L.L.wiper_einaus_sw) &&
-	{if}
-		3.0 (S.L.wiper_speed)
-	{else}
-		2.25 (S.L.wiper_speed)
-	{endif}
+'   Wischer schnell
 
-	(L.L.wiper_intervall_sw) !
-	{if}
-		0 (S.L.wiper_intervall_on)
-	{endif}
+    (L.L.wiper_schnell_sw) (L.L.wiper_einaus_sw) &&
+    {if}
+        3.0 (S.L.wiper_speed)
+    {else}
+        2.25 (S.L.wiper_speed)
+    {endif}
 
-	(L.L.wiper_intervall_on)
-	{if}
-		(L.S.GetTime) (L.L.wiper_intervall_starttime) - (S.L.wiper_intervall_time)
-	{else}
-		0 (S.L.wiper_intervall_time)
-	{endif}
+    (L.L.wiper_intervall_sw) !
+    {if}
+        0 (S.L.wiper_intervall_on)
+    {endif}
+
+    (L.L.wiper_intervall_on)
+    {if}
+        (L.S.GetTime) (L.L.wiper_intervall_starttime) - (S.L.wiper_intervall_time)
+    {else}
+        0 (S.L.wiper_intervall_time)
+    {endif}
 
 'Wiper function (wetness remove):
 
-	(L.L.Rain_Window_Wiped_Wetness)
+    (L.L.Rain_Window_Wiped_Wetness)
 '   Calc Diff.:
-	(L.L.Rain_Wiper_Pos) (L.L.Rain_wiper_Pos_Prev) - abs
+    (L.L.Rain_Wiper_Pos) (L.L.Rain_wiper_Pos_Prev) - abs
 '   Multiply with wiper effectivity
-	(C.L.rain_wiper_eff) *
+    (C.L.rain_wiper_eff) *
 '   Subtract and set
-	 -
-	0 max
-	(S.L.Rain_Window_Wiped_Wetness)
+     -
+    0 max
+    (S.L.Rain_Window_Wiped_Wetness)
 
-	(L.L.Rain_Wiper_Pos) (S.L.Rain_Wiper_Pos_Prev)
+    (L.L.Rain_Wiper_Pos) (S.L.Rain_Wiper_Pos_Prev)
 
 'Wiper function (dirt remove):
 
-	(L.L.Rain_Window_Wiped_Wetness) (L.L.wiper_wascher_sw) (L.L.wiperrunning) && ||
-	{if}
-		(L.L.Dirt_Wiped)
-'  	Calc Diff.:
-		(L.L.Dirt_Wiper_Pos) (L.L.Dirt_wiper_Pos_Prev) - abs
-'   	Multiply with wiper effectivity
-		(C.L.Dirt_wiper_eff) *
-'  	Subtract and set
-		 -
-		0 max
-		(S.L.Dirt_Wiped)
+    (L.L.Rain_Window_Wiped_Wetness) (L.L.wiper_wascher_sw) (L.L.wiperrunning) && ||
+    {if}
+        (L.L.Dirt_Wiped)
+'       Calc Diff.:
+        (L.L.Dirt_Wiper_Pos) (L.L.Dirt_wiper_Pos_Prev) - abs
+'       Multiply with wiper effectivity
+        (C.L.Dirt_wiper_eff) *
+'       Subtract and set
+         -
+        0 max
+        (S.L.Dirt_Wiped)
 
-		(L.L.Dirt_Wiper_Pos) (S.L.Dirt_Wiper_Pos_Prev)
-	{endif}
+        (L.L.Dirt_Wiper_Pos) (S.L.Dirt_Wiper_Pos_Prev)
+    {endif}
 
 
 'Washer wetness
-	(L.L.wiper_wash)
-	{if}
-		(L.S.Timegap) 0.5 * s0
+    (L.L.wiper_wash)
+    {if}
+        (L.S.Timegap) 0.5 * s0
 
-		(L.L.Rain_Window_Front_Wetness) l0
-		+ 1 min 0 max
-		(S.L.Rain_Window_Front_Wetness)
+        (L.L.Rain_Window_Front_Wetness) l0
+        + 1 min 0 max
+        (S.L.Rain_Window_Front_Wetness)
 
-		(L.S.Timegap) s0
+        (L.S.Timegap) s0
 
-		(L.L.Rain_Window_Wiped_Wetness) l0
-		+ 1 min 0 max
-		(S.L.Rain_Window_Wiped_Wetness)
-	{endif}
+        (L.L.Rain_Window_Wiped_Wetness) l0
+        + 1 min 0 max
+        (S.L.Rain_Window_Wiped_Wetness)
+    {endif}
+{end}
+
+{macro:wiper_cfg_apply_overrides}
+    (C.L.global_cfg_no_cti_overrides) 1 = ! s0
+
+    (L.L.wiper_cfg_on_demand_wipers_require_full_elec) s1 0 = l1 1 = || !
+    {if}
+        (L.L.wiper_cfg_cti_wipers_require_full_elec) s1 0 = l1 1 = || l0 && (C.L.wiper_cfg_no_cti_override_wipers_require_full_elec) 1 = ! && !
+        {if}
+            -1 s1
+        {endif}
+    {endif}
+    l1 -1 = !
+    {if}
+        l1 (S.L.wiper_cfg_effective_wipers_require_full_elec)
+    {endif}
 {end}

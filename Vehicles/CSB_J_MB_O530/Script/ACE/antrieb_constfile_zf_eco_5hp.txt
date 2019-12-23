@@ -1,0 +1,1022 @@
+####################################
+###     ZF 5HP-592 Constfile     ###
+####################################
+
+
+#############
+# Allgemein #
+#############
+
++---------
+| Getriebeversion
++------
+| 1 = Ecolife
+| 0 = Ecomat 4
+| 3 = Ecomat 2
++---
+[const]
+gearbox_version
+3
+
++---------
+| Getriebemodus
++------
+| 0 = Normal
+| 1 = Eco
+| 2 = Power
++---
+[const]
+Getriebemodus
+0
+
++---------
+| Kickdownfunktion
++------
+| 1 = Ein
+| 0 = Aus
++---
+[const]
+kickdown_enabled
+1
+
++---------
+| TopoDyn-Funktion
++------
+| 1 = Ein
+| 0 = Aus
++---
+[const]
+topodyn_enabled
+1
+
++---------
+| Übersetzung des Antriebsdifferentials
++---
+[const]
+antrieb_i_achse
+5.74
+
++---------
+| Übersetzung des 1. Ganges
++---
+[const]
+antrieb_getr_ratio1
+3.43
+
++---------
+| Übersetzung des 2. Ganges
++---
+[const]
+antrieb_getr_ratio2
+2.01
+
++---------
+| Übersetzung des 3. Ganges
++---
+[const]
+antrieb_getr_ratio3
+1.42
+
++---------
+| Übersetzung des 4. Ganges (bis hier 4HP-XXX)
++---
+[const]
+antrieb_getr_ratio4
+1.0
+
++---------
+| Übersetzung des 5. Ganges (ab hier 5HP-XXX)
++---
+[const]
+antrieb_getr_ratio5
+0.83
+
++---------
+| Übersetzung des 6. Ganges (ab hier 6HP-XXX)
++---
+[const]
+antrieb_getr_ratio6
+0.59
+
++---------
+| Wirkungsgrad des Getriebes
++---
+[const]
+gear_efficiency
+0.95
+
++---------
+| Wird Wandler ordnungsgemäß geschlossen? Ansonsten hat das Getriebe keinen mechanischen Anteil mehr.
+| Kraftübertragung erfolgt nur noch hydrodynamisch.
++---
+[const]
+antrieb_wandler_locked
+1
+
++---------
+| Aktiviert eine Drehmomentsperre, um Schlupf im Getriebe sowie Rädern zu verhindern.
+| Dies ist absolut nötig bei Motoren mit hohen Drehmomenten.
++------
+| 1 = Ein
+| 0 = Aus
++---
+[const]
+antrieb_engine_drehmomentsperre
+1
+
++---------
+| Zeit (sec) für das Einlegen eines Ganges.
++---
+[const]
+antrieb_gangwahlzeit
+1
+
++---------
+| Kann das Getriebe, in den eingeschränkten Gangwahlmodi ('1'/'2'/'3'), bei überhöhter Geschwindigkeit, über den
+| normalerweise maximal erreichbaren Gang hinweg schalten? Dies schont Motor und Getriebe, und reduziert die
+| Auftrittshäufigkeit von Getriebeschlupf.
+|
+| Hinweis: Das erzwungene Hochschalten ist von den antrieb_getr_autoSwUpMaxSpd<N>f-Schaltpunkten abhängig. Im
+| Normalfall (wenn nicht gerade absichtlich steil bergab beschleunigt wird), sorgen aber die niedrigeren
+| antrieb_M_limit_l_spd<N> Toleranzen dafür, dass, bevor der Eingriff benötigt wird, nicht mehr beschleunigt
+| werden kann.
++------
+| 0 = Nein
+| 1 = Ja, bis zum 4. Gang (aufwärts / beschleunigend)
+| 2 = Ja, bis zum höchsten Gang (aufwärts / beschleunigend)
++---
+[const]
+antrieb_getr_constrained_upshifting
+1
+
++---------
+| Kann der Nutzer, bei überhöhter Geschwindigkeit ('D' Modus), Gebrauch von den eingeschränkten Gangwahlmodi ('1'/'2'/'3')
+| machen, um vorzeitig hinunterzuschalten? Dies kann ggf. die Fahrt steil bergauf erleichtern, wirkt aber nicht gerade
+| schonend auf Motor und Getriebe, und kann anhaltenden Getriebeschlupf während der Schaltung verursachen.
+|
+| Hinweis: Das erzwungene Hinunterschalten ist von den antrieb_getr_autoSwDnMaxSpd<N>f-Schaltpunkten; der Kickdown Gaspedal-Schwelle;
+| und, in den höheren Gängen, der "Getriebemodus"-Einstellung ("Power" oder nicht) und dem Zustand der TopoDyn-Funktion, abhängig.
++------
+| 0 = Nein
+| 1 = Ja, bis zum 4. Gang (abwärts / verlangsamend)
+| 2 = Ja, bis zum niedrigsten Gang (abwärts / verlangsamend)
++---
+[const]
+antrieb_getr_constrained_downshifting
+1
+
++---------
+| Erfordert das Getriebe bei Stillstand und Neutral-Gangwahlmodus die Betätigung des Bremspedals, um den Wechsel in einen anderen Modus
+| anzuerkennen?
++------
+| 0 = Nein
+| 1 = Ja
++---
+[const]
+antrieb_getr_cfg_default_standstill_non_neutral_transmission_mode_update_requires_braking
+1
+
++---------
+| Kann über .cti-[setvar] obige Einstellung überschrieben werden?
++------
+| 0 = Ja
+| 1 = Nein
++---
+[const]
+antrieb_getr_cfg_no_cti_override_standstill_non_neutral_transmission_mode_update_requires_braking
+0
+
+#######################
+# Wandlerüberbrückung #
+#######################
+
++---------
+| Hier kann bestimmt werden, in welchen Gängen der Wandler überbrückt werden kann.
++------
+| 0 = dynamisch, kann im 1. sowohl auch im 2. geschlossen werden
+| 1 = Wandler schließt erst im 2. Gang
+| 2 = Wandler schließt im 1. Gang und bleibt geschlossen
++---
+[const]
+antrieb_wandler_lockmode
+2
+
++---------
+| Über dieser angegebenen Gaspedal-Schwelle kann der Wandler im 1. Gang überbrückt werden.
++---
+[const]
+antrieb_wandler_lockup
+0.8
+
++---------
+| Unter dieser Geschwindigkeit (Drehzahl Kardanwelle) kann, im 1. Gang, der Wandler in den ungeschlossenen Zustand zurückkehren.
++---
+[const]
+antrieb_wandler_unlock_spd1
+170
+
++---------
+| Ab dieser Geschwindigkeit (Drehzahl Kardanwelle) kann, im 1. Gang, der Wandler überbrückt werden.
++---
+[const]
+antrieb_wandler_lockup_spd1
+250
+
++---------
+| ...im 1. Gang, bei Kickdown...
++---
+[const]
+antrieb_wandler_lockup_spd1_kd
+300
+
++---------
+| ...im 2. Gang...
++---
+[const]
+antrieb_wandler_lockup_spd2
+600
+
++---------
+| ...im 2. Gang, bei Kickdown...
++---
+[const]
+antrieb_wandler_lockup_spd2_kd
+800
+
+#########################
+# Schaltpunktbestimmung #
+#########################
+
++---
+| Hinweise:
+| - Alle Werte als Kardanwellendrehzahl spezifiziert.
+| - Die tatsächlich verwendeten Punkte können, in Abhängigkeit von der Position des Gaspedals, sowie dem Zustand der TopoDyn-Funktion, dynamisch, um einen
+|   Faktor zwischen 90~150%, von den hier definierten abweichen.
+| - Werteinschränkungen:
+|   - antrieb_getr_autoSwDnMinSpd<N>     <     ~DnMaxSpd<N>        <     ~DnkickdnSpd<N>               <     ~DnMaxSpd<N>f     <     antrieb_M_limit_l_spd<N>*
+|   - ~UpMaxSpd<N>                       <     ~UpkickdnSpd<N>     <     antrieb_M_limit_l_spd<N>*     <     ~UpMaxSpd<N>f
+|   - ~DnMaxSpd<N>                       <     ~UpMaxSpd<N>
+|   - ~DnkickdnSpd<N>                    <     ~UpkickdnSpd<N>f
+|   - ~DnMaxSpd<N>f                      <     ~UpMaxSpd<N>f
+|   - ~UpMaxSpd<N>                       >     ~DnMaxSpd<N+1>
+|   - ~UpkickdnSpd<N>                    >     ~DnkickdnSpd<N+1>
+|   - ~UpMaxSpd<N>f                      >     ~DnMaxSpd<N+1>f
+|   - Und natürlich gilt auch, dass jeder Punkt des Ganges <N> niedriger als der entsprechende Punkt, falls vorhanden, des nächsten Ganges, <N+1>, sein muss;
+|     z.B. muss ( ~DnMinSpd<N> < ~DnMinSpd<N+1> ).
+|
+|   * Nur von Bedeutung wenn antrieb_engine_drehmomentsperre aktiv.
++---------
+
+# 1. Gang
+##########
+
++---------
+| 1 -> 2, Wandler ungeschlossen, nicht Kickdown
++---
+[const]
+antrieb_getr_autoSwUpMaxSpd1c
+230
+
++---------
+| 1 -> 2, Wandler bereits geschlossen, nicht Kickdown
++---
+[const]
+antrieb_getr_autoSwUpMaxSpd1
+460
+
++---------
+| 1 -> 2, Kickdown
++---
+[const]
+antrieb_getr_autoSwUpkickdnSpd1
+640
+
++---------
+| 1 -> 2, Gangwahlmodus = '1' (erzwungen)
++---
+[const]
+antrieb_getr_autoSwUpMaxSpd1f
+950
+
+# 2. Gang
+##########
+
++---------
+| 2 -> 1, Gangwahlmodus = '1' (erzwungen)
++---
+[const]
+antrieb_getr_autoSwDnMaxSpd2f
+700
+
++---------
+| 2 -> 3, nicht Kickdown
++---
+[const]
+antrieb_getr_autoSwUpMaxSpd2
+800
+
++---------
+| 2 -> 3, Kickdown
++---
+[const]
+antrieb_getr_autoSwUpkickdnSpd2
+1100
+
++---------
+| 2 -> 3, Gangwahlmodus <= '2' (erzwungen)
++---
+[const]
+antrieb_getr_autoSwUpMaxSpd2f
+1600
+
+# 3. Gang
+##########
+
++---------
+| 3 -> 2, (annähernd) Leergas
++---
+[const]
+antrieb_getr_autoSwDnMinSpd3
+780
+
++---------
+| 3 -> 2, (annähernd) Vollgas
++---
+[const]
+antrieb_getr_autoSwDnMaxSpd3
+790
+
++---------
+| 3 -> 2, Kickdown
++---
+[const]
+antrieb_getr_autoSwDnkickdnSpd3
+1090
+
++---------
+| 3 -> 2, Gangwahlmodus <= '2' (erzwungen)
++---
+[const]
+antrieb_getr_autoSwDnMaxSpd3f
+1300
+
++---------
+| 3 -> 4, nicht Kickdown
++---
+[const]
+antrieb_getr_autoSwUpMaxSpd3
+1130
+
++---------
+| 3 -> 4, Kickdown
++---
+[const]
+antrieb_getr_autoSwUpkickdnSpd3
+1550
+
++---------
+| 3 -> 4, Gangwahlmodus <= '3' (erzwungen)
++---
+[const]
+antrieb_getr_autoSwUpMaxSpd3f
+2350
+
+# 4. Gang
+##########
+
++---------
+| 4 -> 3, (annähernd) Leergas
++---
+[const]
+antrieb_getr_autoSwDnMinSpd4
+1120
+
++---------
+| 4 -> 3, (annähernd) Vollgas
++---
+[const]
+antrieb_getr_autoSwDnMaxSpd4
+1140
+
++---------
+| 4 -> 3, Kickdown
++---
+[const]
+antrieb_getr_autoSwDnkickdnSpd4
+1540
+
++---------
+| 4 -> 3, Gangwahlmodus <= '3' (erzwungen)
++---
+[const]
+antrieb_getr_autoSwDnMaxSpd4f
+2150
+
++---------
+| 4 -> 5, nicht Kickdown
++---
+[const]
+antrieb_getr_autoSwUpMaxSpd4
+1600
+
++---------
+| 4 -> 5, Kickdown
++---
+[const]
+antrieb_getr_autoSwUpkickdnSpd4
+2600
+
++---------
+| 4 -> 5, Gangwahlmodus <= '3' (erzwungen)
++---
+[const]
+antrieb_getr_autoSwUpMaxSpd4f
+9999
+
+# 5. Gang
+##########
+
++---------
+| 5 -> 4, (annähernd) Leergas
++---
+[const]
+antrieb_getr_autoSwDnMinSpd5
+1580
+
++---------
+| 5 -> 4, (annähernd) Vollgas
++---
+[const]
+antrieb_getr_autoSwDnMaxSpd5
+1590
+
++---------
+| 5 -> 4, Kickdown
++---
+[const]
+antrieb_getr_autoSwDnkickdnSpd5
+2200
+
++---------
+| 5 -> 4, Gangwahlmodus <= '3' (erzwungen)
++---
+[const]
+antrieb_getr_autoSwDnMaxSpd5f
+9999
+
++---------
+| 5 -> 6, nicht Kickdown
++---
+[const]
+antrieb_getr_autoSwUpMaxSpd5
+9999
+
++---------
+| 5 -> 6, Kickdown
++---
+[const]
+antrieb_getr_autoSwUpkickdnSpd5
+9999
+
++---------
+| 5 -> 6, Gangwahlmodus <= '3' (erzwungen)
++---
+[const]
+antrieb_getr_autoSwUpMaxSpd5f
+9999
+
+# 6. Gang
+##########
+
++---------
+| 6 -> 5, (annähernd) Leergas
++---
+[const]
+antrieb_getr_autoSwDnMinSpd6
+9999
+
++---------
+| 6 -> 5, (annähernd) Vollgas
++---
+[const]
+antrieb_getr_autoSwDnMaxSpd6
+9999
+
++---------
+| 6 -> 5, Kickdown
++---
+[const]
+antrieb_getr_autoSwDnkickdnSpd6
+9999
+
++---------
+| 6 -> 5, Gangwahlmodus <= '3' (erzwungen)
++---
+[const]
+antrieb_getr_autoSwDnMaxSpd6f
+9999
+
++---------
+| 6 -> 7, Kickdown
++---
+[const]
+antrieb_getr_autoSwUpkickdnSpd6
+9999
+
+####################
+# Drehmomentsperre #
+####################
+
++---
+| Hinweis: Obwohl die Einstellungen dieses Abschnittes auch, auf indirektem Wege, dazu dienen könnten, die absolute Höchstgeschwindigkeit
+| zu beeinflussen, ist es dennoch nicht deren hauptsächliche Aufgabe. Für diesen Zweck sollten stattdessen die engine_v_max und
+| engine_M_maxThrottle Einstellungen der zugehörigen engine_constfile_xxx.txt verwendet werden.
++---------
+
++---------
+| Konstante Mindestsperrwirkung, 1. Gang fest eingelegt.
+| Betrifft sowohl Antriebs- (Motor)* als auch Abtriebsmoment (Getriebe).
+|
+| * Nur wenn Wandler überbrückt.
++------
+| 0~1 (% Eingangsdrehmoment; 0 = Absolut gesperrt; 1 = gar nicht gesperrt)
++---
+[const]
+antrieb_M_limit_c_spd1
+0.7
+
++---------
+| ...2. Gang...
++---
+[const]
+antrieb_M_limit_c_spd2
+0.8
+
++---------
+| ...3. Gang...
++---
+[const]
+antrieb_M_limit_c_spd3
+0.9
+
++---------
+| ...4. Gang...
++---
+[const]
+antrieb_M_limit_c_spd4
+1
+
++---------
+| ...5. Gang...
++---
+[const]
+antrieb_M_limit_c_spd5
+1
+
++---------
+| ...6. Gang...
++---
+[const]
+antrieb_M_limit_c_spd6
+1
+
++---------
+| Zusätzliche dynamische Sperrwirkung bei überhöhter Geschwindigkeit und kraftschlüssiger Kupplung (Gang fest eingelegt und Wandler überbrückt).
+| Betrifft lediglich das Getriebeabtriebsmoment, und nur wenn positiv.
++------
+| Eingabewert: ( Drehzahl Kardanwelle - antrieb_getr_autoSwUpkickdnSpd<N> ) /
+|              ( antrieb_M_limit_l_spd<N> - antrieb_getr_autoSwUpkickdnSpd<N> ),
+|
+|              wobei <N> der aktuelle Gang. Wenn Dividende Null oder negativ, dann Ausgabewert bedingungslos gleich 1.
+|              Annahme: Divisor immer positiv.
+|
+| Ausgabewert: 0~1 (% Eingangsdrehmoment; 0 = Absolut gesperrt; 1 = gar nicht gesperrt)
++---
+[newcurve]
+antrieb_M_limit_l_g_fest
+
+[pnt]
+0.6
+1
+
+[pnt]
+0.9
+0.01
+
++---------
+| ...und nicht überbrückten Wandler.
++---
+[newcurve]
+antrieb_M_limit_l_wandler
+
+[pnt]
+0.6
+1
+
+[pnt]
+0.9
+0.01
+
++---------
+| ...und schleifender Kupplung.
++---
+[newcurve]
+antrieb_M_limit_l_g
+
+[pnt]
+0
+1
+
+[pnt]
+1
+1
+
++---------
+| Ab dieser Geschwindigkeit (Drehzahl Kardanwelle) kann im 1. Gang nicht mehr beschleunigt werden.
++---
+[const]
+antrieb_M_limit_l_spd1
+900
+
++---------
+| ...im 2. Gang...
++---
+[const]
+antrieb_M_limit_l_spd2
+1500
+
++---------
+| ...im 3. Gang...
++---
+[const]
+antrieb_M_limit_l_spd3
+2200
+
++---------
+| ...im 4. Gang...
++---
+[const]
+antrieb_M_limit_l_spd4
+9999
+
++---------
+| ...im 5. Gang...
++---
+[const]
+antrieb_M_limit_l_spd5
+9999
+
++---------
+| ...im 6. Gang...
++---
+[const]
+antrieb_M_limit_l_spd6
+9999
+
+############
+# Retarder #
+############
+
++---------
+| Zeit (sec) für den Wechsel zwischen Retarder und Traktion.
++---
+[const]
+antrieb_retarder_changetime
+0.1
+
++---------
+| Mindesteinschaltgeschwindigkeit (km/h) für Retarder.
++---
+[const]
+retarder_min_einschaltspeed
+10
+
++---------
+| Retardereinschaltverzögerung (sec)
++---
+[const]
+antrieb_retarder_startdelay
+0.2
+
++---------
+| Retardereinschaltwirkung
++---
+[newcurve]
+retarder_fadein
+
+[pnt]
+0
+0
+
+[pnt]
+0.5
+1
+
++---------
+| Retarderwirkung, 1. Stufe
++---
+[newcurve]
+retarder_stufe1
+
+[pnt]
+0
+0
+
+[pnt]
+10
+200
+
+[pnt]
+80
+400
+
++---------
+| Retarderwirkung, 2. Stufe
++---
+[newcurve]
+retarder_stufe2
+
+[pnt]
+0
+0
+
+[pnt]
+10
+200
+
+[pnt]
+80
+800
+
++---------
+| Retarderwirkung, 3. Stufe
++---
+[newcurve]
+retarder_stufe3
+
+[pnt]
+0
+0
+
+[pnt]
+10
+200
+
+[pnt]
+80
+1200
+
++---------
+| Retarderwirkung, 4. Stufe
++---
+[newcurve]
+retarder_stufe4
+
+[pnt]
+0
+0
+
+[pnt]
+10
+200
+
+[pnt]
+80
+1600
+
+###########
+# TopoDyn #
+###########
+
++---------
+| Unter dieser Geschwindigkeit (km/h) kann ein TopoDyn-Eingriff anfangen.
++---
+[const]
+topodyn_on_v_max
+70
+
++---------
+| Über dieser Geschwindigkeit (km/h) wird der TopoDyn-Eingriff beendet.
++---
+[const]
+topodyn_off_v_min
+82
+
+####################
+# Neutralschaltung #
+####################
+
++---------
+| Mindestzeit (sec), die eingekuppelt sein muss, bevor Neutralschaltung greift.
++---
+[const]
+antrieb_gear_engaged_mintime
+2
+
++---------
+| Zeit (sec) zwischen Erfüllen der Bedingungen zur Neutralschaltung und tatsächlichem Auskuppeln.
++---
+[const]
+antrieb_neutralwahlzeit
+1
+
++---------
+| Geschwindigkeit (Drehzahl Kardanwelle), unterhalb der die Neutralschaltung greift.
++---
+[const]
+antrieb_neutral_maxspeed
+100
+
++---------
+| Bremsdruck (Pa), ab dem Neutralschaltung greift.
++---
+[const]
+antrieb_neutral_brakepressure
+200000
+
+########################
+# Wandlereigenschaften #
+########################
+
++---------
+| "Wenn der Wandler belastet wird, braucht er immer eine gewisse Zeit, bis er "hart" wird, was zu einem recht charakteristischen Anfahr-Drehzahlverlauf führt.
+| Mit dieser Rate wird dieses Verhalten beeinflusst, je höher sie ist, desto schneller erreicht der Wandler seinen endgültigen Zustand." --OMSIWiki
++---
+[const]
+antrieb_wandler_fillrate
+5000
+
++---------
+| "Diese Funktion (über dem Drehzahlverhältnis zwischen Eingangs- und Ausgangsdrehzahl) beeinflusst das Moment an der Eingangsdrehzahl, also was auf den Motor wirkt."
+| --OMSIWiki
++---
+[newcurve]
+antrieb_wandler_lambda
+
+[pnt]
+0
+20
+
+[pnt]
+0.4
+12
+
+[pnt]
+1
+4
+
++---------
+| "Diese Funktion (über dem Drehzahlverhältnis zwischen Eingangs- und Ausgangsdrehzahl) beeinflusst das Moment an der Ausgangsdrehzahl, also was Richtung Räder wirkt."
+| --OMSIWiki
++---
+[newcurve]
+antrieb_wandler_my
+
+[pnt]
+0
+1
+
+[pnt]
+1
+1
+
++---------
+|
++---
+[const]
+antrieb_wandler_factor
+1.8
+
++---------
+|
++---
+[newcurve]
+antrieb_wandler_wirkungsgrad
+
+[pnt]
+0
+1
+
+[pnt]
+80
+0.4
+
++---------
+|
++---
+[newcurve]
+antrieb_reverse_torque_reduction
+
+[pnt]
+-220
+0
+
+[pnt]
+0
+1
+
++---------
+|
++---
+[newcurve]
+antrieb_wandler_fluidrotation
+
+[pnt]
+400
+0
+
+[pnt]
+700
+350
+
+[pnt]
+780
+350
+
+[pnt]
+790
+200
+
+[pnt]
+1000
+400
+
+[pnt]
+1120
+400
+
+[pnt]
+1130
+200
+
+[pnt]
+1500
+450
+
+[pnt]
+1580
+450
+
+[pnt]
+1590
+200
+
+[pnt]
+3000
+450
+
++---------
+|
++---
+[newcurve]
+antrieb_wandler_throttle
+
+[pnt]
+0
+1
+
+[pnt]
+0.1
+0
+
++---------
+| "Sorgt dafür, dass der Wandler bei niedrigen Drehzahlen weicher wird." --OMSIWiki
++---
+[newcurve]
+antrieb_wandler_lowrpmsoftness
+
+[pnt]
+575
+0
+
+[pnt]
+625
+1
+
++---------
+|
++---
+[newcurve]
+antrieb_wandler_idleforce
+
+[pnt]
+0
+0
+
+[pnt]
+575
+3000
+
++---------
+|
++---
+[newcurve]
+antrieb_wandler_idle_fadeout
+
+[pnt]
+0
+1
+
+[pnt]
+10
+0

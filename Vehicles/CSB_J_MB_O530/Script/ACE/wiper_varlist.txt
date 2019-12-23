@@ -1,4 +1,11 @@
-wiper_cti_wipers_require_full_elec
+wiper_initialized
+wiper_initialized_once
+
+wiper_cfg_cti_wipers_require_full_elec
+
+wiper_cfg_on_demand_wipers_require_full_elec
+
+wiper_cfg_effective_wipers_require_full_elec
 
 wiperpos
 wiperpos_delay

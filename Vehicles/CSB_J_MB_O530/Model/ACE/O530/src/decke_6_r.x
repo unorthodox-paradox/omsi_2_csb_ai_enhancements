@@ -52,7 +52,7 @@ Frame Root {
             0.000000;
            0.000000; 0.000000; 0.000000;;
            0.000000; 0.000000; 0.000000;;
-          TextureFilename {"up\02_whole_speaker_head.jpg";}
+          TextureFilename {"ACE\02_whole_speaker_head.png";}
         }
       } // End of Decke1_006 material list
     } // End of Decke1_006 mesh

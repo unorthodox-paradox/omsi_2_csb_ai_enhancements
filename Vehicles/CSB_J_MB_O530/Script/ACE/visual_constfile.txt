@@ -1,0 +1,7 @@
+[const]
+visual_cfg_default_has_static_registration_identifiers
+0
+
+[const]
+visual_cfg_no_cti_override_has_static_registration_identifiers
+0

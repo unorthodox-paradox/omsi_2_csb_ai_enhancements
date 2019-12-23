@@ -1,3 +1,6 @@
+engine_initialized
+engine_initialized_once
+
 engine_M
 engine_n
 engine_n_last
@@ -61,7 +64,3 @@ engine_turbo_RPM_soll
 engine_turbo_RPM
 engine_governed_max_RPM
 RPM_Temp
-
-key_mode
-cp_key_rot
-cp_key_pull
