@@ -1343,7 +1343,6 @@
                                     (S.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent)
                             {else}
 '                               // Headlights and head and tail fog lights
-'                               // Note: Placeholder -- this preference is currently unattainable, profile-wise.
                                 (L.L.lights_ai_test_ctx_headlights_and_full_fog_lights_percent_without_drl) 1 +
                                     (S.L.lights_ai_test_ctx_headlights_and_full_fog_lights_percent_without_drl)
                                 (L.L.lights_ai_test_ctx_headlights_and_full_fog_lights_percent) 1 +
@@ -1534,7 +1533,6 @@
                                     (S.L.lights_ai_test_ctx_headlights_and_head_fog_lights_percent)
                             {else}
 '                               // Headlights and head and tail fog lights
-'                               // Note: Placeholder -- this preference is currently unattainable, profile-wise.
                                 (L.L.lights_ai_test_ctx_headlights_and_full_fog_lights_percent_drl) 1 +
                                     (S.L.lights_ai_test_ctx_headlights_and_full_fog_lights_percent_drl)
                                 (L.L.lights_ai_test_ctx_headlights_and_full_fog_lights_percent) 1 +

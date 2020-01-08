@@ -15,8 +15,8 @@
 
 
 'Revision History:
-'- Marcel Kuhnt		10.08.2009	Added Revision History
-'- Marcel Kuhnt		30.11.2010	Bugfix: press [D] in AI mode if motor running but neutral
+'- Marcel Kuhnt     10.08.2009  Added Revision History
+'- Marcel Kuhnt     30.11.2010  Bugfix: press [D] in AI mode if motor running but neutral
 
 '------------------------------------------------------------------------------------------
 

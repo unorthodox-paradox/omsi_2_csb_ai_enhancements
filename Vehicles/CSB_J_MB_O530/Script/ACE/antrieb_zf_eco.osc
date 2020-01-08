@@ -14,7 +14,7 @@
 {macro:antrieb_init}
     (L.L.antrieb_initialized_once) !
     {if}
-        -1 (S.L.antrieb_getr_initial_shift_delay_timer)
+        -1 (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync_timer)
 
         1 (S.L.antrieb_getr_gangwahl) (S.L.antrieb_getr_gangvorwahl)
             (S.L.antrieb_getr_aktugang) (S.L.antrieb_retarderstufe)
@@ -44,18 +44,18 @@
 {end}
 
 {macro:antrieb_cfg_reset_overrides}
-    -1 (S.L.antrieb_getr_cfg_cti_standstill_non_neutral_transmission_mode_update_requires_braking)
-        (S.L.antrieb_getr_cfg_on_demand_standstill_non_neutral_transmission_mode_update_requires_braking)
+    -1 (S.L.antrieb_cfg_cti_standstill_non_neutral_transmission_mode_update_requires_braking)
+        (S.L.antrieb_cfg_on_demand_standstill_non_neutral_transmission_mode_update_requires_braking)
 {end}
 
 {macro:antrieb_cfg_apply_defaults}
-    (C.L.antrieb_getr_cfg_default_standstill_non_neutral_transmission_mode_update_requires_braking) s0 0 = l0 1 = ||
+    (C.L.antrieb_cfg_default_standstill_non_neutral_transmission_mode_update_requires_braking) s0 0 = l0 1 = ||
     {if}
         l0
     {else}
         1
     {endif}
-    (S.L.antrieb_getr_cfg_effective_standstill_non_neutral_transmission_mode_update_requires_braking)
+    (S.L.antrieb_cfg_effective_standstill_non_neutral_transmission_mode_update_requires_braking)
 {end}
 
 '----------------------
@@ -82,93 +82,106 @@
 '   Berechnen der Abtriebsdrehzahl
     (L.L.Wheel_RotationSpeed_1_L) (L.L.Wheel_RotationSpeed_1_R) + 2 / (C.L.antrieb_i_achse) * (S.L.antrieb_n_kardanwelle) s0
 
-'   Einlegen der Fahrstufe
-
-    (L.L.antrieb_initialized_once) (L.L.antrieb_failure_general) ! (L.L.AI) || &&
+    (L.L.antrieb_initialized_once)
     {if}
         (L.L.antrieb_getr_gangwahl) s1
         (L.L.antrieb_getr_gangvorwahl) s2
         (L.L.cockpit_gangwahl) s3
-        (L.L.antrieb_getr_initial_shift_delay_timer) s4
+        (L.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync_timer) s4
+        (L.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync_target) s5
+        (L.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync) s6
 
-        l2 l3 = !
+        l3 0 >= l3 l1 = && l3 0 < l3 1 + abs l1 = && ||
         {if}
-            l1 1 >
+            l1 s2 s3
+            -1 s4
+            l5 0 <
             {if}
-                l3 1 >
+                0 s5 s6
+            {endif}
+        {else}
+            l3 l2 = ! l3 0 >= &&
+            {if}
+                l3 1 =
                 {if}
-                    (L.L.AI) ! l4 -1 = ||
+                    l3 s2
+                    (C.L.antrieb_neutralwahlzeit) s4
+                    l5 0 <
                     {if}
+                        0 s5
+                    {endif}
+                {else}
+                    l1 1 > l3 1 > &&
+                    {if}
+                        l3 s2
                         (C.L.antrieb_gangwahlzeit) s4
-                    {endif}
-                {else}
-                    l3 1 =
-                    {if}
-                        (L.L.AI) ! l4 -1 = ||
+                        l5 0 <
                         {if}
-                            (C.L.antrieb_neutralwahlzeit) s4
-                        {endif}
-                    {endif}
-                {endif}
-            {else}
-                l1 0 =
-                {if}
-                    l3 1 =
-                    {if}
-                        (L.L.AI) ! l4 -1 = ||
-                        {if}
-                            (C.L.antrieb_neutralwahlzeit) s4
-                        {endif}
-                    {endif}
-                {else}
-                    l3 1 >
-                    {if}
-                        (L.L.velocity) 0.5 > (L.L.cockpit_brake) 0.1 > ||
-                            (L.L.antrieb_getr_cfg_effective_standstill_non_neutral_transmission_mode_update_requires_braking) ! ||
-                            (L.L.AI) ||
-                        {if}
-                            (L.L.AI) ! l4 -1 = ||
-                            {if}
-                                (C.L.antrieb_gangwahlzeit) s4
-                            {else}
-                                2 (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_desync)
-                            {endif}
+                            0 s5
                         {endif}
                     {else}
-                        l3 0 =
+                        l3 1 > l1 1 = l1 0 = || &&
                         {if}
-                            (L.L.velocity) 0.5 <= (L.L.velocity) -0.5 < (L.L.cockpit_brake) 0.1 > ||
-                                (L.L.antrieb_getr_cfg_effective_standstill_non_neutral_transmission_mode_update_requires_braking) ! || &&
+                            (L.L.velocity) 0.5 > (L.L.cockpit_brake) 0.1 > ||
+                                (L.L.antrieb_cfg_effective_standstill_non_neutral_transmission_mode_update_requires_braking) ! ||
                                 (L.L.AI) ||
                             {if}
-                                (L.L.AI) ! l4 -1 = ||
+                                l3 s2
+                                (C.L.antrieb_gangwahlzeit) s4
+                                l5 0 <
                                 {if}
-                                    (C.L.antrieb_gangwahlzeit) s4
-                                {else}
-                                    2 (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_desync)
+                                    0 s5
                                 {endif}
+                            {else}
+                                l3 /-/ 1 - s3
+                                l2 1 = !
+                                {if}
+                                    -1 s4
+                                {endif}
+                                -1 s5 s6
+                            {endif}
+                        {else}
+                            (L.L.velocity) 0.5 <= (L.L.velocity) -0.5 < (L.L.cockpit_brake) 0.1 > ||
+                                (L.L.antrieb_cfg_effective_standstill_non_neutral_transmission_mode_update_requires_braking) ! || &&
+                                (L.L.AI) ||
+                            {if}
+                                l3 s2
+                                (C.L.antrieb_gangwahlzeit) s4
+                                l5 0 <
+                                {if}
+                                    0 s5
+                                {endif}
+                            {else}
+                                l3 /-/ 1 - s3
+                                l2 1 = !
+                                {if}
+                                    -1 s4
+                                {endif}
+                                -2 s5 s6
                             {endif}
                         {endif}
                     {endif}
                 {endif}
             {endif}
-            l3 s2
         {endif}
 
-        l4 -1 = ! l2 l1 = ! && (L.L.AI) l2 5 = && (L.L.antrieb_getr_aktugang) 0 = && (L.L.velocity) 0.5 > && s5 ||
+'       Einlegen der Fahrstufe
+
+        l2 l1 = ! (L.L.antrieb_failure_general) ! && (L.L.AI) l2 5 = && (L.L.antrieb_getr_aktugang) 0 = && (L.L.velocity) 0.5 > && s7 ||
         {if}
             l4 0 >
             {if}
                 l4 (L.S.Timegap) - 0 max s4
             {endif}
-            l4 ! l5 ||
+
+            l4 ! l7 ||
             {if}
-                l1 1 = l5 || (L.L.engine_on) &&
+                l1 1 <= l2 1 > && l7 || (S.L.r8) l1 1 >= l2 0 = && || (L.L.engine_on) &&
                 {if}
                     (L.L.engine_n) (S.L.antrieb_rucksoundvol)
                     (M.L.antrieb_getr_schaltmoment_runter) (S.L.antrieb_schaltmoment_soll)
 
-                    l2 1 >
+                    (L.L.r8)
                     {if}
                         (C.L.antrieb_getr_autoSwUpMaxSpd5) l0 <
                         {if}
@@ -196,56 +209,77 @@
                                 {endif}
                             {endif}
                         {endif}
-                        (S.L.antrieb_getr_aktugang)
                     {else}
-                        (L.L.velocity) 5 <
-                        {if}
-                            1 (S.L.antrieb_getr_aktugang)
-                        {endif}
+                        1
                     {endif}
-
-                    (L.L.antrieb_getr_aktugang) 1 =
+                    (S.L.antrieb_getr_aktugang) 1 =
                     {if}
-                        0 (S.L.antrieb_gear_engaged_timer) (S.L.antrieb_wandler_lockup)
-                        (T.L.ev_schaltruck)
+                        0 (S.L.antrieb_wandler_lockup) (S.L.antrieb_gear_engaged_timer)
                     {endif}
+                    (T.L.ev_schaltruck)
 
-                    l5
+                    l7
                     {if}
                         0 (S.L.nbs_fade)
                     {endif}
-
-                    0 (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_desync)
                 {endif}
 
                 l2 s1
                 -1 s4
+                l7
+                {if}
+                    0 s5
+                {else}
+                    l5
+                {endif}
+                s6
             {endif}
         {else}
             -1 s4
         {endif}
 
+        l5 0 >=
+        {if}
+            (L.L.engine_n) 200 <
+            {if}
+                1 s5 s6
+            {else}
+                (L.L.engine_on)
+                {if}
+                    l1 1 > l1 5 < && l1 1 - (L.L.antrieb_getr_aktugang) < &&
+                    {if}
+                        2 s5 s6
+                    {else}
+                        l1 0 = (L.L.velocity) 5 >= &&
+                        {if}
+                            3 s5 s6
+                        {else}
+                            l5 0 > l5 3 < && l5 3 = l1 && ||
+                            {if}
+                                0 s5 s6
+                            {endif}
+                        {endif}
+                    {endif}
+                {endif}
+            {endif}
+        {endif}
+
         l1 (S.L.antrieb_getr_gangwahl)
         l2 (S.L.antrieb_getr_gangvorwahl)
-        l4 (S.L.antrieb_getr_initial_shift_delay_timer)
+        l3 (S.L.cockpit_gangwahl)
+        l4 (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync_timer)
+        l5 (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync_target)
+        l6 (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync)
     {else}
-        -1 (S.L.antrieb_getr_initial_shift_delay_timer)
+        -1 (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync_timer)
     {endif}
 
-'   Gang rausnehmen, wenn Neutral angefordert
+'   Gang rausnehmen, wenn Neutral angefordert; verhindern, dass der Rückwärtsgang oberhalb von 5 km/h eingelegt werden kann
 
-    (L.L.antrieb_getr_gangwahl) 1 = s0 (L.L.engine_n) 200 < ||
+    (L.L.antrieb_getr_gangwahl) 1 = (L.L.engine_n) 200 < || (L.L.antrieb_getr_gangwahl) 0 = (L.L.velocity) 5 >= && ||
+        (L.L.antrieb_failure_general) ! &&
     {if}
         0 (S.L.antrieb_getr_aktugang) (S.L.antrieb_wandler_lockup)
-        l0 (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_desync)
-    {endif}
-
-'   Verhindern, dass der Rückwärtsgang oberhalb von 5 km/h eingelegt werden kann
-
-    (L.L.antrieb_getr_gangvorwahl) 0 = (L.L.velocity) 5 >= &&
-    {if}
-        1 (S.L.antrieb_getr_gangwahl)
-        2 (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_desync)
     {endif}
 
 '   Prüfen, ob Gang gewechselt wird - aber nur, wenn Getriebe heil ist:
@@ -255,19 +289,6 @@
         (M.L.antrieb_getr_chkNxtGear)
     {else}
         0 (S.L.r10) (M.L.antrieb_getr_upshift_constraint)
-        0 (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_desync)
-    {endif}
-
-    (L.L.antrieb_getr_gangwahl) s0 1 > l0 5 < && l0 1 - (L.L.antrieb_getr_aktugang) < && s0
-
-    (L.L.antrieb_getr_gangwahl_cockpit_gangwahl_desync) ! l0 &&
-    {if}
-        3 (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_desync)
-    {else}
-        (L.L.antrieb_getr_gangwahl_cockpit_gangwahl_desync) 3 = l0 ! &&
-        {if}
-            0 (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_desync)
-        {endif}
     {endif}
 
     (M.L.antrieb_getr_ratio)
@@ -359,8 +380,7 @@
 
 '   Drehmomentsperre
 
-    (C.L.antrieb_engine_drehmomentsperre) 1 = (L.L.antrieb_getr_aktugang) 0 > && (L.L.schalttimer) 0 > && (C.L.antrieb_wandler_locked) &&
-        (L.L.antrieb_wandler_lockup) 1 = &&
+    (L.L.antrieb_getr_aktugang) 0 > (L.L.schalttimer) 0 > && (C.L.antrieb_wandler_locked) && (L.L.antrieb_wandler_lockup) &&
     {if}
         (L.L.antrieb_M_limit_h)
     {else}
@@ -372,7 +392,7 @@
 
     (L.L.antrieb_getr_aktugang) s0
 
-    (C.L.antrieb_wandler_locked)
+    (C.L.antrieb_wandler_locked) (L.L.antrieb_failure_general) ! &&
     {if}
         (L.L.antrieb_wandler_lockup) !
         {if}
@@ -447,86 +467,89 @@
 
 '   Schaltpunktdynamik - Getriebe reagiert damit nun unterschiedlich auf die Pedalstellung
 
-    (C.L.topodyn_enabled) 1 =
+    (L.L.antrieb_failure_general) !
     {if}
-        (L.L.cockpit_throttle) 0.85 >= (L.L.antrieb_getr_aktugang) 1 = && (L.L.antrieb_beschleunigung) 0.8 <= &&
-            (L.L.cockpit_throttle) 0.85 >= (L.L.antrieb_getr_aktugang) 2 = && (L.L.antrieb_beschleunigung) 0.6 <= && ||
-            (L.L.cockpit_throttle) 0.85 >= (L.L.antrieb_getr_aktugang) 3 = && (L.L.antrieb_beschleunigung) 0.4 <= && ||
-            (L.L.cockpit_throttle) 0.85 >= (L.L.antrieb_getr_aktugang) 4 = && (L.L.antrieb_beschleunigung) 0.3 <= && ||
-            (L.L.cockpit_throttle) 0.85 >= (L.L.antrieb_getr_aktugang) 5 = && (L.L.antrieb_beschleunigung) 0.2 <= && ||
-            (L.L.cockpit_throttle) 0.85 >= (L.L.antrieb_getr_aktugang) 6 = && (L.L.antrieb_beschleunigung) 0.1 <= && ||
-            (L.L.velocity) (C.L.topodyn_on_v_max) < && (L.L.antrieb_M_restriction) 0.85 >= &&
+        (C.L.topodyn_enabled) 1 =
         {if}
-            (L.L.torque_inc) (L.S.Timegap) 10 / + 0.1 min (S.L.torque_inc)
-            (L.L.topodyn_intervene_Timer) (L.S.Timegap) 2 * + 1 min (S.L.topodyn_intervene_Timer) 1 =
+            (L.L.cockpit_throttle) 0.85 >= (L.L.antrieb_getr_aktugang) 1 = && (L.L.antrieb_beschleunigung) 0.8 <= &&
+                (L.L.cockpit_throttle) 0.85 >= (L.L.antrieb_getr_aktugang) 2 = && (L.L.antrieb_beschleunigung) 0.6 <= && ||
+                (L.L.cockpit_throttle) 0.85 >= (L.L.antrieb_getr_aktugang) 3 = && (L.L.antrieb_beschleunigung) 0.4 <= && ||
+                (L.L.cockpit_throttle) 0.85 >= (L.L.antrieb_getr_aktugang) 4 = && (L.L.antrieb_beschleunigung) 0.3 <= && ||
+                (L.L.cockpit_throttle) 0.85 >= (L.L.antrieb_getr_aktugang) 5 = && (L.L.antrieb_beschleunigung) 0.2 <= && ||
+                (L.L.cockpit_throttle) 0.85 >= (L.L.antrieb_getr_aktugang) 6 = && (L.L.antrieb_beschleunigung) 0.1 <= && ||
+                (L.L.velocity) (C.L.topodyn_on_v_max) < && (L.L.antrieb_M_restriction) 0.85 >= &&
             {if}
-                1 (S.L.topodyn_active)
-                1.1 (S.L.topodyn_factor)
-            {endif}
-        {else}
-            (L.L.topodyn_intervene_Timer) (L.S.Timegap) 2 * - 0 max (S.L.topodyn_intervene_Timer)
-            (L.L.torque_inc) (L.S.Timegap) 10 / - 0 max (S.L.torque_inc)
-        {endif}
-    {else}
-        1 (S.L.topodyn_factor)
-    {endif}
-
-    (C.L.topodyn_enabled) 1 =
-    {if}
-        (L.L.antrieb_beschleunigung) 1.2 > (L.L.antrieb_getr_aktugang) 1 = &&
-            (L.L.antrieb_beschleunigung) 1.0 > (L.L.antrieb_getr_aktugang) 2 = && ||
-            (L.L.antrieb_beschleunigung) 0.8 > (L.L.antrieb_getr_aktugang) 3 = && ||
-            (L.L.antrieb_beschleunigung) 0.6 > (L.L.antrieb_getr_aktugang) 4 = && ||
-            (L.L.antrieb_beschleunigung) 0.4 > (L.L.antrieb_getr_aktugang) 5 = && ||
-            (L.L.antrieb_beschleunigung) 0.2 > (L.L.antrieb_getr_aktugang) 6 = && ||
-            (L.L.velocity) (C.L.topodyn_off_v_min) > || (L.L.cockpit_throttle) 0 = ||
-        {if}
-            (L.L.topodyn_idle_Timer) (L.S.Timegap) 1 * + 1 min (S.L.topodyn_idle_Timer) 1 =
-            {if}
-                0 (S.L.topodyn_active)
-                1 (S.L.topodyn_factor)
-            {endif}
-        {else}
-            (L.L.topodyn_idle_Timer) (L.S.Timegap) 2 * - 0 max (S.L.topodyn_idle_Timer)
-        {endif}
-    {endif}
-
-    (L.L.cockpit_throttle) 0.90 > (C.L.Getriebemodus) 2 = (L.L.cockpit_throttle) 0.1 > && ||
-        (C.L.gearbox_version) 1 = (L.L.cockpit_brake) 0 > && || (L.L.topodyn_active) ||
-    {if}
-        (L.L.throttle_internb) (L.S.Timegap) 1 * + 1 min (S.L.throttle_internb) 1 =
-        {if}
-            1.3 (L.L.topodyn_factor) * (S.L.shift_dynamics_high)
-            (C.L.gearbox_version) 1 = (L.L.cockpit_brake) 0 > &&
-            {if}
-                (L.L.antrieb_getr_aktugang) 3 = ! (L.L.antrieb_getr_aktugang) 2 = ! &&
+                (L.L.torque_inc) (L.S.Timegap) 10 / + 0.1 min (S.L.torque_inc)
+                (L.L.topodyn_intervene_Timer) (L.S.Timegap) 2 * + 1 min (S.L.topodyn_intervene_Timer) 1 =
                 {if}
-                    1.5 (S.L.shift_dynamics_high)
-                {else}
-                    1.2 (S.L.shift_dynamics_high)
+                    1 (S.L.topodyn_active)
+                    1.1 (S.L.topodyn_factor)
                 {endif}
-                1 (S.L.schaltsperre)
+            {else}
+                (L.L.topodyn_intervene_Timer) (L.S.Timegap) 2 * - 0 max (S.L.topodyn_intervene_Timer)
+                (L.L.torque_inc) (L.S.Timegap) 10 / - 0 max (S.L.torque_inc)
+            {endif}
+        {else}
+            1 (S.L.topodyn_factor)
+        {endif}
+
+        (C.L.topodyn_enabled) 1 =
+        {if}
+            (L.L.antrieb_beschleunigung) 1.2 > (L.L.antrieb_getr_aktugang) 1 = &&
+                (L.L.antrieb_beschleunigung) 1.0 > (L.L.antrieb_getr_aktugang) 2 = && ||
+                (L.L.antrieb_beschleunigung) 0.8 > (L.L.antrieb_getr_aktugang) 3 = && ||
+                (L.L.antrieb_beschleunigung) 0.6 > (L.L.antrieb_getr_aktugang) 4 = && ||
+                (L.L.antrieb_beschleunigung) 0.4 > (L.L.antrieb_getr_aktugang) 5 = && ||
+                (L.L.antrieb_beschleunigung) 0.2 > (L.L.antrieb_getr_aktugang) 6 = && ||
+                (L.L.velocity) (C.L.topodyn_off_v_min) > || (L.L.cockpit_throttle) 0 = ||
+            {if}
+                (L.L.topodyn_idle_Timer) (L.S.Timegap) 1 * + 1 min (S.L.topodyn_idle_Timer) 1 =
+                {if}
+                    0 (S.L.topodyn_active)
+                    1 (S.L.topodyn_factor)
+                {endif}
+            {else}
+                (L.L.topodyn_idle_Timer) (L.S.Timegap) 2 * - 0 max (S.L.topodyn_idle_Timer)
             {endif}
         {endif}
-    {else}
-        (L.L.throttle_internb) (L.S.Timegap) 1 * - 0 max (S.L.throttle_internb) 0 = (L.L.schaltsperre) ||
-        {if}
-            1 (S.L.shift_dynamics_high)
-            0 (S.L.schaltsperre)
-        {endif}
-    {endif}
 
-    (L.L.cockpit_throttle) 0.1 > (L.L.cockpit_throttle) 0.80 < && (C.L.Getriebemodus) 1 =
-        (L.L.cockpit_throttle) 0.1 > && ||
-    {if}
-        (L.L.throttle_intern) (L.S.Timegap) 1 * + 1 min (S.L.throttle_intern) 1 =
+        (L.L.cockpit_throttle) 0.90 > (C.L.Getriebemodus) 2 = (L.L.cockpit_throttle) 0.1 > && ||
+            (C.L.gearbox_version) 1 = (L.L.cockpit_brake) 0 > && || (L.L.topodyn_active) ||
         {if}
-            0.9 (S.L.shift_dynamics_low)
+            (L.L.throttle_internb) (L.S.Timegap) 1 * + 1 min (S.L.throttle_internb) 1 =
+            {if}
+                1.3 (L.L.topodyn_factor) * (S.L.shift_dynamics_high)
+                (C.L.gearbox_version) 1 = (L.L.cockpit_brake) 0 > &&
+                {if}
+                    (L.L.antrieb_getr_aktugang) 3 = ! (L.L.antrieb_getr_aktugang) 2 = ! &&
+                    {if}
+                        1.5 (S.L.shift_dynamics_high)
+                    {else}
+                        1.2 (S.L.shift_dynamics_high)
+                    {endif}
+                    1 (S.L.schaltsperre)
+                {endif}
+            {endif}
+        {else}
+            (L.L.throttle_internb) (L.S.Timegap) 1 * - 0 max (S.L.throttle_internb) 0 = (L.L.schaltsperre) ||
+            {if}
+                1 (S.L.shift_dynamics_high)
+                0 (S.L.schaltsperre)
+            {endif}
         {endif}
-    {else}
-        (L.L.throttle_intern) (L.S.Timegap) 1 * - 0 max (S.L.throttle_intern) 0 =
+
+        (L.L.cockpit_throttle) 0.1 > (L.L.cockpit_throttle) 0.80 < && (C.L.Getriebemodus) 1 =
+            (L.L.cockpit_throttle) 0.1 > && ||
         {if}
-            1 (S.L.shift_dynamics_low)
+            (L.L.throttle_intern) (L.S.Timegap) 1 * + 1 min (S.L.throttle_intern) 1 =
+            {if}
+                0.9 (S.L.shift_dynamics_low)
+            {endif}
+        {else}
+            (L.L.throttle_intern) (L.S.Timegap) 1 * - 0 max (S.L.throttle_intern) 0 =
+            {if}
+                1 (S.L.shift_dynamics_low)
+            {endif}
         {endif}
     {endif}
 
@@ -570,7 +593,8 @@
 
 '       Wenn das Antriebsmoment zu groß ist oder ein Wandlergang eingelegt wird, rutscht die Kupplung durch:
 
-        l1 abs (L.L.antrieb_schaltmoment) > (L.L.antrieb_getr_gangwahl) 1 <= || (L.L.antrieb_wandler_lockup) ! || (C.L.antrieb_wandler_locked) ! ||
+        l1 abs (L.L.antrieb_schaltmoment) > (L.L.antrieb_getr_gangwahl) 1 <= || (L.L.antrieb_wandler_lockup) ! ||
+            (C.L.antrieb_wandler_locked) ! ||
         {if}
             0 (S.L.antrieb_getr_fest)
         {else}
@@ -599,6 +623,7 @@
 '#################################################################################
 
         (L.L.antrieb_getr_gangwahl) 1 = (L.L.antrieb_getr_aktugang) 0 = ||
+            (L.L.engine_on) ! (L.L.antrieb_failure_general) && ||
         {if}
 
 '           ... Antriebs- und Getriebeantriebsmoment sind 0:
@@ -680,7 +705,7 @@
 
 '                   Berechnung des Rad-Abtriebsmomentes
 
-                    (L.L.engine_M) (C.L.antrieb_i_achse) * (C.L.antrieb_wandler_factor) * (C.L.gear_efficiency) * (L.L.velocity) (F.L.antrieb_wandler_wirkungsgrad) *
+                    (L.L.antrieb_getr_M_an) (C.L.antrieb_i_achse) * (C.L.antrieb_wandler_factor) * (C.L.gear_efficiency) * (L.L.velocity) (F.L.antrieb_wandler_wirkungsgrad) *
                         (L.L.engine_n) (F.L.antrieb_wandler_idleforce) (L.L.velocity) (F.L.antrieb_wandler_idle_fadeout) * max (S.L.M_Wheel)
                 {endif}
 
@@ -849,9 +874,9 @@
     (L.L.antrieb_gear_engaged_timer) (L.S.Timegap) + (S.L.antrieb_gear_engaged_timer)
 
     (L.L.antrieb_n_kardanwelle) (C.L.antrieb_neutral_maxspeed) < (L.L.antrieb_getr_gangwahl) 1 > && (L.L.antrieb_retarder) ! &&
+        (L.L.antrieb_failure_general) ! &&
     {if}
-        (L.L.bremse_p_Brzyl_HA) (C.L.antrieb_neutral_brakepressure) >
-        (L.L.bremse_feststell) ||
+        (L.L.bremse_p_Brzyl_HA) (C.L.antrieb_neutral_brakepressure) > (L.L.bremse_feststell) || (L.L.engine_n) 200 < ||
         {if}
             (L.L.antrieb_neutral_requested) !
             {if}
@@ -876,8 +901,7 @@
 '   Planetengetriebe-Wendesatz (Fjü-Sound)
 '#################################################################################
 
-    (L.L.antrieb_retarder)
-    (L.L.antrieb_getr_gangwahl) 0 = ||
+    (L.L.antrieb_retarder) (L.L.antrieb_getr_gangwahl) 0 = ||
     {if}
         1 (S.L.antrieb_wendesatz)
         (L.L.antrieb_retarder_volume) (L.S.Timegap) + 1 min (S.L.antrieb_retarder_volume)
@@ -888,16 +912,16 @@
 {macro:antrieb_cfg_apply_overrides}
     (C.L.global_cfg_no_cti_overrides) 1 = ! s0
 
-    (L.L.antrieb_getr_cfg_on_demand_standstill_non_neutral_transmission_mode_update_requires_braking) s1 0 = l1 1 = || !
+    (L.L.antrieb_cfg_on_demand_standstill_non_neutral_transmission_mode_update_requires_braking) s1 0 = l1 1 = || !
     {if}
-        (L.L.antrieb_getr_cfg_cti_standstill_non_neutral_transmission_mode_update_requires_braking) s1 0 = l1 1 = || l0 && (C.L.antrieb_getr_cfg_no_cti_override_standstill_non_neutral_transmission_mode_update_requires_braking) 1 = ! && !
+        (L.L.antrieb_cfg_cti_standstill_non_neutral_transmission_mode_update_requires_braking) s1 0 = l1 1 = || l0 && (C.L.antrieb_cfg_no_cti_override_standstill_non_neutral_transmission_mode_update_requires_braking) 1 = ! && !
         {if}
             -1 s1
         {endif}
     {endif}
     l1 -1 = !
     {if}
-        l1 (S.L.antrieb_getr_cfg_effective_standstill_non_neutral_transmission_mode_update_requires_braking)
+        l1 (S.L.antrieb_cfg_effective_standstill_non_neutral_transmission_mode_update_requires_braking)
     {endif}
 {end}
 
@@ -913,14 +937,12 @@
     {if}
         (L.L.cockpit_throttle) 1 =
         {if}
-            (L.L.antrieb_kickdown_stellglied) (L.S.Timegap) 2 * + 1 min (S.L.antrieb_kickdown_stellglied)
-            1 =
+            (L.L.antrieb_kickdown_stellglied) (L.S.Timegap) 2 * + 1 min (S.L.antrieb_kickdown_stellglied) 1 =
             {if}
                 1 (S.L.antrieb_kickdown)
             {endif}
         {else}
-            (L.L.antrieb_kickdown_stellglied) (L.S.Timegap) 1 * - 0 max (S.L.antrieb_kickdown_stellglied)
-            0 =
+            (L.L.antrieb_kickdown_stellglied) (L.S.Timegap) 1 * - 0 max (S.L.antrieb_kickdown_stellglied) 0 =
             {if}
                 0 (S.L.antrieb_kickdown)
             {endif}
@@ -1328,7 +1350,7 @@
     {else}
         (L.L.engine_n) (C.L.torque_apex_at_RPM) min (F.L.engine_M_maxThrottle) 200 +
     {endif}
-    (L.L.antrieb_M_limit_h) 1 max *
+    (L.L.antrieb_M_limit_h) 1 min *
 {end}
 
 {macro:antrieb_getr_schaltmoment_runter}
@@ -1369,60 +1391,63 @@
 {end}
 
 {macro:antrieb_M_limiter}
-    (L.L.antrieb_getr_gangwahl) 1 = (L.L.antrieb_getr_aktugang) 0 = || (C.L.antrieb_engine_drehmomentsperre) ! ||
+    (L.L.antrieb_getr_gangwahl) 1 = (L.L.antrieb_getr_aktugang) 0 = ||
     {if}
         1 (S.L.antrieb_M_limit_h) (S.L.r11) (S.L.r12) (S.L.r13)
     {else}
-
-        (L.L.antrieb_getr_aktugang) 1 =
+        (C.L.antrieb_engine_drehmomentsperre) !
         {if}
-            (C.L.antrieb_M_limit_c_spd1) (S.L.r10)
-            (C.L.antrieb_getr_autoSwUpkickdnSpd1) (S.L.r11)
-            (C.L.antrieb_M_limit_l_spd1) (S.L.r12)
+            1 (S.L.r11) (S.L.r12) (S.L.r13) (L.L.torque_inc) + (S.L.antrieb_M_limit_h)
         {else}
-            (L.L.antrieb_getr_aktugang) 2 =
+            (L.L.antrieb_getr_aktugang) 1 =
             {if}
-                (C.L.antrieb_M_limit_c_spd2) (S.L.r10)
-                (C.L.antrieb_getr_autoSwUpkickdnSpd2) (S.L.r11)
-                (C.L.antrieb_M_limit_l_spd2) (S.L.r12)
+                (C.L.antrieb_M_limit_c_spd1) (S.L.r10)
+                (C.L.antrieb_getr_autoSwUpkickdnSpd1) (S.L.r11)
+                (C.L.antrieb_M_limit_l_spd1) (S.L.r12)
             {else}
-                (L.L.antrieb_getr_aktugang) 3 =
+                (L.L.antrieb_getr_aktugang) 2 =
                 {if}
-                    (C.L.antrieb_M_limit_c_spd3) (S.L.r10)
-                    (C.L.antrieb_getr_autoSwUpkickdnSpd3) (S.L.r11)
-                    (C.L.antrieb_M_limit_l_spd3) (S.L.r12)
+                    (C.L.antrieb_M_limit_c_spd2) (S.L.r10)
+                    (C.L.antrieb_getr_autoSwUpkickdnSpd2) (S.L.r11)
+                    (C.L.antrieb_M_limit_l_spd2) (S.L.r12)
                 {else}
-                    (L.L.antrieb_getr_aktugang) 4 =
+                    (L.L.antrieb_getr_aktugang) 3 =
                     {if}
-                        (C.L.antrieb_M_limit_c_spd4) (S.L.r10)
-                        (C.L.antrieb_getr_autoSwUpkickdnSpd4) (S.L.r11)
-                        (C.L.antrieb_M_limit_l_spd4) (S.L.r12)
+                        (C.L.antrieb_M_limit_c_spd3) (S.L.r10)
+                        (C.L.antrieb_getr_autoSwUpkickdnSpd3) (S.L.r11)
+                        (C.L.antrieb_M_limit_l_spd3) (S.L.r12)
                     {else}
-                        (L.L.antrieb_getr_aktugang) 5 =
+                        (L.L.antrieb_getr_aktugang) 4 =
                         {if}
-                            (C.L.antrieb_M_limit_c_spd5) (S.L.r10)
-                            (C.L.antrieb_getr_autoSwUpkickdnSpd5) (S.L.r11)
-                            (C.L.antrieb_M_limit_l_spd5) (S.L.r12)
+                            (C.L.antrieb_M_limit_c_spd4) (S.L.r10)
+                            (C.L.antrieb_getr_autoSwUpkickdnSpd4) (S.L.r11)
+                            (C.L.antrieb_M_limit_l_spd4) (S.L.r12)
                         {else}
-                            (C.L.antrieb_M_limit_c_spd6) (S.L.r10)
-                            (C.L.antrieb_getr_autoSwUpkickdnSpd6) (S.L.r11)
-                            (C.L.antrieb_M_limit_l_spd6) (S.L.r12)
+                            (L.L.antrieb_getr_aktugang) 5 =
+                            {if}
+                                (C.L.antrieb_M_limit_c_spd5) (S.L.r10)
+                                (C.L.antrieb_getr_autoSwUpkickdnSpd5) (S.L.r11)
+                                (C.L.antrieb_M_limit_l_spd5) (S.L.r12)
+                            {else}
+                                (C.L.antrieb_M_limit_c_spd6) (S.L.r10)
+                                (C.L.antrieb_getr_autoSwUpkickdnSpd6) (S.L.r11)
+                                (C.L.antrieb_M_limit_l_spd6) (S.L.r12)
+                            {endif}
                         {endif}
                     {endif}
                 {endif}
             {endif}
-        {endif}
-        (L.L.r10) (L.L.torque_inc) + (S.L.antrieb_M_limit_h) (S.L.r13)
+            (L.L.r10) (L.L.torque_inc) + (S.L.antrieb_M_limit_h)
 
-        (L.L.antrieb_n_kardanwelle) (L.L.r11) - (S.L.r14) 0 >
-        {if}
-            (L.L.r14) (L.L.r12) (L.L.r11) - / (S.L.r14)
-            (L.L.r13) (L.L.r14) (F.L.antrieb_M_limit_l_g_fest) * (S.L.r11)
-            (L.L.r10) (L.L.r14) (F.L.antrieb_M_limit_l_wandler) * (S.L.r12)
-            (L.L.r10) (L.L.r14) (F.L.antrieb_M_limit_l_g) * (S.L.r13)
-        {else}
-            (L.L.r13) (S.L.r11)
-            (L.L.r10) (S.L.r12) (S.L.r13)
+            (L.L.antrieb_n_kardanwelle) (L.L.r11) - (S.L.r14) 0 >
+            {if}
+                (L.L.r14) (L.L.r12) (L.L.r11) - / (S.L.r14)
+                (L.L.r10) (L.L.r14) (F.L.antrieb_M_limit_l_g_fest) * (S.L.r11)
+                (L.L.r10) (L.L.r14) (F.L.antrieb_M_limit_l_wandler) * (S.L.r12)
+                (L.L.r10) (L.L.r14) (F.L.antrieb_M_limit_l_g) * (S.L.r13)
+            {else}
+                (L.L.r10) (S.L.r11) (S.L.r12) (S.L.r13)
+            {endif}
         {endif}
     {endif}
 

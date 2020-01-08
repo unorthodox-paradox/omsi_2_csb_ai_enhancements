@@ -173,7 +173,7 @@ antrieb_getr_constrained_downshifting
 | 1 = Ja
 +---
 [const]
-antrieb_getr_cfg_default_standstill_non_neutral_transmission_mode_update_requires_braking
+antrieb_cfg_default_standstill_non_neutral_transmission_mode_update_requires_braking
 1
 
 +---------
@@ -183,7 +183,7 @@ antrieb_getr_cfg_default_standstill_non_neutral_transmission_mode_update_require
 | 1 = Nein
 +---
 [const]
-antrieb_getr_cfg_no_cti_override_standstill_non_neutral_transmission_mode_update_requires_braking
+antrieb_cfg_no_cti_override_standstill_non_neutral_transmission_mode_update_requires_braking
 0
 
 #######################

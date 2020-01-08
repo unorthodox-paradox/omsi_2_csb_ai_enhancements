@@ -626,8 +626,8 @@
         {if}
             (T.L.ev_schluessel_dreh)
 
-            (L.L.antrieb_getr_gangwahl) 1 = (L.L.engine_on) ! && (L.L.engine_starter_antirepeat) ! && (L.L.cockpit_gang1) ! && (L.L.cockpit_gang2) ! &&
-                (L.L.cockpit_gang3) ! && (L.L.cockpit_gangD) ! && (L.L.cockpit_gangR) ! && (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+            (L.L.antrieb_getr_gangwahl) 1 = (L.L.engine_on) ! && (L.L.engine_starter_antirepeat) ! &&
+                (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
             {if}
                 1 (S.L.engine_starter) (S.L.engine_injection_on)
                 (T.L.ev_engine_starter)
@@ -1481,9 +1481,9 @@
     -1 (S.L.cp_cfg_cti_has_additional_transmission_mode_selectors)
         (S.L.cp_cfg_cti_has_engaging_neutral_transmission_mode_selector)
         (S.L.cp_cfg_cti_transmission_mode_selector_blinking_mode_malfunction)
-        (S.L.cp_cfg_cti_transmission_mode_selector_blinking_mode_unsatisfied_constraint)
+        (S.L.cp_cfg_cti_transmission_mode_selector_blinking_mode_desync)
         (S.L.cp_cfg_cti_transmission_mode_selector_blinking_interval_malfunction)
-        (S.L.cp_cfg_cti_transmission_mode_selector_blinking_interval_unsatisfied_constraint)
+        (S.L.cp_cfg_cti_transmission_mode_selector_blinking_interval_desync)
         (S.L.cp_cfg_cti_has_door_wing_lock_switch)
         (S.L.cp_cfg_cti_has_hatch_switch)
         (S.L.cp_cfg_cti_has_openable_passenger_windows)
@@ -1494,9 +1494,9 @@
         (S.L.cp_cfg_on_demand_has_additional_transmission_mode_selectors)
         (S.L.cp_cfg_on_demand_has_engaging_neutral_transmission_mode_selector)
         (S.L.cp_cfg_on_demand_transmission_mode_selector_blinking_mode_malfunction)
-        (S.L.cp_cfg_on_demand_transmission_mode_selector_blinking_mode_unsatisfied_constraint)
+        (S.L.cp_cfg_on_demand_transmission_mode_selector_blinking_mode_desync)
         (S.L.cp_cfg_on_demand_transmission_mode_selector_blinking_interval_malfunction)
-        (S.L.cp_cfg_on_demand_transmission_mode_selector_blinking_interval_unsatisfied_constraint)
+        (S.L.cp_cfg_on_demand_transmission_mode_selector_blinking_interval_desync)
         (S.L.cp_cfg_on_demand_has_door_wing_lock_switch)
         (S.L.cp_cfg_on_demand_has_hatch_switch)
         (S.L.cp_cfg_on_demand_has_openable_passenger_windows)
@@ -1530,13 +1530,13 @@
     {endif}
     (S.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_malfunction)
 
-    (C.L.cp_cfg_default_transmission_mode_selector_blinking_mode_unsatisfied_constraint) s0 0 = l0 1 = ||
+    (C.L.cp_cfg_default_transmission_mode_selector_blinking_mode_desync) trunc s0 0 >= l0 2 <= &&
     {if}
         l0
     {else}
         2
     {endif}
-    (S.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_unsatisfied_constraint)
+    (S.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_desync)
 
     (C.L.cp_cfg_default_transmission_mode_selector_blinking_interval_malfunction) s0 0 > l0 5 <= &&
     {if}
@@ -1546,13 +1546,13 @@
     {endif}
     (S.L.cp_cfg_effective_transmission_mode_selector_blinking_interval_malfunction)
 
-    (C.L.cp_cfg_default_transmission_mode_selector_blinking_interval_unsatisfied_constraint) s0 0 > l0 5 <= &&
+    (C.L.cp_cfg_default_transmission_mode_selector_blinking_interval_desync) s0 0 > l0 5 <= &&
     {if}
         l0
     {else}
         0.5
     {endif}
-    (S.L.cp_cfg_effective_transmission_mode_selector_blinking_interval_unsatisfied_constraint)
+    (S.L.cp_cfg_effective_transmission_mode_selector_blinking_interval_desync)
 
     (C.L.cp_cfg_default_door_wing_lock_switch) s0 0 = l0 1 = ||
     {if}
@@ -1693,16 +1693,16 @@
         l1 (S.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_malfunction)
     {endif}
 
-    (L.L.cp_cfg_on_demand_transmission_mode_selector_blinking_mode_unsatisfied_constraint) s1 0 = l1 1 = || !
+    (L.L.cp_cfg_on_demand_transmission_mode_selector_blinking_mode_desync) trunc s1 0 >= l1 2 <= && !
     {if}
-        (L.L.cp_cfg_cti_transmission_mode_selector_blinking_mode_unsatisfied_constraint) s1 0 = l1 1 = || l0 && (C.L.cp_cfg_no_cti_override_transmission_mode_selector_blinking_mode_unsatisfied_constraint) 1 = ! && !
+        (L.L.cp_cfg_cti_transmission_mode_selector_blinking_mode_desync) trunc s1 0 >= l1 2 <= && l0 && (C.L.cp_cfg_no_cti_override_transmission_mode_selector_blinking_mode_desync) 1 = ! && !
         {if}
             -1 s1
         {endif}
     {endif}
     l1 -1 = !
     {if}
-        l1 (S.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_unsatisfied_constraint)
+        l1 (S.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_desync)
     {endif}
 
     (L.L.cp_cfg_on_demand_transmission_mode_selector_blinking_interval_malfunction) s1 0 > l1 5 <= && !
@@ -1717,16 +1717,16 @@
         l1 (S.L.cp_cfg_effective_transmission_mode_selector_blinking_interval_malfunction)
     {endif}
 
-    (L.L.cp_cfg_on_demand_transmission_mode_selector_blinking_interval_unsatisfied_constraint) s1 0 > l1 5 <= && !
+    (L.L.cp_cfg_on_demand_transmission_mode_selector_blinking_interval_desync) s1 0 > l1 5 <= && !
     {if}
-        (L.L.cp_cfg_cti_transmission_mode_selector_blinking_interval_unsatisfied_constraint) s1 0 > l1 5 <= && l0 && (C.L.cp_cfg_no_cti_override_transmission_mode_selector_blinking_interval_unsatisfied_constraint) 1 = ! && !
+        (L.L.cp_cfg_cti_transmission_mode_selector_blinking_interval_desync) s1 0 > l1 5 <= && l0 && (C.L.cp_cfg_no_cti_override_transmission_mode_selector_blinking_interval_desync) 1 = ! && !
         {if}
             -1 s1
         {endif}
     {endif}
     l1 -1 = !
     {if}
-        l1 (S.L.cp_cfg_effective_transmission_mode_selector_blinking_interval_unsatisfied_constraint)
+        l1 (S.L.cp_cfg_effective_transmission_mode_selector_blinking_interval_desync)
     {endif}
 
     (L.L.cp_cfg_on_demand_has_door_wing_lock_switch) s1 0 = l1 1 = || !
@@ -2162,7 +2162,6 @@
 {end}
 
 {macro:cockpitlights_frame}
-
     (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > s0
 
 '   Störungsmelder
@@ -2183,9 +2182,7 @@
 '   Batterie
     (L.L.elec_ladekontrolle) ! (L.L.vdv_on) && (S.L.cockpit_light_batterie)
 
-    (L.L.bremse_halte) (L.L.vdv_on) && (S.L.cockpit_light_bremse_knopf)
-
-    (L.L.bremse_halte) ! (L.L.vdv_on) && (S.L.cockpit_light_bremse_halte)
+    (L.L.bremse_halte) (L.L.vdv_on) && (S.L.cockpit_light_bremse_halte)
 
 '   Kontrolle Feststellbremse
     (L.L.bremse_p_Brzyl_FBA) 650000 < (L.L.vdv_on) && (S.L.cockpit_light_feststellbremse)
@@ -2205,88 +2202,133 @@
 
     (L.L.cp_ASR_off) l0 && (S.L.cockpit_light_ASR_off)
 
-    0 s2 s3 s4 s5 s6 s7 (S.L.r8) (S.L.r9) (S.L.r10)
+    0 s2 s3 s4 s5 s6 s7 (S.L.r8) (S.L.r9) (S.L.r10) (S.L.r13)
     (L.L.cockpit_initialized_once) l0 &&
     {if}
         1 (S.L.r10)
         (L.L.antrieb_getr_gangwahl) (S.L.r11)
 
-        (L.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_malfunction)
-            (L.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_unsatisfied_constraint) ||
+        (L.L.antrieb_failure_general)
         {if}
-            (L.L.antrieb_failure_general) (L.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_malfunction) s1 &&
+            (L.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_malfunction) s1
             {if}
-                l1 1 =
+                l1 (S.L.r13) 1 =
                 {if}
                     -1 (S.L.r10)
                 {else}
-                    -1 s5 s6 s7 (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors) * s2 s3 s4
-                    l1 2 = (S.L.r8)
+                    l1 3 = (S.L.r8)
                     -2 (S.L.r10)
                 {endif}
                 (L.L.cp_cfg_effective_transmission_mode_selector_blinking_interval_malfunction) (S.L.r9)
-            {else}
-                (L.L.antrieb_getr_gangwahl_cockpit_gangwahl_desync) (S.L.r12)
-                    (L.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_unsatisfied_constraint) s1 &&
+            {endif}
+        {else}
+            (L.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync) (S.L.r12)
+            {if}
+                (L.L.cp_cfg_effective_transmission_mode_selector_blinking_mode_desync) s1
                 {if}
-                    l1 1 = (L.L.r12) 3 < ||
+                    (L.L.cp_cfg_effective_transmission_mode_selector_blinking_interval_desync) (S.L.r9)
+                    -1 (S.L.r10)
+                    0 (S.L.r14)
+                    (L.L.r12) 0 <
                     {if}
-                        l1 2 =
+                        (L.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync_target) (L.L.cockpit_gangwahl) 0 >=
+                            (L.L.cockpit_gangwahl) (L.L.antrieb_getr_gangvorwahl) = && (L.L.cockpit_gangwahl) 0 < || &&
                         {if}
-                            (L.L.antrieb_getr_gangwahl) s1 0 =
+                            (L.L.cockpit_gangwahl) (S.L.r11) 0 <
                             {if}
-                                1 s7
-                            {else}
-                                l1 1 =
+                                (L.L.r11) 1 + abs (S.L.r11)
+                            {endif}
+                            (L.L.r12) abs 2 = 2 * l1 2 = + 4 + (S.L.r13) 5 = (L.L.r13) 7 = ||
+                            {if}
+                                1 (S.L.r14)
+                            {endif}
+                        {else}
+                            l1 2 = (S.L.r10)
+                        {endif}
+                    {else}
+                        (L.L.r12) 1 =
+                        {if}
+                            l1 2 = 8 + (S.L.r13) 9 =
+                            {if}
+                                1 (S.L.r14)
+                            {endif}
+                        {else}
+                            (L.L.r12) 2 =
+                            {if}
+                                (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors)
                                 {if}
-                                    1 s6
-                                {else}
-                                    l1 2 =
+                                    l1 2 = 10 + (S.L.r13) 11 =
                                     {if}
-                                        (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors)
+                                        (L.L.antrieb_getr_aktugang) s1 3 <
                                         {if}
-                                            1 s2
-                                        {endif}
-                                    {else}
-                                        l1 3 =
-                                        {if}
-                                            (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors)
-                                            {if}
-                                                1 s3
-                                            {endif}
+                                            1 s3
                                         {else}
-                                            l1 4 =
+                                            l1 4 <
                                             {if}
-                                                (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors)
-                                                {if}
-                                                    1 s4
-                                                {endif}
+                                                1 s4
                                             {else}
                                                 1 s5
                                             {endif}
                                         {endif}
                                     {endif}
+                                {else}
+                                    1 (S.L.r10)
+                                {endif}
+                            {else}
+                                (L.L.r12) 3 =
+                                {if}
+                                    l1 2 = 12 + (S.L.r13) 13 =
+                                    {if}
+                                        1 (S.L.r14)
+                                    {endif}
                                 {endif}
                             {endif}
                         {endif}
-                        (L.L.antrieb_getr_gangvorwahl) (S.L.r11)
-                    {else}
-                        (L.L.antrieb_getr_aktugang) s1 2 =
+                    {endif}
+                    (L.L.r14)
+                    {if}
+                        (L.L.antrieb_getr_gangwahl) s1 0 =
                         {if}
-                            1 s3
+                            1 s7
                         {else}
-                            l1 3 =
+                            l1 1 =
                             {if}
-                                1 s4
+                                1 s6
                             {else}
-                                1 s5
+                                (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors)
+                                {if}
+                                    l1 2 =
+                                    {if}
+                                        1 s2
+                                    {else}
+                                        l1 3 =
+                                        {if}
+                                            1 s3
+                                        {else}
+                                            l1 4 =
+                                            {if}
+                                                1 s4
+                                            {else}
+                                                1 s5
+                                            {endif}
+                                        {endif}
+                                    {endif}
+                                {else}
+                                    1 s5
+                                {endif}
                             {endif}
                         {endif}
                     {endif}
-                    (L.L.cp_cfg_effective_transmission_mode_selector_blinking_interval_unsatisfied_constraint) (S.L.r9)
-                    -1 (S.L.r10)
                 {endif}
             {endif}
+        {endif}
+
+        (L.L.cockpit_transmission_mode_selector_blinking_context) (L.L.r13) = !
+        {if}
+            0 (S.L.cockpit_automatic_1_light) (S.L.cockpit_automatic_2_light) (S.L.cockpit_automatic_3_light)
+                (S.L.cockpit_automatic_D_light) (S.L.cockpit_automatic_N_light) (S.L.cockpit_automatic_R_light)
+            -1 (S.L.cockpit_automatic_1_light_timer) (S.L.cockpit_automatic_2_light_timer) (S.L.cockpit_automatic_3_light_timer)
+                (S.L.cockpit_automatic_D_light_timer) (S.L.cockpit_automatic_N_light_timer) (S.L.cockpit_automatic_R_light_timer)
         {endif}
 
         (L.L.r10)
@@ -2299,7 +2341,7 @@
                 {else}
                     l1 1 =
                     {if}
-                        (L.L.antrieb_failure_general)
+                        (L.L.antrieb_failure_general) (L.L.r13) 1 = &&
                         {if}
                             (L.L.r10)
                         {else}
@@ -2307,30 +2349,26 @@
                         {endif}
                         s6
                     {else}
-                        l1 2 =
+                        (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors)
                         {if}
-                            (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors)
+                            l1 2 =
                             {if}
                                 (L.L.r10) s2
-                            {endif}
-                        {else}
-                            l1 3 =
-                            {if}
-                                (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors)
+                            {else}
+                                l1 3 =
                                 {if}
                                     (L.L.r10) s3
-                                {endif}
-                            {else}
-                                l1 4 =
-                                {if}
-                                    (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors)
+                                {else}
+                                    l1 4 =
                                     {if}
                                         (L.L.r10) s4
+                                    {else}
+                                        (L.L.r10) s5
                                     {endif}
-                                {else}
-                                    (L.L.r10) s5
                                 {endif}
                             {endif}
+                        {else}
+                            (L.L.r10) s5
                         {endif}
                     {endif}
                 {endif}
@@ -2338,72 +2376,124 @@
 
             (L.L.r10) 0 <
             {if}
-                0 s1
-                l2 -1 =
+                (L.L.r10) -2 =
                 {if}
-                    (L.L.cockpit_automatic_1_light) (S.L.r11)
-                    (L.L.cockpit_automatic_1_light_timer) (S.L.r12) -1 = (L.L.r8) &&
+                    (L.L.r8) !
                     {if}
-                        l1 0.75 + 1 max s1 (L.L.r9) * (S.L.r12)
+                        (L.L.cockpit_automatic_D_light) (S.L.r11) (L.L.cockpit_automatic_D_light_timer) (S.L.r12)
+                            (M.L.cockpit_transmission_selector_blinking) (L.L.r11) s5 s6 s7
+                            (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors) * s2 s3 s4
+                            (L.L.r12) (S.L.cockpit_automatic_D_light_timer)
+                    {else}
+
+                        (L.L.cockpit_automatic_D_light_timer) s1 -1 =
+                        {if}
+                            (L.L.r9) s1
+                        {endif}
+                        l1 (L.S.Timegap) + s1 (L.L.r9) / trunc (S.L.r8) 4
+                            (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors) 3 * + =
+                        {if}
+                            (L.L.r9) s1
+                            1 (S.L.r8)
+                        {endif}
+                        l1 (S.L.cockpit_automatic_D_light_timer)
+
+                        (L.L.cp_cfg_effective_has_additional_transmission_mode_selectors)
+                        {if}
+                            (L.L.r8) 1 =
+                            {if}
+                                1 s2
+                            {else}
+                                (L.L.r8) 2 =
+                                {if}
+                                    1 s3
+                                {else}
+                                    (L.L.r8) 3 =
+                                    {if}
+                                        1 s4
+                                    {else}
+                                        (L.L.r8) 4 =
+                                        {if}
+                                            1 s5
+                                        {else}
+                                            (L.L.r8) 5 =
+                                            {if}
+                                                1 s6
+                                            {else}
+                                                1 s7
+                                            {endif}
+                                        {endif}
+                                    {endif}
+                                {endif}
+                            {endif}
+                        {else}
+                            (L.L.r8) 1 =
+                            {if}
+                                1 s5
+                            {else}
+                                (L.L.r8) 2 =
+                                {if}
+                                    1 s6
+                                {else}
+                                    1 s7
+                                {endif}
+                            {endif}
+                        {endif}
                     {endif}
-                    (M.L.cockpit_transmission_selector_blinking)
-                    (L.L.r11) s2
-                    (L.L.r12) (S.L.cockpit_automatic_1_light_timer)
-                {endif}
-                l3 -1 =
-                {if}
-                    (L.L.cockpit_automatic_2_light) (S.L.r11)
-                    (L.L.cockpit_automatic_2_light_timer) (S.L.r12) -1 = (L.L.r8) &&
+                {else}
+                    l2 -1 =
                     {if}
-                        l1 0.75 + 1 max s1 (L.L.r9) * (S.L.r12)
+                        (L.L.cockpit_automatic_1_light) (S.L.r11) (L.L.cockpit_automatic_1_light_timer) (S.L.r12)
+                            (M.L.cockpit_transmission_selector_blinking)
+                            (L.L.r11) s2 (L.L.r12) (S.L.cockpit_automatic_1_light_timer)
+                    {else}
+                        -1 (S.L.cockpit_automatic_1_light_timer)
                     {endif}
-                    (M.L.cockpit_transmission_selector_blinking)
-                    (L.L.r11) s3
-                    (L.L.r12) (S.L.cockpit_automatic_2_light_timer)
-                {endif}
-                l4 -1 =
-                {if}
-                    (L.L.cockpit_automatic_3_light) (S.L.r11)
-                    (L.L.cockpit_automatic_3_light_timer) (S.L.r12) -1 = (L.L.r8) &&
+
+                    l3 -1 =
                     {if}
-                        l1 0.75 + 1 max s1 (L.L.r9) * (S.L.r12)
+                        (L.L.cockpit_automatic_2_light) (S.L.r11) (L.L.cockpit_automatic_2_light_timer) (S.L.r12)
+                        (M.L.cockpit_transmission_selector_blinking)
+                        (L.L.r11) s3 (L.L.r12) (S.L.cockpit_automatic_2_light_timer)
+                    {else}
+                        -1 (S.L.cockpit_automatic_2_light_timer)
                     {endif}
-                    (M.L.cockpit_transmission_selector_blinking)
-                    (L.L.r11) s4
-                    (L.L.r12) (S.L.cockpit_automatic_3_light_timer)
-                {endif}
-                l5 -1 =
-                {if}
-                    (L.L.cockpit_automatic_D_light) (S.L.r11)
-                    (L.L.cockpit_automatic_D_light_timer) (S.L.r12) -1 = (L.L.r8) &&
+
+                    l4 -1 =
                     {if}
-                        l1 0.75 + 1 max s1 (L.L.r9) * (S.L.r12)
+                        (L.L.cockpit_automatic_3_light) (S.L.r11) (L.L.cockpit_automatic_3_light_timer) (S.L.r12)
+                        (M.L.cockpit_transmission_selector_blinking)
+                        (L.L.r11) s4 (L.L.r12) (S.L.cockpit_automatic_3_light_timer)
+                    {else}
+                        -1 (S.L.cockpit_automatic_3_light_timer)
                     {endif}
-                    (M.L.cockpit_transmission_selector_blinking)
-                    (L.L.r11) s5
-                    (L.L.r12) (S.L.cockpit_automatic_D_light_timer)
-                {endif}
-                l6 -1 =
-                {if}
-                    (L.L.cockpit_automatic_N_light) (S.L.r11)
-                    (L.L.cockpit_automatic_N_light_timer) (S.L.r12) -1 = (L.L.r8) &&
+
+                    l5 -1 =
                     {if}
-                        l1 0.75 + 1 max s1 (L.L.r9) * (S.L.r12)
+                        (L.L.cockpit_automatic_D_light) (S.L.r11) (L.L.cockpit_automatic_D_light_timer) (S.L.r12)
+                        (M.L.cockpit_transmission_selector_blinking)
+                        (L.L.r11) s5 (L.L.r12) (S.L.cockpit_automatic_D_light_timer)
+                    {else}
+                        -1 (S.L.cockpit_automatic_D_light_timer)
                     {endif}
-                    (M.L.cockpit_transmission_selector_blinking)
-                    (L.L.r11) s6
-                    (L.L.r12) (S.L.cockpit_automatic_N_light_timer)
-                {endif}
-                l7 -1 =
-                {if}
-                    (L.L.cockpit_automatic_R_light) (S.L.r11)
-                    (L.L.cockpit_automatic_R_light_timer) (S.L.r12) -1 = (L.L.r8) &&
+
+                    l6 -1 =
                     {if}
-                        l1 0.75 + 1 max s1 (L.L.r9) * (S.L.r12)
+                        (L.L.cockpit_automatic_N_light) (S.L.r11) (L.L.cockpit_automatic_N_light_timer) (S.L.r12)
+                        (M.L.cockpit_transmission_selector_blinking)
+                        (L.L.r11) s6 (L.L.r12) (S.L.cockpit_automatic_N_light_timer)
+                    {else}
+                        -1 (S.L.cockpit_automatic_N_light_timer)
                     {endif}
-                    (M.L.cockpit_transmission_selector_blinking)
-                    (L.L.r11) s7
-                    (L.L.r12) (S.L.cockpit_automatic_R_light_timer)
+
+                    l7 -1 =
+                    {if}
+                        (L.L.cockpit_automatic_R_light) (S.L.r11) (L.L.cockpit_automatic_R_light_timer) (S.L.r12)
+                        (M.L.cockpit_transmission_selector_blinking)
+                        (L.L.r11) s7 (L.L.r12) (S.L.cockpit_automatic_R_light_timer)
+                    {else}
+                        -1 (S.L.cockpit_automatic_R_light_timer)
+                    {endif}
                 {endif}
             {endif}
         {endif}
@@ -2421,6 +2511,7 @@
     l5 (S.L.cockpit_automatic_D_light)
     l6 (S.L.cockpit_automatic_N_light)
     l7 (S.L.cockpit_automatic_R_light)
+    (L.L.r13) (S.L.cockpit_transmission_mode_selector_blinking_context)
 {end}
 
 {macro:cockpit_transmission_selector_blinking}
@@ -2925,7 +3016,7 @@
             0 (S.L.empty_01)
         {endif}
 
-        (L.L.pandus_speed) 0 = !
+        (L.L.pandus_speed)
         {if}
             (L.L.pandus_pos) 0.005 < (L.L.pandus_pos) 0.995 > ||
             {if}
@@ -3190,7 +3281,15 @@
                 {endif}
             {endif}
         {endif}
-        (S.L.cockpit_gangwahl)
+        s1
+        (L.L.cockpit_gangwahl) s0 0 <
+        {if}
+            l0 1 + abs s0
+        {endif}
+        l0 l1 = !
+        {if}
+            l1 (S.L.cockpit_gangwahl)
+        {endif}
     {endif}
 {end}
 

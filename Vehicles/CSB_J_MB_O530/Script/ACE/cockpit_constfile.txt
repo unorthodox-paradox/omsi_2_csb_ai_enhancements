@@ -8,10 +8,10 @@ cp_cfg_default_has_engaging_neutral_transmission_mode_selector
 
 [const]
 cp_cfg_default_transmission_mode_selector_blinking_mode_malfunction
-1
+2
 
 [const]
-cp_cfg_default_transmission_mode_selector_blinking_mode_unsatisfied_constraint
+cp_cfg_default_transmission_mode_selector_blinking_mode_desync
 2
 
 [const]
@@ -19,7 +19,7 @@ cp_cfg_default_transmission_mode_selector_blinking_interval_malfunction
 0.25
 
 [const]
-cp_cfg_default_transmission_mode_selector_blinking_interval_unsatisfied_constraint
+cp_cfg_default_transmission_mode_selector_blinking_interval_desync
 0.5
 
 [const]
@@ -59,7 +59,7 @@ cp_cfg_no_cti_override_transmission_mode_selector_blinking_mode_malfunction
 0
 
 [const]
-cp_cfg_no_cti_override_transmission_mode_selector_blinking_mode_unsatisfied_constraint
+cp_cfg_no_cti_override_transmission_mode_selector_blinking_mode_desync
 0
 
 [const]
@@ -67,7 +67,7 @@ cp_cfg_no_cti_override_transmission_mode_selector_blinking_interval_malfunction
 0
 
 [const]
-cp_cfg_no_cti_override_transmission_mode_selector_blinking_interval_unsatisfied_constraint
+cp_cfg_no_cti_override_transmission_mode_selector_blinking_interval_desync
 0
 
 [const]

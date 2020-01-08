@@ -560,8 +560,8 @@
             {endif}
             (L.L.antrieb_getr_gangvorwahl) 1 = !
             {if}
-                1 (S.L.antrieb_getr_gangvorwahl)
-                0 (S.L.antrieb_getr_initial_shift_delay_timer)
+                1 (S.L.cockpit_gangwahl) (S.L.antrieb_getr_gangvorwahl)
+                0 (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync_timer) (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync_target)
             {endif}
 '           // Rotate ignition key back to position 1 / primary electrics on / "ACC" if at a greater position
             (L.L.key_mode) 3 >=
@@ -6186,8 +6186,8 @@
         (L.L.antrieb_getr_gangvorwahl) 5 = (L.L.engine_on) ! && s1 (L.L.antrieb_getr_gangvorwahl) 1 = !
             (L.L.antrieb_getr_gangvorwahl) 5 = ! && ||
         {if}
-            1 (S.L.antrieb_getr_gangvorwahl)
-            0 (S.L.antrieb_getr_initial_shift_delay_timer)
+            1 (S.L.cockpit_gangwahl) (S.L.antrieb_getr_gangvorwahl)
+            0 (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync_timer) (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync_target)
         {endif}
         (L.L.cockpit_gang1) (L.L.cockpit_gang2) || (L.L.cockpit_gang3) || (L.L.cockpit_gangD) l1 && s1 ||
             (L.L.cockpit_gangR) ||
@@ -6503,8 +6503,8 @@
                 {endif}
                 l4 (L.L.antrieb_getr_gangvorwahl) 5 = ! &&
                 {if}
-                    5 (S.L.antrieb_getr_gangvorwahl)
-                    0 (S.L.antrieb_getr_initial_shift_delay_timer)
+                    5 (S.L.cockpit_gangwahl) (S.L.antrieb_getr_gangvorwahl)
+                    0 (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync_timer) (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync_target)
                 {endif}
                 900000 (S.L.bremse_p_tank01) (S.L.bremse_p_tank02) (S.L.bremse_p_tank03) (S.L.bremse_p_tank04)
                     (S.L.bremse_p_leitung01) (S.L.bremse_p_leitung02)

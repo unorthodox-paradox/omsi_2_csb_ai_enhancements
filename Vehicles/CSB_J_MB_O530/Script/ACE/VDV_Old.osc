@@ -2254,13 +2254,11 @@
 	{endif}
 
 '	Gearstart Warn Yellow
-	(L.L.antrieb_getr_gangwahl) 1 = ! (L.L.cockpit_gang1) || (L.L.cockpit_gang2) || (L.L.cockpit_gang3) || (L.L.cockpit_gangD) || (L.L.cockpit_gangR) ||
-		(L.L.key_mode) 4 = && (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > && (L.L.engine_on) ! && (L.L.vdv_display_startuptime) 16 > &&
-		(L.L.vdv_display_masterwarn) ! &&
+	(L.L.antrieb_getr_gangwahl) 1 = ! (L.L.key_mode) 4 = && (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+        (L.L.engine_on) ! && (L.L.vdv_display_startuptime) 16 > && (L.L.vdv_display_masterwarn) ! &&
 	{if}
 		1 (S.L.vdv_error_gearstart_active)
-		(L.L.gearstart_Signal) 1 + (S.L.gearstart_Signal)
-		1 =
+		(L.L.gearstart_Signal) 1 + (S.L.gearstart_Signal) 1 =
 		{if}
 '			(T.L.ev_stoermeldung)
 			6 (S.L.vdv_display_mode)
@@ -2478,14 +2476,15 @@
 	{endif}
 
 '	Gearbox Warn Red - not cancelable
-	(L.L.Gear_Error_dist) (L.L.velocity) 3600 / (L.S.Timegap) * + (S.L.Gear_Error_dist)
-	(C.L.Fehlertoleranz) (L.L.wearlifespan) * > (S.L.antrieb_failure_general)
-	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
-	(L.L.vdv_display_startuptime) 16 > &&
+	(L.L.Gear_Error_dist) (L.L.velocity) 3600 / (L.S.Timegap) * + (S.L.Gear_Error_dist) (C.L.Fehlertoleranz) (L.L.wearlifespan) * > s0
+	{if}
+		1 (S.L.antrieb_failure_general)
+	{endif}
+
+	l0 (L.L.antrieb_failure_general) || (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > && (L.L.vdv_display_startuptime) 16 > &&
 	{if}
 		1 (S.L.vdv_error_gearbox_active)
-		(L.L.gearbox_Signal) 1 + (S.L.gearbox_Signal)
-		1 =
+		(L.L.gearbox_Signal) 1 + (S.L.gearbox_Signal) 1 =
 		{if}
 			(T.L.ev_stoermeldung)
 			6 (S.L.vdv_display_mode)
@@ -2536,14 +2535,15 @@
 	{endif}
 
 '	EDC Warn Red - not cancelable
-	(L.L.EDC_Error_dist) (L.L.velocity) 3600 / (L.S.Timegap) * + (S.L.EDC_Error_dist)
-	(C.L.Fehlertoleranz) (L.L.wearlifespan) * > (S.L.engine_failure_general)
-	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
-	(L.L.vdv_display_startuptime) 16 > &&
+	(L.L.EDC_Error_dist) (L.L.velocity) 3600 / (L.S.Timegap) * + (S.L.EDC_Error_dist) (C.L.Fehlertoleranz) (L.L.wearlifespan) * > s0
 	{if}
-		1 (S.L.vdv_error_edc_active)
-		(L.L.edc_Signal) 1 + (S.L.edc_Signal)
-		1 =
+		1 (S.L.engine_failure_general)
+	{endif}
+
+	l0 (L.L.engine_failure_general) || (L.L.elec_busbar_main) (C.L.elec_busbar_minV) > && (L.L.vdv_display_startuptime) 16 > &&
+	{if}
+		1 (S.L.vdv_error_EDC_active)
+		(L.L.EDC_Signal) 1 + (S.L.EDC_Signal) 1 =
 		{if}
 			(T.L.ev_stoermeldung)
 			6 (S.L.vdv_display_mode)
@@ -2551,7 +2551,7 @@
 			5 (S.L.Fehleranzahl)
 		{endif}
 	{else}
-		0 (S.L.edc_Signal) (S.L.vdv_error_edc_active)
+		0 (S.L.EDC_Signal) (S.L.vdv_error_EDC_active)
 	{endif}
 
 '	Nothahn Warn Red - not cancelable

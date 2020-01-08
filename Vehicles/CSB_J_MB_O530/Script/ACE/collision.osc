@@ -16,9 +16,9 @@
 '- antrieb
 
 'Revision History:
-'- Marcel Kuhnt		09.06.2009	File created, added electricity, engine & gearbox failure
-'- Marcel Kuhnt		04.07.2011	Added Malfunction Repair Time Calculation
-'- Marcel Kuhnt		30.10.2012	Added Malfunction Live Time Subtraction Call, new calculation algorithm
+'- Marcel Kuhnt     09.06.2009    File created, added electricity, engine & gearbox failure
+'- Marcel Kuhnt     04.07.2011    Added Malfunction Repair Time Calculation
+'- Marcel Kuhnt     30.10.2012    vAdded Malfunction Live Time Subtraction Call, new calculation algorithm
 
 '------------------------------------------------------------------------------------------
 
@@ -75,6 +75,16 @@
 
     l0 (L.L.engine_failure_general) || (L.L.antrieb_failure_general) ||
     {if}
+        (L.L.antrieb_failure_general)
+        {if}
+            0.7 (S.L.cockpit_gangN)
+            1 (S.L.cockpit_gangwahl) (S.L.antrieb_getr_gangvorwahl) (S.L.antrieb_getr_gangwahl)
+            -1 (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync_timer)
+            0 (S.L.cockpit_gang1) (S.L.cockpit_gang2) (S.L.cockpit_gang3) (S.L.cockpit_gangD) (S.L.cockpit_gangR)
+                (S.L.cockpit_transmission_mode_selector_blinking_context)
+                (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync_target)
+                (S.L.antrieb_getr_gangwahl_cockpit_gangwahl_sync)
+        {endif}
         0 (S.L.collision_energy_eng) (S.L.engine_failure_general) (S.L.antrieb_failure_general)
         (C.L.collision_energy_eng_threshold_max) (C.L.collision_energy_eng_threshold_min) -
             random (C.L.collision_energy_eng_threshold_min) + (S.L.collision_energy_eng_threshold)

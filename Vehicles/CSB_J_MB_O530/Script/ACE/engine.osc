@@ -154,10 +154,11 @@
 
 	(L.L.bremse_kompressor)	(L.L.engine_on) &&
 	{if}
-		10 (S.L.engine_M_additional_load)
+		10
 	{else}
-		0 (S.L.engine_M_additional_load)
+		0
 	{endif}
+	(S.L.engine_M_additional_load)
 
 	(M.L.engine_temperature)
 
