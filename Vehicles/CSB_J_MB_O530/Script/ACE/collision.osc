@@ -18,7 +18,7 @@
 'Revision History:
 '- Marcel Kuhnt     09.06.2009    File created, added electricity, engine & gearbox failure
 '- Marcel Kuhnt     04.07.2011    Added Malfunction Repair Time Calculation
-'- Marcel Kuhnt     30.10.2012    vAdded Malfunction Live Time Subtraction Call, new calculation algorithm
+'- Marcel Kuhnt     30.10.2012    Added Malfunction Live Time Subtraction Call, new calculation algorithm
 
 '------------------------------------------------------------------------------------------
 
